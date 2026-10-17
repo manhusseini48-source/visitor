@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
+@layer base {
+  body {
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Universal High-Contrast Form Controls:
+     Ensures background and text colors are NEVER the same.
+     Light mode: White/light box + high-contrast dark text (#0f172a).
+     Dark mode: Dark slate box (#1e293b) + crisp white text (#ffffff).
+  */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    background-color: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 0.75rem;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+  select:focus,
+  textarea:focus {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    background-color: #ffffff !important;
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2) !important;
+    outline: none !important;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  .dark select,
+  .dark textarea,
+  [data-theme=dark] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  [data-theme=dark] select,
+  [data-theme=dark] textarea {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background-color: #1e293b !important;
+    border: 1.5px solid #475569 !important;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+  .dark select:focus,
+  .dark textarea:focus,
+  [data-theme=dark] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+  [data-theme=dark] select:focus,
+  [data-theme=dark] textarea:focus {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background-color: #1e293b !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25) !important;
+    outline: none !important;
+  }
+
+  /* Placeholders: clearly distinguishable from typed text */
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+    opacity: 1 !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder,
+  [data-theme=dark] input::placeholder,
+  [data-theme=dark] textarea::placeholder {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    opacity: 1 !important;
+  }
+
+  /* Disabled inputs: distinct muted style */
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  .dark input:disabled,
+  .dark select:disabled,
+  .dark textarea:disabled {
+    background-color: #0f172a !important;
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+  }
+
+  /* Browser Autofill Fix - prevents white text on white input background */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0f172a !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  [data-theme=dark] input:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+    box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="pillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+    <linearGradient id="crossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0284c7" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Main Emblem: Seamless rounded shape with NO white outer border/margin -->
+  <rect x="0" y="0" width="512" height="512" rx="128" fill="url(#brandGrad)" />
+  
+  <!-- Modern Medical Cross Accent Behind Capsule -->
+  <rect x="236" y="100" width="40" height="312" rx="20" fill="#ffffff" opacity="0.15" />
+  <rect x="100" y="236" width="312" height="40" rx="20" fill="#ffffff" opacity="0.15" />
+
+  <!-- Dynamic Rotated Capsule Pill -->
+  <g transform="translate(256, 256) rotate(-45)">
+    <!-- Bottom Half of Capsule -->
+    <path d="M -54,0 L -54,90 C -54,120 -28,144 0,144 C 28,144 54,120 54,90 L 54,0 Z" fill="#ffffff" />
+    <!-- Top Half of Capsule -->
+    <path d="M -54,0 L -54,-90 C -54,-120 -28,-144 0,-144 C 28,-144 54,-120 54,-90 L 54,0 Z" fill="url(#pillGrad)" />
+    <!-- Capsule Center Dividing Band -->
+    <rect x="-54" y="-6" width="108" height="12" fill="#0284c7" opacity="0.8" rx="3" />
+    <!-- Capsule Gloss Shine -->
+    <path d="M -36,-110 C -44,-95 -44,-60 -44,-20 L -30,-20 C -30,-60 -30,-95 -24,-110 Z" fill="#ffffff" opacity="0.6" />
+  </g>
+
+  <!-- Small Plus Sparkle Badge -->
+  <circle cx="390" cy="120" r="46" fill="url(#crossGrad)" />
+  <rect x="378" y="96" width="24" height="48" rx="6" fill="#ffffff" />
+  <rect x="366" y="108" width="48" height="24" rx="6" fill="#ffffff" />
+</svg>
