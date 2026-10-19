@@ -206,18 +206,32 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
+              onClick={() => onNavigateTab('gallery')}
+              className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-amber-900" />
+              <span>گالری و پرزنتیشن دارو به مشتری</span>
+            </button>
+            <button
               onClick={() => onNavigateTab('orders')}
               className="px-4 py-2.5 bg-white text-emerald-900 rounded-xl text-xs font-black hover:bg-emerald-50 shadow-md transition flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4 text-emerald-600" />
-              <span>ثبت سفارش جدید</span>
+              <span>ثبت سفارش</span>
+            </button>
+            <button
+              onClick={() => onNavigateTab('accounting')}
+              className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <DollarSign className="w-4 h-4 text-teal-300" />
+              <span>صندوق و بیعانه‌ها</span>
             </button>
             <button
               onClick={() => onNavigateTab('visits')}
               className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
             >
               <Calendar className="w-4 h-4" />
-              <span>برنامه ویزیت‌ها</span>
+              <span>ویزیت‌ها</span>
             </button>
           </div>
         </div>
@@ -258,7 +272,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           trend={currentUser?.commissionRate ? { percent: currentUser.commissionRate, direction: 'neutral', label: 'طبق قرارداد' } : undefined}
           sparklineData={currentUser?.commissionRate ? [currentUser.commissionRate, currentUser.commissionRate] : [0, 0]}
           sparklineColor="#6366f1"
-          onClick={() => onNavigateTab('commission')}
+          onClick={() => onNavigateTab('accounting')}
         />
 
         <MetricCardWithSparkline
@@ -270,7 +284,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           trend={currentBalance > 0 ? { percent: 100, direction: 'up', label: 'آماده تسویه' } : undefined}
           sparklineData={currentBalance > 0 ? [currentBalance * 0.7, currentBalance * 0.9, currentBalance] : [0, 0]}
           sparklineColor="#f59e0b"
-          onClick={() => onNavigateTab('commission')}
+          onClick={() => onNavigateTab('accounting')}
         />
       </div>
 
