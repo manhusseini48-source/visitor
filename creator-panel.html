@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پنل مستقل سازنده و مدیر کل | ویزیتور دارو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body {
+      font-family: 'Vazirmatn', -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <!-- Top Navigation -->
+  <header class="bg-slate-950 border-b border-slate-800 p-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center font-black text-xl shadow-lg shadow-purple-600/30">
+          🛡️
+        </div>
+        <div>
+          <h1 class="font-black text-base md:text-lg text-white">پنل آفلاین/مستقل سازنده پلتفرم</h1>
+          <p class="text-xs text-slate-400">کنترل اختصاصی فروشگاه‌ها، تمدید اشتراک و ظاهر سیستم (بدون افشای سکرت)</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold">
+          اتصال امن برقرار است
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl">
+        <div class="text-xs text-slate-400">کل فروشگاه‌های دارویی</div>
+        <div id="statStoresCount" class="text-2xl font-black text-purple-400 font-mono mt-1">۱</div>
+        <div class="text-[10px] text-slate-500 mt-1">با دسترسی ایزوله</div>
+      </div>
+      <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl">
+        <div class="text-xs text-slate-400">فروشگاه‌های آزمایشی</div>
+        <div id="statTrialCount" class="text-2xl font-black text-sky-400 font-mono mt-1">۱</div>
+        <div class="text-[10px] text-slate-500 mt-1">مهلت تست ۱۴ روزه</div>
+      </div>
+      <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl">
+        <div class="text-xs text-slate-400">تعداد ویزیتورها</div>
+        <div id="statVisitorsCount" class="text-2xl font-black text-emerald-400 font-mono mt-1">۲</div>
+        <div class="text-[10px] text-slate-500 mt-1">در سیستم فعال</div>
+      </div>
+      <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl">
+        <div class="text-xs text-slate-400">وضعیت گیت ارتباطی</div>
+        <div class="text-xl font-bold text-amber-400 mt-1">آماده فرمان</div>
+        <div class="text-[10px] text-slate-500 mt-1">API امن لوکال / آنلاین</div>
+      </div>
+    </div>
+
+    <!-- Management Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Section 1: Store Subscriptions -->
+      <div class="lg:col-span-2 bg-slate-800/80 border border-slate-700 rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+          <h2 class="font-bold text-base text-white">مدیریت و تمدید اشتراک فروشگاه‌ها</h2>
+          <span class="text-xs text-slate-400">عمده‌فروشان دارو</span>
+        </div>
+
+        <div id="storesList" class="space-y-3">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Section 2: Global Branding & Theme Configurator -->
+      <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 space-y-4">
+        <div class="border-b border-slate-700 pb-3">
+          <h2 class="font-bold text-base text-white">شخصی‌سازی ظاهر برنامه</h2>
+          <p class="text-xs text-slate-400">تنظیم نام محصول، پالت رنگ و پیام‌ها</p>
+        </div>
+
+        <form id="themeForm" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-slate-300 font-bold mb-1">نام محصول:</label>
+            <input type="text" id="cfgAppName" value="ویزیتور" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-bold mb-1">توضیح کوتاه:</label>
+            <input type="text" id="cfgShortDesc" value="پنل ویزیتور دارو" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">رنگ سازمانی:</label>
+              <input type="color" id="cfgPrimaryColor" value="#0284c7" class="w-full h-8 bg-slate-900 border border-slate-700 rounded cursor-pointer">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">رنگ کمکی:</label>
+              <input type="color" id="cfgAccentColor" value="#0d9488" class="w-full h-8 bg-slate-900 border border-slate-700 rounded cursor-pointer">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">قیمت ۶ ماهه (افغانی):</label>
+              <input type="number" id="cfgPlan6MonthPrice" value="12000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-mono font-bold text-sky-400" dir="ltr">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">قیمت ۱ ساله (افغانی):</label>
+              <input type="number" id="cfgPlan1YearPrice" value="20000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-mono font-bold text-sky-400" dir="ltr">
+            </div>
+            <div class="col-span-2 pt-1 text-[10px] text-slate-400">
+              * این قیمت‌ها بلافاصله در صفحه اشتراک فروشگاه‌ها اعمال می‌شوند.
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">شماره تماس مستقیم:</label>
+              <input type="text" id="cfgSupportPhone" value="0784524918" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-mono font-bold text-emerald-400" dir="ltr">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-bold mb-1">شماره واتساپ خرید/پشتیبانی:</label>
+              <input type="text" id="cfgSupportWhatsApp" value="0784524918" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-mono font-bold text-emerald-400" dir="ltr">
+            </div>
+            <div class="col-span-2 pt-1 text-[10px] text-slate-400">
+              * دکمه پیام در واتساپ و تماس تلفنی مستقیم با این شماره در کل برنامه تنظیم می‌شود.
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-300 font-bold mb-1">پیام پایان اشتراک ویزیتور:</label>
+            <textarea id="cfgExpiredMsg" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">دسترسی شما به‌دلیل پایان اشتراک فروشگاه غیرفعال شده است. لطفاً از صاحب فروشگاه بخواهید اشتراک را تمدید کند.</textarea>
+          </div>
+
+          <button type="button" onclick="saveThemeConfig()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition shadow-lg shadow-purple-600/30 cursor-pointer">
+            انتشار سراسری تنظیمات و قیمت‌ها به پلتفرم
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Support Welcome & FAQs Management Card -->
+    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-6">
+      <div class="border-b border-slate-700 pb-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🎧</span>
+          <span>مدیریت پشتیبانی آنلاین، پیام خوش‌آمدگویی و پرسش‌های پرکاربرد (FAQs)</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">
+          تنظیم متن خوش‌آمدگویی و پرسش‌های کلیدی که در بخش چت پشتیبانی برای کاربران برنامه نمایش داده می‌شود.
+        </p>
+      </div>
+
+      <!-- Welcome Message Form -->
+      <div class="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+        <label class="block text-xs font-bold text-slate-200">
+          متن پیام خوش‌آمدگویی بخش پشتیبانی:
+        </label>
+        <textarea
+          id="cfgSupportWelcome"
+          rows="3"
+          class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+          placeholder="متن پیام خوش‌آمدگویی..."
+        ></textarea>
+        <div class="flex justify-end">
+          <button
+            type="button"
+            onclick="saveSupportWelcome()"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            ذخیره متن خوش‌آمدگویی
+          </button>
+        </div>
+      </div>
+
+      <!-- FAQs Section -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-purple-300">
+            پرسش‌ها و پاسخ‌های پرکاربرد برنامه (FAQs)
+          </h3>
+          <span class="text-[11px] text-slate-400">تنها پرسش‌های «منتشر شده» در برنامه به کاربران نشان داده می‌شوند.</span>
+        </div>
+
+        <!-- Add FAQ Form -->
+        <div class="bg-slate-900/90 border border-slate-700 p-4 rounded-xl space-y-3 text-xs">
+          <div class="font-bold text-white">افزودن پرسش و پاسخ جدید:</div>
+          <div>
+            <label class="block text-slate-300 mb-1">عنوان سؤال (متن دکمه راهنما):</label>
+            <input
+              type="text"
+              id="newFaqQuestion"
+              placeholder="مثال: چگونه فاکتور رسمی PDF دانلود کنم؟"
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
+            />
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1">پاسخ کامل راهنمای پشتیبانی:</label>
+            <textarea
+              id="newFaqAnswer"
+              rows="3"
+              placeholder="پاسخ کامل را تایپ نمایید..."
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white leading-relaxed"
+            ></textarea>
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="newFaqActive" checked class="rounded text-purple-600" />
+              <span>انتشار فوری روی برنامه</span>
+            </label>
+            <button
+              type="button"
+              onclick="addNewFaq()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition cursor-pointer"
+            >
+              افزودن پرسش
+            </button>
+          </div>
+        </div>
+
+        <!-- FAQs List -->
+        <div id="faqsListContainer" class="space-y-2">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Storage keys shared with main app
+    const STORES_KEY = 'visitor_app_stores';
+    const CONFIG_KEY = 'visitor_app_config';
+    const PROFILES_KEY = 'visitor_app_profiles';
+
+    function loadData() {
+      try {
+        const rawStores = localStorage.getItem(STORES_KEY);
+        const stores = rawStores ? JSON.parse(rawStores) : [];
+
+        const rawProfiles = localStorage.getItem(PROFILES_KEY);
+        const profiles = rawProfiles ? JSON.parse(rawProfiles) : [];
+
+        const rawConfig = localStorage.getItem(CONFIG_KEY);
+        const config = rawConfig ? JSON.parse(rawConfig) : null;
+
+        if (config) {
+          document.getElementById('cfgAppName').value = config.appName || 'ویزیتور';
+          document.getElementById('cfgShortDesc').value = config.shortDescription || 'پنل ویزیتور دارو';
+          document.getElementById('cfgPrimaryColor').value = config.primaryColor || '#0284c7';
+          document.getElementById('cfgAccentColor').value = config.accentColor || '#0d9488';
+          if (config.plan6MonthPriceAFN) {
+            document.getElementById('cfgPlan6MonthPrice').value = config.plan6MonthPriceAFN;
+          }
+          if (config.plan1YearPriceAFN) {
+            document.getElementById('cfgPlan1YearPrice').value = config.plan1YearPriceAFN;
+          }
+          if (config.supportPhone) {
+            document.getElementById('cfgSupportPhone').value = config.supportPhone;
+          }
+          if (config.supportWhatsApp) {
+            document.getElementById('cfgSupportWhatsApp').value = config.supportWhatsApp;
+          }
+          if (config.subscriptionExpiredMessage) {
+            document.getElementById('cfgExpiredMsg').value = config.subscriptionExpiredMessage;
+          if (config.supportWelcomeMessage) {
+            document.getElementById('cfgSupportWelcome').value = config.supportWelcomeMessage;
+          } else {
+            document.getElementById('cfgSupportWelcome').value = 'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام یا تصویر مشکل خود را ارسال نمایید تا رسیدگی شود.';
+          }
+          renderFaqs(config.supportFaqs || []);
+        } else {
+          document.getElementById('cfgSupportWelcome').value = 'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام یا تصویر مشکل خود را ارسال نمایید تا رسیدگی شود.';
+          renderFaqs([]);
+        }
+
+        // Stats
+        document.getElementById('statStoresCount').textContent = stores.length;
+        document.getElementById('statTrialCount').textContent = stores.filter(s => s.subscription && s.subscription.status === 'trial').length;
+        document.getElementById('statVisitorsCount').textContent = profiles.filter(p => p.role === 'visitor').length;
+
+        // Render Stores List
+        const listEl = document.getElementById('storesList');
+        listEl.innerHTML = '';
+
+        if (stores.length === 0) {
+          listEl.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">فروشگاهی یافت نشد.</div>';
+          return;
+        }
+
+        stores.forEach(s => {
+          const sub = s.subscription || { planName: 'نامشخص', status: 'trial', endDate: new Date().toISOString() };
+          const div = document.createElement('div');
+          div.className = 'bg-slate-900 border border-slate-700/80 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs';
+          div.innerHTML = `
+            <div>
+              <div class="font-bold text-white text-sm">${s.name}</div>
+              <div class="text-slate-400 text-[11px] mt-0.5">
+                تلفن: ${s.phone} | طرح: <span class="text-sky-400 font-bold">${sub.planName}</span>
+              </div>
+              <div class="text-[10px] text-slate-500 mt-0.5">
+                انقضا: ${new Date(sub.endDate).toLocaleDateString('fa-AF')}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="extendStore('${s.id}', 14, 'تمدید ۱۴ روز آزمایشی')" class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold">
+                +۱۴ روز تست
+              </button>
+              <button onclick="extendStore('${s.id}', 180, 'اشتراک ۶ ماهه')" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold">
+                ۶ ماهه
+              </button>
+              <button onclick="extendStore('${s.id}', 365, 'اشتراک ۱ ساله')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">
+                ۱ ساله
+              </button>
+            </div>
+          `;
+          listEl.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function extendStore(storeId, days, planName) {
+      try {
+        const raw = localStorage.getItem(STORES_KEY);
+        const stores = raw ? JSON.parse(raw) : [];
+        const target = stores.find(s => s.id === storeId);
+        if (target) {
+          const newEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+          target.subscription.status = days === 14 ? 'trial' : 'active';
+          target.subscription.planName = planName;
+          target.subscription.endDate = newEnd;
+          target.subscription.renewalHistory.push({
+            id: 'ren_' + Date.now(),
+            date: new Date().toISOString(),
+            plan: planName + ' توسط پنل مستقل سازنده',
+            amount: days === 180 ? 12000 : days === 365 ? 20000 : 0,
+            approvedBy: 'پنل مستقل creator-panel.html'
+          });
+          localStorage.setItem(STORES_KEY, JSON.stringify(stores));
+          loadData();
+          alert('اشتراک فروشگاه با موفقیت تمدید شد.');
+        }
+      } catch (err) {
+        alert('خطا در ذخیره‌سازی: ' + err.message);
+      }
+    }
+
+    function saveThemeConfig() {
+      try {
+        const appName = document.getElementById('cfgAppName').value;
+        const shortDesc = document.getElementById('cfgShortDesc').value;
+        const primaryColor = document.getElementById('cfgPrimaryColor').value;
+        const accentColor = document.getElementById('cfgAccentColor').value;
+        const plan6MonthPrice = Number(document.getElementById('cfgPlan6MonthPrice').value) || 12000;
+        const plan1YearPrice = Number(document.getElementById('cfgPlan1YearPrice').value) || 20000;
+        const supportPhone = document.getElementById('cfgSupportPhone').value || '0784524918';
+        const supportWhatsApp = document.getElementById('cfgSupportWhatsApp').value || '0784524918';
+        const expiredMsg = document.getElementById('cfgExpiredMsg').value;
+
+        // Fetch existing config to preserve any other keys
+        const rawExisting = localStorage.getItem(CONFIG_KEY);
+        const existing = rawExisting ? JSON.parse(rawExisting) : {};
+
+        const config = {
+          ...existing,
+          appName,
+          shortDescription: shortDesc,
+          primaryColor,
+          accentColor,
+          plan6MonthPriceAFN: plan6MonthPrice,
+          plan1YearPriceAFN: plan1YearPrice,
+          supportPhone,
+          supportWhatsApp,
+          subscriptionExpiredMessage: expiredMsg,
+          updatedAt: new Date().toISOString(),
+          version: Date.now()
+        };
+
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+        window.dispatchEvent(new Event('storage'));
+        alert('تنظیمات ظاهر، قیمت‌های اشتراک و شماره‌های تماس ذخیره شد و در برنامه ویزیتور اعمال گردید.');
+      } catch (e) {
+        alert('خطا در اعمال تنظیمات: ' + e.message);
+      }
+    }
+
+    function saveSupportWelcome() {
+      try {
+        const welcome = document.getElementById('cfgSupportWelcome').value.trim();
+        const rawExisting = localStorage.getItem(CONFIG_KEY);
+        const existing = rawExisting ? JSON.parse(rawExisting) : {};
+        existing.supportWelcomeMessage = welcome;
+        existing.updatedAt = new Date().toISOString();
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(existing));
+        window.dispatchEvent(new Event('storage'));
+        alert('پیام خوش‌آمدگویی بخش پشتیبانی با موفقیت ذخیره شد.');
+      } catch (e) {
+        alert('خطا در ذخیره پیام: ' + e.message);
+      }
+    }
+
+    function renderFaqs(faqs) {
+      const container = document.getElementById('faqsListContainer');
+      container.innerHTML = '';
+      if (!faqs || faqs.length === 0) {
+        container.innerHTML = '<div class="text-slate-500 text-xs text-center py-4 bg-slate-900/40 rounded-xl">هیچ پرسش پرکاربردی تعریف نشده است.</div>';
+        return;
+      }
+
+      faqs.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'bg-slate-900 border border-slate-700 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs';
+        div.innerHTML = `
+          <div class="space-y-1 flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white">${f.question}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${f.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}">
+                ${f.isActive ? 'منتشر شده' : 'پیش‌نویس'}
+              </span>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-relaxed">${f.answer}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button onclick="toggleFaq('${f.id}')" class="px-2.5 py-1 rounded-lg font-bold ${f.isActive ? 'bg-amber-600/30 text-amber-300 hover:bg-amber-600/50' : 'bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/50'}">
+              ${f.isActive ? 'مخفی کردن' : 'انتشار در برنامه'}
+            </button>
+            <button onclick="deleteFaq('${f.id}')" class="px-2.5 py-1 bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 rounded-lg font-bold">
+              حذف
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addNewFaq() {
+      const q = document.getElementById('newFaqQuestion').value.trim();
+      const a = document.getElementById('newFaqAnswer').value.trim();
+      const active = document.getElementById('newFaqActive').checked;
+
+      if (!q || !a) {
+        alert('لطفاً عنوان سؤال و متن پاسخ را وارد نمایید.');
+        return;
+      }
+
+      const rawExisting = localStorage.getItem(CONFIG_KEY);
+      const existing = rawExisting ? JSON.parse(rawExisting) : {};
+      const faqs = existing.supportFaqs || [];
+
+      const newFaq = {
+        id: 'faq_' + Date.now(),
+        question: q,
+        answer: a,
+        isActive: active,
+        createdAt: new Date().toISOString()
+      };
+
+      existing.supportFaqs = [newFaq, ...faqs];
+      existing.updatedAt = new Date().toISOString();
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(existing));
+      window.dispatchEvent(new Event('storage'));
+
+      document.getElementById('newFaqQuestion').value = '';
+      document.getElementById('newFaqAnswer').value = '';
+      renderFaqs(existing.supportFaqs);
+      alert('پرسش پرکاربرد با موفقیت ذخیره شد.');
+    }
+
+    function toggleFaq(id) {
+      const rawExisting = localStorage.getItem(CONFIG_KEY);
+      const existing = rawExisting ? JSON.parse(rawExisting) : {};
+      const faqs = existing.supportFaqs || [];
+      const target = faqs.find(f => f.id === id);
+      if (target) {
+        target.isActive = !target.isActive;
+        existing.supportFaqs = faqs;
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(existing));
+        window.dispatchEvent(new Event('storage'));
+        renderFaqs(faqs);
+      }
+    }
+
+    function deleteFaq(id) {
+      if (!confirm('آیا از حذف این پرسش پرکاربرد اطمینان دارید؟')) return;
+      const rawExisting = localStorage.getItem(CONFIG_KEY);
+      const existing = rawExisting ? JSON.parse(rawExisting) : {};
+      existing.supportFaqs = (existing.supportFaqs || []).filter(f => f.id !== id);
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(existing));
+      window.dispatchEvent(new Event('storage'));
+      renderFaqs(existing.supportFaqs);
+    }
+
+    window.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>

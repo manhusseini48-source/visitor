@@ -1,0 +1,25 @@
+{
+  "name": "ویزیتور - پنل ویزیتور دارو",
+  "short_name": "ویزیتور",
+  "description": "پلتفرم جامع مدیریت فروش، سفارشات و ویزیتورهای عمده‌فروشی دارو",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
