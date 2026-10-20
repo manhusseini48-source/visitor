@@ -518,6 +518,14 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     showToast(currentActive ? 'حساب کاربری غیرفعال گردید.' : 'حساب کاربری فعال گردید.');
   };
 
+  const handleDeleteUser = (userId: string, userName: string) => {
+    if (confirm(`آیا از حذف دائمی کاربر «${userName}» از سامانه و دیتابیس ابری مطمئن هستید؟ این عملیات قابل بازگشت نیست.`)) {
+      Storage.deleteProfile(userId);
+      reloadData();
+      showToast(`کاربر «${userName}» برای همیشه از سامانه و دیتابیس ابری حذف گردید.`);
+    }
+  };
+
   // ==========================================
   // TAB 5: SUPPORT TICKETS & FAQ
   // ==========================================
@@ -613,6 +621,24 @@ export const CreatorEmbeddedPanel: React.FC = () => {
   const [plan6MonthPrice, setPlan6MonthPrice] = useState<string>(String(platformConfig.plan6MonthPriceAFN || 1700));
   const [plan1YearPrice, setPlan1YearPrice] = useState<string>(String(platformConfig.plan1YearPriceAFN || 3000));
 
+  const [appReleaseVersion, setAppReleaseVersion] = useState(platformConfig.appReleaseVersion || '2.5.0');
+  const [appVersionCode, setAppVersionCode] = useState<number>(platformConfig.appVersionCode || 5);
+  const [appUpdateNotes, setAppUpdateNotes] = useState(
+    platformConfig.appUpdateNotes || 'بهبود سینک لحظه‌ای داروها، پیام‌ها، انبار و کاتالوگ'
+  );
+
+  const handlePublishNewVersion = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const nextCode = Number(appVersionCode) + 1;
+    setAppVersionCode(nextCode);
+    updatePlatformConfig({
+      appReleaseVersion: appReleaseVersion.trim(),
+      appVersionCode: nextCode,
+      appUpdateNotes: appUpdateNotes.trim(),
+    });
+    showToast(`نسخه جدید (${appReleaseVersion.trim()} - کد ${nextCode}) با موفقیت منتشر شد. دکمه بروزرسانی برای تمام کاربران PWA و وب فعال گردید.`);
+  };
+
   const handleSavePlatformSettings = (e: React.FormEvent) => {
     e.preventDefault();
     updatePlatformConfig({
@@ -624,8 +650,11 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       plan6MonthPriceAFN: parseNumberInput(plan6MonthPrice, 1700),
       plan1YearPriceAFN: parseNumberInput(plan1YearPrice, 3000),
       supportWelcomeMessage: welcomeMessage.trim(),
+      appReleaseVersion: appReleaseVersion.trim(),
+      appVersionCode: Number(appVersionCode),
+      appUpdateNotes: appUpdateNotes.trim(),
     });
-    showToast('تنظیمات برندینگ، شماره‌های تماس و قیمت‌ها با موفقیت ذخیره شد.');
+    showToast('تنظیمات برندینگ، شماره‌های تماس، قیمت‌ها و نگارش برنامه ذخیره شد.');
   };
 
   // ==========================================
@@ -1579,17 +1608,29 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                           </button>
 
                           {u.role !== 'maker_admin' && (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleUserActive(u.id, u.isActive)}
-                              className={`px-2 py-1 rounded-lg font-bold text-[11px] cursor-pointer ${
-                                u.isActive
-                                  ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
-                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                              }`}
-                            >
-                              {u.isActive ? 'مسدودسازی' : 'فعال‌سازی'}
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleUserActive(u.id, u.isActive)}
+                                className={`px-2 py-1 rounded-lg font-bold text-[11px] cursor-pointer ${
+                                  u.isActive
+                                    ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                }`}
+                              >
+                                {u.isActive ? 'مسدودسازی' : 'فعال‌سازی'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(u.id, u.name)}
+                                className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:hover:bg-rose-900 text-[11px] rounded-lg font-bold flex items-center gap-1 cursor-pointer transition"
+                                title="حذف دائمی کاربر از سامانه و دیتابیس ابری"
+                              >
+                                <Trash2 className="w-3 h-3 text-rose-600" />
+                                <span>حذف</span>
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
@@ -2141,6 +2182,76 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* PWA Release and Version Management Card */}
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 border-2 border-purple-200 dark:border-purple-800 rounded-3xl p-6 shadow-xs max-w-3xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="font-black text-purple-950 dark:text-purple-200 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <span>مدیریت انتشار نسخه جدید و بروزرسانی PWA</span>
+                </h4>
+                <p className="text-[11px] text-purple-700 dark:text-purple-300 mt-0.5">
+                  با کلیک روی «انتشار نسخه جدید»، دکمه بروزرسانی نسخه برای تمام کاربران و اپلیکیشن نصب‌شده PWA ظاهر شده و پس از بروزرسانی خودکار محو می‌گردد.
+                </p>
+              </div>
+
+              <div className="px-3 py-1 bg-purple-600 text-white rounded-full font-mono font-bold text-xs self-start sm:self-auto">
+                کد نسخه فعال: {appVersionCode}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  نام نسخه رسمی (Release Version) *
+                </label>
+                <input
+                  type="text"
+                  value={appReleaseVersion}
+                  onChange={(e) => setAppReleaseVersion(e.target.value)}
+                  placeholder="مثال: ۲.۵.۰"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl font-bold font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  شماره کد نسخه (Version Code - ارقام انگلیسی) *
+                </label>
+                <input
+                  type="number"
+                  value={appVersionCode}
+                  onChange={(e) => setAppVersionCode(parseInt(e.target.value, 10) || 1)}
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl font-bold font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="text-xs">
+              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                توضیحات و امکانات اضافه شده در این نسخه (برای نمایش به کاربران)
+              </label>
+              <input
+                type="text"
+                value={appUpdateNotes}
+                onChange={(e) => setAppUpdateNotes(e.target.value)}
+                placeholder="مثال: همگام‌سازی لحظه‌ای داروها، موجودی انبار، چت داخلی و صدور فاکتور رسمی"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl"
+              />
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => handlePublishNewVersion()}
+                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs shadow-md shadow-purple-600/30 transition flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>انتشار رسمی نسخه جدید برای تمام کلاینت‌ها و PWA</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

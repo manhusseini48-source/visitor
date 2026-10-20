@@ -218,9 +218,8 @@ export const CustomersManager: React.FC = () => {
   };
 
   const handleDeleteCustomer = (id: string) => {
-    if (confirm('آیا از آرشیو کردن این مشتری اطمینان دارید؟')) {
-      const all = Storage.getCustomers(storeId).filter((c) => c.id !== id);
-      Storage.saveCustomers(all);
+    if (confirm('آیا از حذف این مشتری اطمینان دارید؟')) {
+      Storage.deleteCustomer(id, storeId);
       reloadData();
     }
   };
@@ -414,8 +413,8 @@ export const CustomersManager: React.FC = () => {
 
       {/* Add / Edit Customer Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 border border-slate-100 my-8">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-4 sm:p-6 border border-slate-100 my-auto max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                 <Users className="w-5 h-5 text-sky-600" />

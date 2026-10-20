@@ -150,11 +150,11 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 dark:border-slate-800 my-8 animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 dark:border-slate-800 my-auto max-h-[92vh] flex flex-col animate-in zoom-in-95">
         
         {/* Banner with 14-day trial announcement */}
-        <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-indigo-800 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-indigo-800 p-6 text-white relative flex-shrink-0">
           <button
             onClick={onClose}
             className="absolute left-4 top-4 text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer transition"
@@ -181,7 +181,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
         </div>
 
         {/* Modal content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {error && (
             <div className="mb-4 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-800 p-3 rounded-xl text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />

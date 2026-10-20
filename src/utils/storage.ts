@@ -20,6 +20,8 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'visitor_app_current_user',
   STORES: 'visitor_app_stores',
   PROFILES: 'visitor_app_profiles',
+  DELETED_USER_IDS: 'visitor_app_deleted_user_ids',
+  DELETED_MEDICINE_IDS: 'visitor_app_deleted_medicine_ids',
   MEDICINES: 'visitor_app_medicines',
   CUSTOMERS: 'visitor_app_customers',
   ORDERS: 'visitor_app_orders',
@@ -33,6 +35,44 @@ const STORAGE_KEYS = {
   COLLECTIONS: 'visitor_app_collections',
   REMITTANCES: 'visitor_app_remittances',
 };
+
+export const INITIAL_SUPPORT_FAQS: SupportFaq[] = [
+  {
+    id: 'faq_01',
+    question: 'چگونه داروی جدید به انبار و کاتالوگ فروشگاه اضافه کنم؟',
+    answer: 'از منوی «داروها و انبار» روی دکمه «افزودن داروی جدید» کلیک کنید. نام، کد، دوز، تاریخ انقضا، موجودی انبار و قیمت فروش را وارد نموده و عکس دارو را بارگذاری نمایید تا فوراً با تمام ویزیتورها همگام‌سازی شود.',
+    isActive: true,
+    order: 1,
+  },
+  {
+    id: 'faq_02',
+    question: 'ویزیتور چگونه سفارش، فاکتور و بیعانه ثبت می‌کند؟',
+    answer: 'ویزیتور از منوی «کاتالوگ و صدور فاکتور»، داروهای مورد نظر را جستجو و به سبد خرید اضافه می‌کند، داروخانه را انتخاب کرده و در صورت دریافت وجه، نوع تسویه (بیعانه، نقد یا حواله) را درج و فاکتور نهایی را صادر می‌نماید.',
+    isActive: true,
+    order: 2,
+  },
+  {
+    id: 'faq_03',
+    question: 'آیا ویزیتورها می‌توانند وجه یا بیعانه از داروخانه‌ها تحویل بگیرند؟',
+    answer: 'بله، در صورتی که مدیر فروشگاه گزینه «مجوز دریافت بیعانه» را فعال کرده باشد، ویزیتور می‌تواند وجه نقد، کارت‌به‌کارت یا فیش بانکی دریافت کرده و از بخش حسابداری با فروشگاه تسویه نماید.',
+    isActive: true,
+    order: 3,
+  },
+  {
+    id: 'faq_04',
+    question: 'چگونه حساب و رمز عبور ویزیتور یا کاربر را ویرایش یا حذف کنم؟',
+    answer: 'در پنل فروشگاه بخش «مدیریت ویزیتورها» یا در «پنل سازنده» تب کاربران، می‌توانید مشخصات، درصد پورسانت، حقوق و رمز عبور را بدون نیاز به رمز قبلی تغییر دهید و یا حساب را مسدود یا کاملاً حذف کنید.',
+    isActive: true,
+    order: 4,
+  },
+  {
+    id: 'faq_05',
+    question: 'چگونه نسخه جدید PWA را روی گوشی یا کامپیوتر بروزرسانی کنم؟',
+    answer: 'هنگامی که سازنده نسخه جدیدی منتشر کند، دکمه بنفش‌رنگ «بروزرسانی نسخه جدید» در بالای صفحه پدیدار می‌شود. با کلیک روی آن کش برنامه نوسازی شده و آخرین تغییرات بلافاصله اعمال می‌شوند.',
+    isActive: true,
+    order: 5,
+  },
+];
 
 // Initial Config
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
@@ -56,12 +96,12 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   announcementDismissible: true,
   supportWelcomeMessage:
     'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام، سؤال یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.',
-  supportFaqs: [],
+  supportFaqs: INITIAL_SUPPORT_FAQS,
   notifications: [
     {
       id: 'notif_init_01',
       title: 'خوش‌آمدید به سامانه ویزیتور دارو',
-      message: 'نسخه جدید ۲.۴ با موتور چاپ فاکتورهای رسمی، امکان گفتگوی زنده با پشتیبانی، رمزنگاری و ثبت آفلاین سفارش‌ها هم‌اکنون فعال است.',
+      message: 'نسخه جدید ۲.۵ با موتور هماهنگ‌سازی ابری داروها، پیام‌ها و کاتالوگ آنلاین هم‌اکنون فعال است.',
       type: 'feature',
       createdAt: new Date().toISOString(),
       isImportant: true,
@@ -70,6 +110,10 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   customTexts: {},
   updatedAt: new Date().toISOString(),
   version: 1,
+  appReleaseVersion: '2.5.0',
+  appVersionCode: 5,
+  appUpdateNotes: 'همگام‌سازی کامل داروها، پیام‌ها، مدیریت پیشرفته کاربران و پرسش‌های متداول',
+  appUpdateRequired: false,
 };
 
 import { getAuthoritativeNow } from './onlineDate';
@@ -288,6 +332,42 @@ export const Storage = {
     }
   },
 
+  deleteProfile(userId: string) {
+    const list = this.getProfiles().filter((p) => p.id !== userId);
+    setItem(STORAGE_KEYS.PROFILES, list);
+    const curr = this.getCurrentUser();
+    if (curr?.id === userId) {
+      this.setCurrentUser(null);
+    }
+    try {
+      SupabaseSync.deleteProfile(userId);
+    } catch (e) {
+      console.warn('Delete profile error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  mergeCloudProfiles(cloudProfiles: UserProfile[]) {
+    if (!cloudProfiles || cloudProfiles.length === 0) return;
+    const current = getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
+    const profMap = new Map<string, UserProfile>();
+    current.forEach((p) => profMap.set(p.id, p));
+    cloudProfiles.forEach((cp) => {
+      const existing = profMap.get(cp.id);
+      profMap.set(cp.id, {
+        ...(existing || {}),
+        ...cp,
+        password: existing?.password || cp.password || '123456',
+      });
+    });
+    setItem(STORAGE_KEYS.PROFILES, Array.from(profMap.values()));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
   getMedicines(storeId?: string): Medicine[] {
     const list = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
@@ -317,6 +397,40 @@ export const Storage = {
     } catch (e) {
       // Background sync non-blocking
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  deleteMedicine(medicineId: string, storeId?: string) {
+    const all = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []);
+    const remaining = all.filter((m) => m.id !== medicineId);
+    setItem(STORAGE_KEYS.MEDICINES, remaining);
+    try {
+      SupabaseSync.deleteMedicine(medicineId);
+    } catch (e) {
+      console.warn('Delete medicine error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  mergeCloudMedicines(cloudMeds: Medicine[], storeId?: string) {
+    if (!cloudMeds || cloudMeds.length === 0) return;
+    const current = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []);
+    const medMap = new Map<string, Medicine>();
+    current.forEach((m) => medMap.set(m.id, m));
+    cloudMeds.forEach((m) => {
+      const existing = medMap.get(m.id);
+      medMap.set(m.id, {
+        ...(existing || {}),
+        ...m,
+        storeId: m.storeId || existing?.storeId || storeId || '',
+      });
+    });
+    const merged = Array.from(medMap.values());
+    setItem(STORAGE_KEYS.MEDICINES, merged);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
     }
@@ -357,6 +471,20 @@ export const Storage = {
     }
   },
 
+  deleteCustomer(customerId: string, storeId?: string) {
+    const all = getItem<Customer[]>(STORAGE_KEYS.CUSTOMERS, []);
+    const remaining = all.filter((c) => c.id !== customerId);
+    setItem(STORAGE_KEYS.CUSTOMERS, remaining);
+    try {
+      SupabaseSync.deleteCustomer(customerId);
+    } catch (e) {
+      console.warn('Delete customer error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
   getOrders(storeId?: string): Order[] {
     const list = getItem<Order[]>(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
     const cleaned = list.map((o) => ({
@@ -390,6 +518,46 @@ export const Storage = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
     }
+  },
+
+  deleteOrder(orderId: string, storeId?: string) {
+    const all = getItem<Order[]>(STORAGE_KEYS.ORDERS, []);
+    const remaining = all.filter((o) => o.id !== orderId);
+    setItem(STORAGE_KEYS.ORDERS, remaining);
+    try {
+      SupabaseSync.deleteOrder(orderId);
+    } catch (e) {
+      console.warn('Delete order error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  mergeCloudCustomers(cloudCusts: Customer[], storeId?: string) {
+    if (!cloudCusts || cloudCusts.length === 0) return;
+    const current = getItem<Customer[]>(STORAGE_KEYS.CUSTOMERS, []);
+    const map = new Map<string, Customer>();
+    current.forEach((c) => map.set(c.id, c));
+    cloudCusts.forEach((c) => {
+      const existing = map.get(c.id);
+      map.set(c.id, { ...(existing || {}), ...c, storeId: c.storeId || existing?.storeId || storeId || '' });
+    });
+    setItem(STORAGE_KEYS.CUSTOMERS, Array.from(map.values()));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
+  },
+
+  mergeCloudOrders(cloudOrders: Order[], storeId?: string) {
+    if (!cloudOrders || cloudOrders.length === 0) return;
+    const current = getItem<Order[]>(STORAGE_KEYS.ORDERS, []);
+    const map = new Map<string, Order>();
+    current.forEach((o) => map.set(o.id, o));
+    cloudOrders.forEach((o) => {
+      const existing = map.get(o.id);
+      map.set(o.id, { ...(existing || {}), ...o, storeId: o.storeId || existing?.storeId || storeId || '' });
+    });
+    setItem(STORAGE_KEYS.ORDERS, Array.from(map.values()));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
   },
 
   getVisits(storeId?: string): VisitRecord[] {
@@ -474,6 +642,44 @@ export const Storage = {
       SupabaseSync.syncMessage(msg, activeStoreId);
     } catch (e) {
       // Non-blocking
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  mergeCloudMessages(cloudMsgs: Message[], storeId?: string) {
+    if (!cloudMsgs || cloudMsgs.length === 0) return;
+    const current = getItem<Message[]>(STORAGE_KEYS.MESSAGES, INITIAL_MESSAGES);
+    const msgMap = new Map<string, Message>();
+    current.forEach((m) => msgMap.set(m.id, m));
+    cloudMsgs.forEach((m) => msgMap.set(m.id, m));
+    const merged = Array.from(msgMap.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+    setItem(STORAGE_KEYS.MESSAGES, merged);
+
+    if (storeId) {
+      const convs = this.getConversations(storeId);
+      let convsUpdated = false;
+      convs.forEach((c) => {
+        const convMsgs = merged.filter((m) => m.conversationId === c.id);
+        if (convMsgs.length > 0) {
+          const lastMsg = convMsgs[convMsgs.length - 1];
+          if (c.lastMessageTime !== lastMsg.createdAt) {
+            c.lastMessageText = lastMsg.text || (lastMsg.imageUrl ? 'تصویر پیوست شده' : 'پیام جدید');
+            c.lastMessageTime = lastMsg.createdAt;
+            convsUpdated = true;
+          }
+        }
+      });
+      if (convsUpdated) {
+        this.saveConversations(convs);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
     }
   },
 
@@ -568,9 +774,38 @@ export const Storage = {
     }
   },
 
+  mergeCloudCollections(cloudCols: VisitorCashCollection[], storeId?: string) {
+    if (!cloudCols || cloudCols.length === 0) return;
+    const current = getItem<VisitorCashCollection[]>(STORAGE_KEYS.COLLECTIONS, []);
+    const map = new Map<string, VisitorCashCollection>();
+    current.forEach((c) => map.set(c.id, c));
+    cloudCols.forEach((c) => {
+      const existing = map.get(c.id);
+      map.set(c.id, { ...(existing || {}), ...c, storeId: c.storeId || existing?.storeId || storeId || '' });
+    });
+    setItem(STORAGE_KEYS.COLLECTIONS, Array.from(map.values()));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
+  },
+
+  mergeCloudRemittances(cloudRems: VisitorRemittance[], storeId?: string) {
+    if (!cloudRems || cloudRems.length === 0) return;
+    const current = getItem<VisitorRemittance[]>(STORAGE_KEYS.REMITTANCES, []);
+    const map = new Map<string, VisitorRemittance>();
+    current.forEach((r) => map.set(r.id, r));
+    cloudRems.forEach((r) => {
+      const existing = map.get(r.id);
+      map.set(r.id, { ...(existing || {}), ...r, storeId: r.storeId || existing?.storeId || storeId || '' });
+    });
+    setItem(STORAGE_KEYS.REMITTANCES, Array.from(map.values()));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
+  },
+
   getConfig(): PlatformConfig {
     const saved = getItem<PlatformConfig>(STORAGE_KEYS.CONFIG, DEFAULT_PLATFORM_CONFIG);
     const merged = { ...DEFAULT_PLATFORM_CONFIG, ...saved };
+    if (!Array.isArray(merged.supportFaqs) || merged.supportFaqs.length === 0) {
+      merged.supportFaqs = INITIAL_SUPPORT_FAQS;
+    }
     // Migrate legacy demo prices to requested initial prices (1700 AFN for 6 months, 3000 AFN for 1 year)
     if (merged.plan6MonthPriceAFN === 12000) {
       merged.plan6MonthPriceAFN = 1700;
@@ -583,6 +818,26 @@ export const Storage = {
 
   saveConfig(config: PlatformConfig) {
     setItem(STORAGE_KEYS.CONFIG, config);
+    try {
+      SupabaseSync.syncPlatformConfig(config);
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  mergeCloudPlatformConfig(cloudCfg: Partial<PlatformConfig>) {
+    if (!cloudCfg) return;
+    const current = this.getConfig();
+    const merged: PlatformConfig = {
+      ...current,
+      ...cloudCfg,
+      supportFaqs:
+        Array.isArray(cloudCfg.supportFaqs) && cloudCfg.supportFaqs.length > 0
+          ? cloudCfg.supportFaqs
+          : current.supportFaqs,
+    };
+    setItem(STORAGE_KEYS.CONFIG, merged);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
     }

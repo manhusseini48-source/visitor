@@ -177,6 +177,41 @@ create table public.visits (
     created_at timestamptz default now()
 );
 
+-- ۱۱. جدول تیکت‌ها و پیام‌های پشتیبانی آنلاین (SUPPORT_TICKETS)
+create table public.support_tickets (
+    id text primary key,
+    store_id text not null,
+    store_name text default '',
+    title text default '',
+    description text default '',
+    status text default 'open',
+    messages jsonb default '[]'::jsonb,
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+);
+
+-- ۱۲. جدول تنظیمات سراسری پلتفرم، نسخه و سوالات متداول (PLATFORM_CONFIG)
+create table public.platform_config (
+    id text primary key default 'global_config',
+    app_name text default 'ویزیتور',
+    short_description text default 'پنل ویزیتور دارو',
+    app_release_version text default '2.5.0',
+    app_version_code integer default 5,
+    app_update_notes text default '',
+    app_update_required boolean default false,
+    plan_6month_price_afn numeric(12, 2) default 1700,
+    plan_1year_price_afn numeric(12, 2) default 3000,
+    support_phone text default '0784524918',
+    support_whatsapp text default '0784524918',
+    support_welcome_message text default '',
+    support_faqs jsonb default '[]'::jsonb,
+    public_announcement text default '',
+    announcement_title text default '',
+    announcement_type text default 'info',
+    announcement_enabled boolean default false,
+    updated_at timestamptz default now()
+);
+
 -- Enable Row Level Security (RLS)
 alter table public.stores enable row level security;
 alter table public.profiles enable row level security;
@@ -187,8 +222,23 @@ alter table public.visitor_cash_collections enable row level security;
 alter table public.visitor_remittances enable row level security;
 alter table public.messages enable row level security;
 alter table public.visits enable row level security;
+alter table public.support_tickets enable row level security;
+alter table public.platform_config enable row level security;
 
--- Public Anon access policies (دسترسی استاندارد کلاینت با کلید Anon)
+-- Drop previous policies to avoid duplication
+drop policy if exists "Allow all operations for anon" on public.stores;
+drop policy if exists "Allow all operations for anon" on public.profiles;
+drop policy if exists "Allow all operations for anon" on public.medicines;
+drop policy if exists "Allow all operations for anon" on public.customers;
+drop policy if exists "Allow all operations for anon" on public.orders;
+drop policy if exists "Allow all operations for anon" on public.visitor_cash_collections;
+drop policy if exists "Allow all operations for anon" on public.visitor_remittances;
+drop policy if exists "Allow all operations for anon" on public.messages;
+drop policy if exists "Allow all operations for anon" on public.visits;
+drop policy if exists "Allow all operations for anon" on public.support_tickets;
+drop policy if exists "Allow all operations for anon" on public.platform_config;
+
+-- Public Anon access policies (دسترسی استاندارد کلاینت با کلید Anon برای خواندن، درج، ویرایش و حذف)
 create policy "Allow all operations for anon" on public.stores for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.profiles for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.medicines for all using (true) with check (true);
@@ -198,3 +248,22 @@ create policy "Allow all operations for anon" on public.visitor_cash_collections
 create policy "Allow all operations for anon" on public.visitor_remittances for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.messages for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.visits for all using (true) with check (true);
+create policy "Allow all operations for anon" on public.support_tickets for all using (true) with check (true);
+create policy "Allow all operations for anon" on public.platform_config for all using (true) with check (true);
+
+-- Enable Realtime for all shared business tables
+do $$
+begin
+  alter publication supabase_realtime add table public.stores;
+  alter publication supabase_realtime add table public.profiles;
+  alter publication supabase_realtime add table public.medicines;
+  alter publication supabase_realtime add table public.customers;
+  alter publication supabase_realtime add table public.orders;
+  alter publication supabase_realtime add table public.visitor_cash_collections;
+  alter publication supabase_realtime add table public.visitor_remittances;
+  alter publication supabase_realtime add table public.messages;
+  alter publication supabase_realtime add table public.support_tickets;
+  alter publication supabase_realtime add table public.platform_config;
+exception
+  when others then null;
+end $$;

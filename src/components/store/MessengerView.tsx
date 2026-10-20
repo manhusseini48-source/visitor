@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Storage } from '../../utils/storage';
 import { Conversation, Message, UserProfile } from '../../types';
 import { compressImage, uploadToCloudinary } from '../../utils/imageCompressor';
+import { SupabaseSync } from '../../utils/supabaseSync';
 import {
   MessageSquare,
   Users,
@@ -124,14 +125,39 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Sync messages in real-time from Supabase and localStorage
   useEffect(() => {
-    if (activeConvId) {
-      setMessages(Storage.getMessages(activeConvId));
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
-    }
-  }, [activeConvId]);
+    const reloadMessages = () => {
+      if (activeConvId) {
+        setMessages(Storage.getMessages(activeConvId));
+      }
+    };
+
+    reloadMessages();
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+
+    const pullLiveMessages = async () => {
+      if (!storeId) return;
+      try {
+        const cloudMsgs = await SupabaseSync.pullStoreMessages(storeId);
+        if (cloudMsgs && cloudMsgs.length > 0) {
+          Storage.mergeCloudMessages(cloudMsgs, storeId);
+          reloadMessages();
+        }
+      } catch {}
+    };
+
+    pullLiveMessages();
+    const interval = setInterval(pullLiveMessages, 2500);
+    window.addEventListener('storage', reloadMessages);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', reloadMessages);
+    };
+  }, [activeConvId, storeId]);
 
   // Handle shared order doc if passed from orders tab
   useEffect(() => {
@@ -211,7 +237,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
       isRead: false,
     };
 
-    Storage.addMessage(newMsg);
+    Storage.addMessage(newMsg, storeId);
 
     // Update conversation preview
     const convs = Storage.getConversations(storeId).map((c) =>

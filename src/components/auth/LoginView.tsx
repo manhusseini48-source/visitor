@@ -41,8 +41,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100 relative">
+    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100 relative my-auto max-h-[92vh] flex flex-col">
         {/* Close button if modal */}
         {onClose && (
           <button
@@ -55,7 +55,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         )}
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-indigo-800 p-6 text-white text-center relative">
+        <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-indigo-800 p-6 text-white text-center relative flex-shrink-0">
           <div className="w-14 h-14 bg-white/15 rounded-2xl mx-auto flex items-center justify-center mb-3 backdrop-blur-xs shadow-inner border border-white/20">
             <Pill className="w-8 h-8 rotate-45 text-white" />
           </div>
@@ -68,7 +68,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         </div>
 
         {/* Form Body */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {error && (
             <div className="mb-4 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-800 p-3 rounded-xl text-xs flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />

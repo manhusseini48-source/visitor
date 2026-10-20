@@ -255,10 +255,10 @@ export const UserProfileModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden my-8 animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in zoom-in-95">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-sky-700 via-sky-600 to-indigo-700 p-6 text-white flex items-center justify-between">
+        <div className="bg-gradient-to-r from-sky-700 via-sky-600 to-indigo-700 p-4 sm:p-6 text-white flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">
               <User className="w-6 h-6 text-white" />
@@ -284,7 +284,7 @@ export const UserProfileModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSave} className="p-6 space-y-6">
+        <form onSubmit={handleSave} className="p-4 sm:p-6 space-y-6 flex-1 overflow-y-auto">
           {successMessage && (
             <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />

@@ -63,6 +63,7 @@ interface AppContextType {
     daysToAdd: number
   ) => void;
   updateStoreSettings: (settings: Partial<Store>) => void;
+  syncCloud: (storeId?: string) => Promise<{ success: boolean; medicinesCount: number; customersCount: number; ordersCount: number }>;
   refreshState: () => void;
   updatePlatformConfig: (cfg: Partial<PlatformConfig>) => void;
   quickSwitchUser: (username: string) => void;
@@ -252,6 +253,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     pullStoreSub();
     const interval = setInterval(pullStoreSub, 8000);
     return () => clearInterval(interval);
+  }, [currentUser]);
+
+  // Universal multi-device cloud synchronization (Medicines, Messages, Profiles, Orders, Config)
+  useEffect(() => {
+    const doSync = async () => {
+      const u = Storage.getCurrentUser();
+      const effStoreId = u?.storeId || Storage.getStores()[0]?.id || '';
+      try {
+        await SupabaseSync.syncAllData(effStoreId);
+        refreshState();
+      } catch (e) {
+        console.warn('Background sync interval error:', e);
+      }
+    };
+
+    // Immediate sync on mount or user change
+    doSync();
+
+    // Fast background sync interval (every 5 seconds) to ensure medicines & messages sync seamlessly
+    const syncInterval = setInterval(doSync, 5000);
+
+    // Also attach Supabase Realtime channel subscription if configured
+    let channel: any = null;
+    if (supabase && isSupabaseConfigured) {
+      try {
+        channel = supabase
+          .channel('schema-db-changes')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public' },
+            () => {
+              doSync();
+            }
+          )
+          .subscribe();
+      } catch {}
+    }
+
+    return () => {
+      clearInterval(syncInterval);
+      if (channel && supabase) {
+        try {
+          supabase.removeChannel(channel);
+        } catch {}
+      }
+    };
   }, [currentUser]);
 
   const refreshState = () => {

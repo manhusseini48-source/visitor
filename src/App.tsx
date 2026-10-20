@@ -9,6 +9,7 @@ import { Header } from './components/common/Header';
 import { TrialBanner } from './components/common/TrialBanner';
 import { AnnouncementBanner } from './components/common/AnnouncementBanner';
 import { PWAInstallBar } from './components/common/PWAInstallBar';
+import { AppUpdateBanner } from './components/common/AppUpdateBanner';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { UserProfileModal } from './components/common/UserProfileModal';
 import { AppLockScreen } from './components/common/AppLockScreen';
@@ -326,6 +327,7 @@ function AppContent() {
   if (!authenticatedUser && !isGuest) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between">
+        <AppUpdateBanner />
         <PWAInstallBar />
         <AnnouncementBanner />
         <Header
@@ -440,6 +442,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200">
+      {/* App Update Banner (Shown when a new version is published by the creator) */}
+      <AppUpdateBanner />
+
       {/* PWA Install Bar (Appears on every load until installed) */}
       <PWAInstallBar />
 

@@ -324,6 +324,10 @@ export interface PlatformConfig {
   customTexts?: Record<string, string>;
   updatedAt: string;
   version: number;
+  appReleaseVersion?: string;
+  appVersionCode?: number;
+  appUpdateNotes?: string;
+  appUpdateRequired?: boolean;
 }
 
 export interface VisitorCashCollection {

@@ -256,8 +256,7 @@ export const MedicinesManager: React.FC = () => {
 
   const handleDeleteMedicine = (id: string) => {
     if (confirm('آیا از حذف این قلم دارو از فهرست اطمینان دارید؟')) {
-      const all = Storage.getMedicines(storeId).filter((m) => m.id !== id);
-      Storage.saveMedicines(all, storeId);
+      Storage.deleteMedicine(id, storeId);
       reloadData();
     }
   };
@@ -519,8 +518,8 @@ export const MedicinesManager: React.FC = () => {
 
       {/* Add / Edit Medicine Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-100 my-8">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 border border-slate-100 my-auto max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                 <Pill className="w-5 h-5 text-sky-600" />
@@ -793,8 +792,8 @@ export const MedicinesManager: React.FC = () => {
 
       {/* Quick Stock Adjustment Modal */}
       {adjustModalMed && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 border border-slate-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full p-5 border border-slate-100 my-auto max-h-[92vh] overflow-y-auto">
             <h3 className="font-bold text-slate-800 text-sm mb-1">
               اصلاح موجودی انبار: {adjustModalMed.name}
             </h3>
