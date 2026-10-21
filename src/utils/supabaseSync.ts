@@ -131,9 +131,21 @@ export const SupabaseSync = {
   async syncMedicine(medicine: Medicine): Promise<void> {
     if (!supabase || !isSupabaseConfigured) return;
     try {
+      const effStoreId = medicine.storeId || 'store_main';
+      try {
+        await supabase.from('stores').upsert(
+          {
+            id: effStoreId,
+            name: 'فروشگاه دارو',
+            created_at: new Date().toISOString(),
+          },
+          { onConflict: 'id', ignoreDuplicates: true }
+        );
+      } catch {}
+
       const { error } = await supabase.from('medicines').upsert({
         id: medicine.id,
-        store_id: medicine.storeId,
+        store_id: effStoreId,
         code: medicine.code,
         name: medicine.name,
         generic_name: medicine.brand || medicine.name,
@@ -156,7 +168,7 @@ export const SupabaseSync = {
         // Fallback for standard Supabase columns in case migration hasn't been run yet
         await supabase.from('medicines').upsert({
           id: medicine.id,
-          store_id: medicine.storeId,
+          store_id: effStoreId,
           code: medicine.code,
           name: medicine.name,
           generic_name: medicine.brand || medicine.name,
@@ -318,9 +330,21 @@ export const SupabaseSync = {
   async syncMessage(message: Message, storeId: string): Promise<void> {
     if (!supabase || !isSupabaseConfigured) return;
     try {
+      const effStoreId = storeId || 'store_main';
+      try {
+        await supabase.from('stores').upsert(
+          {
+            id: effStoreId,
+            name: 'فروشگاه دارو',
+            created_at: new Date().toISOString(),
+          },
+          { onConflict: 'id', ignoreDuplicates: true }
+        );
+      } catch {}
+
       await supabase.from('messages').upsert({
         id: message.id,
-        store_id: storeId,
+        store_id: effStoreId,
         conversation_id: message.conversationId,
         sender_id: message.senderId,
         sender_name: message.senderName,
@@ -541,7 +565,7 @@ export const SupabaseSync = {
     try {
       let query = supabase.from('messages').select('*').order('created_at', { ascending: true });
       if (storeId) {
-        query = query.or(`store_id.eq.${storeId},store_id.is.null`);
+        query = query.or(`store_id.eq.${storeId},store_id.is.null,store_id.eq.store_main`);
       }
       const { data, error } = await query;
       if (error || !data) return [];

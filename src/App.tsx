@@ -465,7 +465,7 @@ function AppContent() {
       <TrialBanner onNavigateSubscription={() => handleNavigateTab('subscription')} />
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-24 md:pb-6 flex flex-col md:flex-row gap-6">
+      <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6 flex flex-col md:flex-row gap-6">
         {/* Guest View */}
         {isGuest ? (
           <div className="flex-1">
@@ -751,7 +751,7 @@ function AppContent() {
 
       {/* Mobile Bottom Navigation Bar (نوار منوی سریع پایین صفحه در موبایل - راست دست و داشبورد در وسط) */}
       {!isGuest && currentUser && currentUser.role !== 'maker_admin' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-lg px-2 py-1.5 flex items-center justify-around">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-lg px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
           {/* 1. منوی پنل در سمت راست (نزدیک انگشت شست افراد راست‌دست در چیدمان راست به چپ) */}
           <button
             onClick={handleToggleMobileMenu}

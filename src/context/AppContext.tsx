@@ -860,6 +860,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     refreshState();
   };
 
+  const syncCloud = async (storeId?: string) => {
+    const effStoreId = storeId || currentStore?.id || currentUser?.storeId || Storage.getStores()[0]?.id || 'store_main';
+    const res = await SupabaseSync.syncAllData(effStoreId);
+    refreshState();
+    return res;
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -885,6 +892,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateStoreSubscription,
         updateStoreSettings,
         refreshState,
+        syncCloud,
         updatePlatformConfig,
         quickSwitchUser,
         resetDatabase,

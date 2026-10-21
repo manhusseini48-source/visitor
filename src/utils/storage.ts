@@ -9,6 +9,7 @@ import {
   Conversation,
   Message,
   SupportTicket,
+  SupportFaq,
   PlatformConfig,
   InventoryMovement,
   VisitorCashCollection,
@@ -318,21 +319,51 @@ export const Storage = {
     this.saveStores(stores);
   },
 
+  getDeletedUserIds(): string[] {
+    return getItem<string[]>(STORAGE_KEYS.DELETED_USER_IDS, []);
+  },
+
+  addDeletedUserId(id: string) {
+    const list = this.getDeletedUserIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      setItem(STORAGE_KEYS.DELETED_USER_IDS, list);
+    }
+  },
+
+  getDeletedMedicineIds(): string[] {
+    return getItem<string[]>(STORAGE_KEYS.DELETED_MEDICINE_IDS, []);
+  },
+
+  addDeletedMedicineId(id: string) {
+    const list = this.getDeletedMedicineIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      setItem(STORAGE_KEYS.DELETED_MEDICINE_IDS, list);
+    }
+  },
+
   getProfiles(): UserProfile[] {
     const list = getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
-    return list.map((p) => (p.password ? p : { ...p, password: '123456' }));
+    const deletedIds = this.getDeletedUserIds();
+    return list
+      .filter((p) => !deletedIds.includes(p.id))
+      .map((p) => (p.password ? p : { ...p, password: '123456' }));
   },
 
   saveProfiles(profiles: UserProfile[]) {
-    setItem(STORAGE_KEYS.PROFILES, profiles);
+    const deletedIds = this.getDeletedUserIds();
+    const filtered = profiles.filter((p) => !deletedIds.includes(p.id));
+    setItem(STORAGE_KEYS.PROFILES, filtered);
     try {
-      profiles.forEach((p) => SupabaseSync.syncProfile(p));
+      filtered.forEach((p) => SupabaseSync.syncProfile(p));
     } catch (e) {
       // Background sync non-blocking
     }
   },
 
   deleteProfile(userId: string) {
+    this.addDeletedUserId(userId);
     const list = this.getProfiles().filter((p) => p.id !== userId);
     setItem(STORAGE_KEYS.PROFILES, list);
     const curr = this.getCurrentUser();
@@ -349,19 +380,41 @@ export const Storage = {
     }
   },
 
+  async deleteProfileAsync(userId: string): Promise<void> {
+    this.addDeletedUserId(userId);
+    const list = this.getProfiles().filter((p) => p.id !== userId);
+    setItem(STORAGE_KEYS.PROFILES, list);
+    const curr = this.getCurrentUser();
+    if (curr?.id === userId) {
+      this.setCurrentUser(null);
+    }
+    try {
+      await SupabaseSync.deleteProfile(userId);
+    } catch (e) {
+      console.warn('Async delete profile error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
   mergeCloudProfiles(cloudProfiles: UserProfile[]) {
     if (!cloudProfiles || cloudProfiles.length === 0) return;
-    const current = getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
+    const deletedIds = this.getDeletedUserIds();
+    const current = getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES)
+      .filter((p) => !deletedIds.includes(p.id));
     const profMap = new Map<string, UserProfile>();
     current.forEach((p) => profMap.set(p.id, p));
-    cloudProfiles.forEach((cp) => {
-      const existing = profMap.get(cp.id);
-      profMap.set(cp.id, {
-        ...(existing || {}),
-        ...cp,
-        password: existing?.password || cp.password || '123456',
+    cloudProfiles
+      .filter((cp) => !deletedIds.includes(cp.id))
+      .forEach((cp) => {
+        const existing = profMap.get(cp.id);
+        profMap.set(cp.id, {
+          ...(existing || {}),
+          ...cp,
+          password: existing?.password || cp.password || '123456',
+        });
       });
-    });
     setItem(STORAGE_KEYS.PROFILES, Array.from(profMap.values()));
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
@@ -370,30 +423,31 @@ export const Storage = {
 
   getMedicines(storeId?: string): Medicine[] {
     const list = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
-    const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (!effectiveStoreId) return list;
-    const matching = list.filter((m) => m.storeId === effectiveStoreId);
+    const deletedMedIds = this.getDeletedMedicineIds();
+    const activeList = list.filter((m) => !deletedMedIds.includes(m.id));
+    const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id || 'store_main';
+    
+    // 1. Exact store match
+    const matching = activeList.filter((m) => m.storeId === effectiveStoreId);
     if (matching.length > 0) return matching;
-    // Fallback if medicines were saved before storeId was explicitly tagged
-    const fallback = list.filter((m) => !m.storeId);
+
+    // 2. Fallback to main store or untagged medicines
+    const fallback = activeList.filter((m) => !m.storeId || m.storeId === 'store_main');
     if (fallback.length > 0) return fallback;
-    // If medicines exist in the database, make them accessible
-    return list;
+
+    // 3. Complete catalogue fallback so visitor always sees store medicines
+    return activeList;
   },
 
   saveMedicines(medicines: Medicine[], storeId?: string) {
-    const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (effectiveStoreId) {
-      const all = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
-      const otherStores = all.filter((m) => m.storeId && m.storeId !== effectiveStoreId);
-      const tagged = medicines.map((m) => ({ ...m, storeId: m.storeId || effectiveStoreId }));
-      const merged = [...tagged, ...otherStores];
-      setItem(STORAGE_KEYS.MEDICINES, merged);
-    } else {
-      setItem(STORAGE_KEYS.MEDICINES, medicines);
-    }
+    const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id || 'store_main';
+    const all = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
+    const otherStores = all.filter((m) => m.storeId && m.storeId !== effectiveStoreId);
+    const tagged = medicines.map((m) => ({ ...m, storeId: m.storeId || effectiveStoreId }));
+    const merged = [...tagged, ...otherStores];
+    setItem(STORAGE_KEYS.MEDICINES, merged);
     try {
-      medicines.forEach((m) => SupabaseSync.syncMedicine(m));
+      tagged.forEach((m) => SupabaseSync.syncMedicine(m));
     } catch (e) {
       // Background sync non-blocking
     }
@@ -403,6 +457,7 @@ export const Storage = {
   },
 
   deleteMedicine(medicineId: string, storeId?: string) {
+    this.addDeletedMedicineId(medicineId);
     const all = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []);
     const remaining = all.filter((m) => m.id !== medicineId);
     setItem(STORAGE_KEYS.MEDICINES, remaining);
@@ -416,19 +471,37 @@ export const Storage = {
     }
   },
 
+  async deleteMedicineAsync(medicineId: string, storeId?: string): Promise<void> {
+    this.addDeletedMedicineId(medicineId);
+    const all = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []);
+    const remaining = all.filter((m) => m.id !== medicineId);
+    setItem(STORAGE_KEYS.MEDICINES, remaining);
+    try {
+      await SupabaseSync.deleteMedicine(medicineId);
+    } catch (e) {
+      console.warn('Delete medicine error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
   mergeCloudMedicines(cloudMeds: Medicine[], storeId?: string) {
     if (!cloudMeds || cloudMeds.length === 0) return;
-    const current = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []);
+    const deletedMedIds = this.getDeletedMedicineIds();
+    const current = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []).filter((m) => !deletedMedIds.includes(m.id));
     const medMap = new Map<string, Medicine>();
     current.forEach((m) => medMap.set(m.id, m));
-    cloudMeds.forEach((m) => {
-      const existing = medMap.get(m.id);
-      medMap.set(m.id, {
-        ...(existing || {}),
-        ...m,
-        storeId: m.storeId || existing?.storeId || storeId || '',
+    cloudMeds
+      .filter((m) => !deletedMedIds.includes(m.id))
+      .forEach((m) => {
+        const existing = medMap.get(m.id);
+        medMap.set(m.id, {
+          ...(existing || {}),
+          ...m,
+          storeId: m.storeId || existing?.storeId || storeId || 'store_main',
+        });
       });
-    });
     const merged = Array.from(medMap.values());
     setItem(STORAGE_KEYS.MEDICINES, merged);
     if (typeof window !== 'undefined') {
@@ -593,20 +666,30 @@ export const Storage = {
 
   getLedger(storeId?: string): VisitorLedgerEntry[] {
     const list = getItem<VisitorLedgerEntry[]>(STORAGE_KEYS.LEDGER, INITIAL_LEDGER);
+    // Strict separation: Visitor remittances of customer drug cash/deposits belong to store treasury,
+    // NEVER to visitor personal salary or commission ledger. Filter out any legacy bogus records.
+    const sanitized = list.filter(
+      (l) => !l.id?.startsWith('led_rem_') && !l.title?.includes('واریزی صندوق ویزیتور')
+    );
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (!effectiveStoreId) return list;
-    const matching = list.filter((l) => l.storeId === effectiveStoreId);
+    if (!effectiveStoreId) return sanitized;
+    const matching = sanitized.filter((l) => l.storeId === effectiveStoreId);
     if (matching.length > 0) return matching;
-    const fallback = list.filter((l) => !l.storeId);
-    return fallback.length > 0 ? fallback : list;
+    const fallback = sanitized.filter((l) => !l.storeId);
+    return fallback.length > 0 ? fallback : sanitized;
   },
 
   saveLedger(ledger: VisitorLedgerEntry[], storeId?: string) {
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
+    const sanitizedLedger = ledger.filter(
+      (l) => !l.id?.startsWith('led_rem_') && !l.title?.includes('واریزی صندوق ویزیتور')
+    );
     if (effectiveStoreId) {
-      const all = getItem<VisitorLedgerEntry[]>(STORAGE_KEYS.LEDGER, INITIAL_LEDGER);
+      const all = getItem<VisitorLedgerEntry[]>(STORAGE_KEYS.LEDGER, INITIAL_LEDGER).filter(
+        (l) => !l.id?.startsWith('led_rem_') && !l.title?.includes('واریزی صندوق ویزیتور')
+      );
       const otherStores = all.filter((l) => l.storeId && l.storeId !== effectiveStoreId);
-      const tagged = ledger.map((l) => ({ ...l, storeId: l.storeId || effectiveStoreId }));
+      const tagged = sanitizedLedger.map((l) => ({ ...l, storeId: l.storeId || effectiveStoreId }));
       const merged = [...tagged, ...otherStores];
       setItem(STORAGE_KEYS.LEDGER, merged);
     } else {
@@ -875,4 +958,20 @@ if (typeof window !== 'undefined') {
     console.error('Storage synchronous init failed', e);
   }
 }
+
+/**
+ * Universal store ID resolution helper ensuring stores, visitors, and messages always share the same ID.
+ */
+export function getEffectiveStoreId(user?: UserProfile | null, store?: Store | null): string {
+  if (store?.id) return store.id;
+  if (user?.storeId) return user.storeId;
+  const localUser = Storage.getCurrentUser();
+  if (localUser?.storeId) return localUser.storeId;
+  const localStores = Storage.getStores();
+  if (localStores && localStores.length > 0 && localStores[0].id) {
+    return localStores[0].id;
+  }
+  return 'store_main';
+}
+
 

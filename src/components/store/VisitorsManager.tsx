@@ -207,11 +207,11 @@ export const VisitorsManager: React.FC = () => {
   };
 
   // Permanent Purge handler (with safety inspection)
-  const handlePermanentPurge = () => {
+  const handlePermanentPurge = async () => {
     if (!purgeTarget) return;
 
     // Remove user profile permanently locally and from Supabase cloud database
-    Storage.deleteProfile(purgeTarget.id);
+    await Storage.deleteProfileAsync(purgeTarget.id);
 
     // Keep orders with visitorName preserved as historical record
     reloadData();

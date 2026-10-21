@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Storage } from '../../utils/storage';
+import { Storage, getEffectiveStoreId } from '../../utils/storage';
+import { SupabaseSync } from '../../utils/supabaseSync';
 import { Order, OrderItem, Medicine, Customer, VisitorCashCollection, OrderPaymentRecord } from '../../types';
 import {
   exportOrderToExcel,
@@ -32,6 +33,7 @@ import {
   ShieldCheck,
   Building2,
   Pill,
+  CreditCard,
 } from 'lucide-react';
 
 interface Props {
@@ -41,7 +43,7 @@ interface Props {
 export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
   const { currentUser, currentStore } = useApp();
   const visitorId = currentUser?.id || '';
-  const storeId = currentStore?.id || '';
+  const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   const isCashCollectionAllowed =
     (currentStore?.allowVisitorCashCollection ?? true) &&
@@ -51,6 +53,10 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
     Storage.getOrders(storeId).filter((o) => o.visitorId === visitorId)
   );
 
+  const [medicines, setMedicines] = useState<Medicine[]>(() =>
+    Storage.getMedicines(storeId)
+  );
+
   const customers = useMemo(
     () =>
       Storage.getCustomers(storeId).filter(
@@ -58,8 +64,6 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
       ),
     [storeId, visitorId]
   );
-
-  const medicines = useMemo(() => Storage.getMedicines(storeId), [storeId]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(
@@ -92,12 +96,33 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
     code: string;
   } | null>(null);
 
+  // In-person debt/installment collection on existing order modal
+  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<Order | null>(null);
+  const [orderPaymentAmount, setOrderPaymentAmount] = useState<number>(0);
+  const [orderPaymentMethod, setOrderPaymentMethod] = useState<'cash' | 'card_to_card' | 'bank_receipt'>('cash');
+  const [orderPaymentReceipt, setOrderPaymentReceipt] = useState('');
+  const [orderPaymentNote, setOrderPaymentNote] = useState('');
+  const [orderPaymentError, setOrderPaymentError] = useState<string | null>(null);
+
   const reloadData = () => {
     setOrders(Storage.getOrders(storeId).filter((o) => o.visitorId === visitorId));
+    setMedicines(Storage.getMedicines(storeId));
   };
 
   useEffect(() => {
     reloadData();
+    SupabaseSync.pullStoreCloudData(storeId)
+      .then((res) => {
+        if (res.medicines && res.medicines.length > 0) {
+          Storage.mergeCloudMedicines(res.medicines, storeId);
+        }
+        if (res.orders && res.orders.length > 0) {
+          Storage.mergeCloudOrders(res.orders, storeId);
+        }
+        reloadData();
+      })
+      .catch(() => {});
+
     const handleStorage = () => reloadData();
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
@@ -270,7 +295,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
 
     const all = Storage.getOrders(storeId);
     all.unshift(newOrder);
-    Storage.saveOrders(all);
+    Storage.saveOrders(all, storeId);
 
     // If money was collected, record in VisitorCashCollection
     if (collectedAmount > 0) {
@@ -304,6 +329,78 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
     setPaymentType('credit');
     setDepositAmount(0);
     setReceiptNumber('');
+  };
+
+  const handleRecordOrderPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    setOrderPaymentError(null);
+    if (!selectedOrderForPayment || orderPaymentAmount <= 0) {
+      setOrderPaymentError('لطفاً مبلغ معتبر برای دریافت وارد نمایید.');
+      return;
+    }
+
+    if (orderPaymentAmount > selectedOrderForPayment.remainingAmountAFN) {
+      setOrderPaymentError(
+        `مبلغ دریافتی نمی‌تواند بیشتر از مانده طلب فاکتور (${selectedOrderForPayment.remainingAmountAFN.toLocaleString()} AFN) باشد.`
+      );
+      return;
+    }
+
+    const payAmount = orderPaymentAmount;
+    const newPaid = selectedOrderForPayment.paidAmountAFN + payAmount;
+    const newRemaining = Math.max(0, selectedOrderForPayment.totalAFN - newPaid);
+    const newPaymentStatus = newRemaining === 0 ? ('paid' as const) : ('partial' as const);
+
+    const paymentRecord: OrderPaymentRecord = {
+      id: `pay_${Date.now()}`,
+      amountAFN: payAmount,
+      date: new Date().toISOString(),
+      registeredBy: currentUser?.name || 'ویزیتور',
+      receiptNumber: orderPaymentReceipt.trim() || undefined,
+      note: orderPaymentNote.trim() || `دریافت طلب فاکتور توسط ${currentUser?.name || 'ویزیتور'}`,
+    };
+
+    const updatedOrder: Order = {
+      ...selectedOrderForPayment,
+      paidAmountAFN: newPaid,
+      remainingAmountAFN: newRemaining,
+      paymentStatus: newPaymentStatus,
+      payments: [...(selectedOrderForPayment.payments || []), paymentRecord],
+      updatedAt: new Date().toISOString(),
+    };
+
+    const allOrders = Storage.getOrders(storeId);
+    const updatedAllOrders = allOrders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o));
+    Storage.saveOrders(updatedAllOrders, storeId);
+
+    // Record cash collection for this visitor in hand
+    const collectionRecord: VisitorCashCollection = {
+      id: `col_${Date.now()}`,
+      storeId,
+      visitorId,
+      visitorName: currentUser?.name || 'ویزیتور',
+      orderId: updatedOrder.id,
+      orderNumber: updatedOrder.orderNumber,
+      customerId: updatedOrder.customerId,
+      customerName: updatedOrder.customerName,
+      amountAFN: payAmount,
+      collectionType: 'installment',
+      paymentMethod: orderPaymentMethod,
+      receiptNumber: orderPaymentReceipt.trim() || undefined,
+      notes: orderPaymentNote.trim() || `دریافت مانده طلب فاکتور ${updatedOrder.orderNumber}`,
+      date: new Date().toISOString(),
+      status: 'in_hand',
+    };
+    const allCols = Storage.getCashCollections(storeId);
+    allCols.unshift(collectionRecord);
+    Storage.saveCashCollections(allCols, storeId);
+
+    setSelectedOrderForPayment(null);
+    setOrderPaymentAmount(0);
+    setOrderPaymentReceipt('');
+    setOrderPaymentNote('');
+    setOrderPaymentError(null);
+    reloadData();
   };
 
   const filteredMedicines = useMemo(() => {
@@ -467,6 +564,23 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                         <span>اقلام فاکتور</span>
                         {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                       </button>
+
+                      {isCashCollectionAllowed && o.remainingAmountAFN > 0 && (
+                        <button
+                          onClick={() => {
+                            setSelectedOrderForPayment(o);
+                            setOrderPaymentAmount(o.remainingAmountAFN);
+                            setOrderPaymentReceipt('');
+                            setOrderPaymentNote('');
+                            setOrderPaymentError(null);
+                          }}
+                          className="px-2.5 py-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/70 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 rounded-xl font-bold flex items-center gap-1 transition cursor-pointer"
+                          title="ثبت دریافت وجه نقد یا بیعانه مجدد از دواخانه"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>دریافت طلب</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -796,6 +910,124 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                   className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-40 cursor-pointer"
                 >
                   ثبت قطعی و ارسال به فروشگاه
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Debt / Installment Collection Modal */}
+      {selectedOrderForPayment && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                    دریافت وجه نقد / طلب از دواخانه
+                  </h3>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    فاکتور: {selectedOrderForPayment.orderNumber} ({selectedOrderForPayment.customerName})
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForPayment(null)}
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {orderPaymentError && (
+              <div className="mb-4 bg-rose-50 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2 border border-rose-200">
+                <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                <span>{orderPaymentError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleRecordOrderPayment} className="space-y-4">
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between">
+                <span className="text-xs text-slate-500">مانده فعلی فاکتور:</span>
+                <span className="font-mono font-black text-rose-600 dark:text-rose-400 text-sm">
+                  {selectedOrderForPayment.remainingAmountAFN.toLocaleString()} AFN
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  مبلغ دریافتی از دواخانه (AFN) *
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={orderPaymentAmount || ''}
+                  onChange={(e) => setOrderPaymentAmount(parseNumberInput(e.target.value))}
+                  placeholder="مبلغ پرداختی را وارد کنید"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  روش دریافت وجه
+                </label>
+                <select
+                  value={orderPaymentMethod}
+                  onChange={(e) => setOrderPaymentMethod(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                >
+                  <option value="cash">نقدی حضوری</option>
+                  <option value="card_to_card">انتقال کارت به کارت</option>
+                  <option value="bank_receipt">فیش بانکی مستقیم</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  شماره رسید یا فیش (اختیاری)
+                </label>
+                <input
+                  type="text"
+                  value={orderPaymentReceipt}
+                  onChange={(e) => setOrderPaymentReceipt(e.target.value)}
+                  placeholder="مثال: REF-98745"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  توضیحات و بابت (اختیاری)
+                </label>
+                <input
+                  type="text"
+                  value={orderPaymentNote}
+                  onChange={(e) => setOrderPaymentNote(e.target.value)}
+                  placeholder="مثال: تسویه قسط اول دواخانه"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrderForPayment(null)}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs cursor-pointer"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 cursor-pointer"
+                >
+                  ثبت دریافت و افزودن به صندوق
                 </button>
               </div>
             </form>

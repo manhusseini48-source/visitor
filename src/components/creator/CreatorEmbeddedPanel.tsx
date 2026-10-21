@@ -518,9 +518,9 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     showToast(currentActive ? 'حساب کاربری غیرفعال گردید.' : 'حساب کاربری فعال گردید.');
   };
 
-  const handleDeleteUser = (userId: string, userName: string) => {
+  const handleDeleteUser = async (userId: string, userName: string) => {
     if (confirm(`آیا از حذف دائمی کاربر «${userName}» از سامانه و دیتابیس ابری مطمئن هستید؟ این عملیات قابل بازگشت نیست.`)) {
-      Storage.deleteProfile(userId);
+      await Storage.deleteProfileAsync(userId);
       reloadData();
       showToast(`کاربر «${userName}» برای همیشه از سامانه و دیتابیس ابری حذف گردید.`);
     }

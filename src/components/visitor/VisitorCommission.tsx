@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Storage } from '../../utils/storage';
+import { Storage, getEffectiveStoreId } from '../../utils/storage';
 import { VisitorLedgerEntry, Order, VisitorCashCollection, VisitorRemittance } from '../../types';
 import {
   DollarSign,
@@ -34,7 +34,7 @@ import { exportLedgerToPDF } from '../../utils/exportDocs';
 export const VisitorCommission: React.FC = () => {
   const { currentUser, currentStore } = useApp();
   const visitorId = currentUser?.id || '';
-  const storeId = currentStore?.id || currentUser?.storeId || '';
+  const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   // Tab State: 'wallet' (صندوق وصولی و تسویه) or 'earnings' (پورسانت و درآمد شخصی)
   const [activeSubTab, setActiveSubTab] = useState<'wallet' | 'earnings'>('wallet');
@@ -210,6 +210,18 @@ export const VisitorCommission: React.FC = () => {
 
     if (transferAmount <= 0) {
       setTransferError('لطفاً مبلغ معتبر برای انتقال وارد نمایید.');
+      return;
+    }
+
+    if (currentCashInHand <= 0) {
+      setTransferError('در حال حاضر وجه نقدی یا بیعانه‌ای از دواخانه‌ها نزد شما برای انتقال وجود ندارد (تراز تسویه است).');
+      return;
+    }
+
+    if (transferAmount > currentCashInHand) {
+      setTransferError(
+        `مبلغ انتقال نمی‌تواند بیشتر از کل موجودی نقد نزد شما (${currentCashInHand.toLocaleString()} AFN) باشد تا اضافه واریزی کاذب ایجاد نشود.`
+      );
       return;
     }
 

@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Storage } from '../../utils/storage';
+import { Storage, getEffectiveStoreId } from '../../utils/storage';
 import { Medicine } from '../../types';
 import { MedicineDetailsModal } from '../common/MedicineDetailsModal';
 import { MedicineImageViewerModal } from '../common/MedicineImageViewerModal';
 import { exportMedicinesToExcel, exportMedicinesToPDF } from '../../utils/exportDocs';
+import { SupabaseSync } from '../../utils/supabaseSync';
 import {
   Pill,
   Search,
@@ -29,7 +30,7 @@ interface Props {
 
 export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
   const { currentStore, currentUser } = useApp();
-  const storeId = currentStore?.id || currentUser?.storeId || '';
+  const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   const [medicines, setMedicines] = useState<Medicine[]>(() =>
     Storage.getMedicines(storeId)
@@ -53,6 +54,14 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
 
   useEffect(() => {
     reloadData();
+    // Pull fresh data from cloud in background to guarantee cross-device sync
+    SupabaseSync.pullStoreCloudData(storeId).then((res) => {
+      if (res.medicines && res.medicines.length > 0) {
+        Storage.mergeCloudMedicines(res.medicines, storeId);
+        reloadData();
+      }
+    }).catch(() => {});
+
     const handleStorageChange = () => reloadData();
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);

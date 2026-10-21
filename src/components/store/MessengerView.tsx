@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Storage } from '../../utils/storage';
+import { Storage, getEffectiveStoreId } from '../../utils/storage';
 import { Conversation, Message, UserProfile } from '../../types';
 import { compressImage, uploadToCloudinary } from '../../utils/imageCompressor';
 import { SupabaseSync } from '../../utils/supabaseSync';
+import { supabase, isSupabaseConfigured } from '../../utils/supabaseClient';
 import {
   MessageSquare,
   Users,
@@ -26,7 +27,7 @@ interface Props {
 
 export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
   const { currentStore, currentUser } = useApp();
-  const storeId = currentStore?.id || '';
+  const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   // Ensure public group and appropriate private chats exist
   const initConversations = (): Conversation[] => {
@@ -53,7 +54,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
     // 2. Ensure each registered visitor has a private chat with the store
     const visitors = Storage.getProfiles().filter(
-      (p) => p.storeId === storeId && p.role === 'visitor'
+      (p) => p.role === 'visitor' && (!p.storeId || p.storeId === storeId || storeId === 'store_main')
     );
     visitors.forEach((vis) => {
       const exists = convs.find(
@@ -150,12 +151,34 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
     };
 
     pullLiveMessages();
-    const interval = setInterval(pullLiveMessages, 2500);
+    const interval = setInterval(pullLiveMessages, 3000);
     window.addEventListener('storage', reloadMessages);
+
+    // Supabase Realtime Channel for instant messaging
+    let channel: any = null;
+    if (supabase && isSupabaseConfigured) {
+      try {
+        channel = supabase
+          .channel(`rt-messenger-${storeId}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'messages' },
+            () => {
+              pullLiveMessages();
+            }
+          )
+          .subscribe();
+      } catch {}
+    }
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('storage', reloadMessages);
+      if (channel) {
+        try {
+          channel.unsubscribe();
+        } catch {}
+      }
     };
   }, [activeConvId, storeId]);
 

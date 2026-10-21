@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Storage } from '../../utils/storage';
+import { Storage, getEffectiveStoreId } from '../../utils/storage';
+import { SupabaseSync } from '../../utils/supabaseSync';
 import { Medicine, Customer, Order, OrderItem, OrderPaymentRecord, VisitorCashCollection } from '../../types';
 import { parseNumberInput } from '../../utils/numberUtils';
 import { exportOrderToPDF } from '../../utils/exportDocs';
@@ -49,7 +50,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
   initialSelectedCustomerId,
 }) => {
   const { currentStore, currentUser } = useApp();
-  const storeId = currentStore?.id || currentUser?.storeId || '';
+  const storeId = getEffectiveStoreId(currentUser, currentStore);
   const visitorId = currentUser?.id || '';
 
   // Store setting for allowing visitor to collect cash/deposit
@@ -83,6 +84,14 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
 
   useEffect(() => {
     reloadData();
+    // Pull fresh data from cloud in background to guarantee cross-device sync
+    SupabaseSync.pullStoreCloudData(storeId).then((res) => {
+      if (res.medicines && res.medicines.length > 0) {
+        Storage.mergeCloudMedicines(res.medicines, storeId);
+        reloadData();
+      }
+    }).catch(() => {});
+
     const handleStorage = () => reloadData();
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
@@ -428,7 +437,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
     // Save Order
     const allOrders = Storage.getOrders(storeId);
     allOrders.unshift(newOrder);
-    Storage.saveOrders(allOrders);
+    Storage.saveOrders(allOrders, storeId);
 
     // If money was collected, record in VisitorCashCollection
     if (collectedAmount > 0) {

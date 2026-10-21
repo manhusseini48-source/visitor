@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Storage } from '../../utils/storage';
+import { Storage, getEffectiveStoreId } from '../../utils/storage';
 import {
   VisitorLedgerEntry,
   UserProfile,
@@ -45,7 +45,7 @@ import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
 
 export const AccountingManager: React.FC = () => {
   const { currentStore, currentUser, updateStoreSettings } = useApp();
-  const storeId = currentStore?.id || '';
+  const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<
@@ -198,37 +198,45 @@ export const AccountingManager: React.FC = () => {
         : r
     );
 
-    // Mark visitor collections as remitted up to this amount
-    let remainingToMark = rem.amountAFN;
-    const updatedCollections = collections.map((c) => {
-      if (c.visitorId === rem.visitorId && c.status === 'in_hand' && remainingToMark > 0) {
-        if (c.amountAFN <= remainingToMark) {
-          remainingToMark -= c.amountAFN;
-          return { ...c, status: 'remitted' as const, remittanceId: rem.id };
+    // Calculate total approved remittances for this visitor
+    const visitorApprovedTotal = updatedRemittances
+      .filter((r) => r.visitorId === rem.visitorId && r.status === 'approved')
+      .reduce((sum, r) => sum + r.amountAFN, 0);
+
+    // Chronologically mark collections as remitted based on cumulative approved remittance budget
+    let runningBudget = visitorApprovedTotal;
+    const sortedCollections = [...collections].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    const markedIds = new Set<string>();
+    sortedCollections.forEach((c) => {
+      if (c.visitorId === rem.visitorId) {
+        if (runningBudget >= c.amountAFN) {
+          runningBudget -= c.amountAFN;
+          markedIds.add(c.id);
         }
+      }
+    });
+
+    const updatedCollections = collections.map((c) => {
+      if (c.visitorId === rem.visitorId) {
+        const isRemitted = markedIds.has(c.id);
+        return {
+          ...c,
+          status: isRemitted ? ('remitted' as const) : ('in_hand' as const),
+          remittanceId: isRemitted ? (c.remittanceId || rem.id) : undefined,
+        };
       }
       return c;
     });
 
-    // Save
+    // Save remittances & collections to store treasury
     Storage.saveRemittances(updatedRemittances, storeId);
     Storage.saveCashCollections(updatedCollections, storeId);
 
-    // Create record in store ledger as confirmed deposit
-    const newEntry: VisitorLedgerEntry = {
-      id: `led_rem_${Date.now()}`,
-      storeId,
-      visitorId: rem.visitorId,
-      type: 'payout',
-      amount: -rem.amountAFN,
-      title: `تایید واریزی صندوق ویزیتور (${rem.remittanceNumber})`,
-      description: `تایید فیش ${rem.trackingNumber} به مبلغ ${rem.amountAFN.toLocaleString()} AFN به حساب فروشگاه`,
-      date: new Date().toISOString(),
-      registeredBy: currentUser?.name || 'مدیر فروشگاه',
-    };
-    const allLedger = Storage.getLedger(storeId);
-    allLedger.unshift(newEntry);
-    Storage.saveLedger(allLedger, storeId);
+    // NOTE: Visitor remittances of collected pharmacy cash belong to Store Treasury.
+    // They are NOT deductions/payouts from the visitor's personal salary or commission.
+    // Thus, no entry is added to VisitorLedgerEntry, preventing any false shortage (کسری الکی).
 
     reloadData();
   };
@@ -298,7 +306,7 @@ export const AccountingManager: React.FC = () => {
       return o;
     });
 
-    Storage.saveOrders(updatedOrders);
+    Storage.saveOrders(updatedOrders, storeId);
     setIsPharmacyPaymentModalOpen(false);
     setSelectedCustomerForPayment(null);
     setPharmacyPayAmount(0);
@@ -579,85 +587,105 @@ export const AccountingManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Macro Financial KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Macro Financial KPI Cards - 5-Pillar Accounting Transparency */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* 1. Total Gross Sales */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                کل فروش فاکتورهای دارویی
+                کل فروش فاکتورها
               </span>
               <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 flex items-center justify-center">
                 <Receipt className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono mt-2">
-              {totalGrossSalesAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+            <div className="text-xl font-black text-slate-900 dark:text-slate-100 font-mono mt-2">
+              {totalGrossSalesAFN.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">AFN</span>
             </div>
           </div>
           <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            مجموع {orders.length} فاکتور ثبت‌شده در فروشگاه
+            مجموع {orders.length} فاکتور ثبت‌شده
           </p>
         </div>
 
-        {/* 2. Outstanding Debts from Pharmacies */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+        {/* 2. Approved Store Treasury Receipts (وجوه واریز شده و تایید شده به حساب فروشگاه) */}
+        <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent bg-white dark:bg-slate-900 p-4 rounded-3xl border-2 border-emerald-500/40 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
-                مطالبات معوق از دواخانه‌ها (بدهکاران)
+              <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400">
+                واریز قطعی به صندوق فروشگاه
               </span>
-              <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-rose-700 dark:text-rose-400 font-mono mt-2">
-              {totalOutstandingDebtsAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+            <div className="text-xl font-black text-emerald-800 dark:text-emerald-200 font-mono mt-2">
+              {approvedRemittancesTotal.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">AFN</span>
             </div>
           </div>
-          <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            مانده تسویه‌نشده توسط خریداران
+          <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-emerald-200/40">
+            وجوه تحویل‌شده و تسویه‌شده ویزیتورها
           </p>
         </div>
 
         {/* 3. In-Hand Cash with Visitors */}
-        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent bg-white dark:bg-slate-900 p-5 rounded-3xl border-2 border-amber-500/40 shadow-xs flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent bg-white dark:bg-slate-900 p-4 rounded-3xl border-2 border-amber-500/40 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black text-amber-700 dark:text-amber-400">
-                وجوه و بیعانه‌ها نزد ویزیتورها
+                بیعانه و نقد نزد ویزیتورها
               </span>
               <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center">
                 <Wallet className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-amber-800 dark:text-amber-200 font-mono mt-2">
-              {totalCashInVisitorsHandsAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+            <div className="text-xl font-black text-amber-800 dark:text-amber-200 font-mono mt-2">
+              {totalCashInVisitorsHandsAFN.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">AFN</span>
             </div>
           </div>
           <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-amber-200/40">
-            وصولی‌های نقدی ویزیتورها در صف واریز
+            وصولی‌های نقدی در انتظار تسویه
           </p>
         </div>
 
-        {/* 4. Pending Remittances awaiting store approval */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+        {/* 4. Outstanding Debts from Pharmacies */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                مطالبات معوق از دواخانه‌ها
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl font-black text-rose-700 dark:text-rose-400 font-mono mt-2">
+              {totalOutstandingDebtsAFN.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">AFN</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            مانده تسویه‌نشده مشتریان
+          </p>
+        </div>
+
+        {/* 5. Pending Remittances awaiting store approval */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400">
-                فیش‌های منتظر تایید حسابداری
+                فیش‌های در انتظار بررسی
               </span>
               <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-purple-700 dark:text-purple-400 font-mono mt-2">
-              {pendingRemittancesTotalAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+            <div className="text-xl font-black text-purple-700 dark:text-purple-400 font-mono mt-2">
+              {pendingRemittancesTotalAFN.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">AFN</span>
             </div>
           </div>
           <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            {pendingRemittances.length} درخواست انتقال واریز ویزیتورها
+            {pendingRemittances.length} انتقال در صف تایید حسابداری
           </p>
         </div>
       </div>
@@ -949,9 +977,11 @@ export const AccountingManager: React.FC = () => {
                       <th className="py-3 px-4">نام و مشخصات ویزیتور</th>
                       <th className="py-3 px-4">تلفن تماس</th>
                       <th className="py-3 px-4">کل وصولی‌های از مشتریان</th>
-                      <th className="py-3 px-4">واریزی‌های تاییدشده</th>
-                      <th className="py-3 px-4">موجودی نقدی فعلی نزد ویزیتور</th>
-                      <th className="py-3 px-4">مجوز دریافت بیعانه</th>
+                      <th className="py-3 px-4">واریز قطعی به فروشگاه</th>
+                      <th className="py-3 px-4">فیش در انتظار بررسی</th>
+                      <th className="py-3 px-4">موجودی نقدی نزد ویزیتور</th>
+                      <th className="py-3 px-4">وضعیت تراز صندوق</th>
+                      <th className="py-3 px-4">مجوز بیعانه</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -962,6 +992,10 @@ export const AccountingManager: React.FC = () => {
 
                       const visApprovedRemittances = remittances
                         .filter((r) => r.visitorId === vis.id && r.status === 'approved')
+                        .reduce((s, r) => s + r.amountAFN, 0);
+
+                      const visPendingRemittances = remittances
+                        .filter((r) => r.visitorId === vis.id && r.status === 'pending')
                         .reduce((s, r) => s + r.amountAFN, 0);
 
                       const inHand = Math.max(0, visCollections - visApprovedRemittances);
@@ -985,8 +1019,29 @@ export const AccountingManager: React.FC = () => {
                           <td className="py-3 px-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">
                             {visApprovedRemittances.toLocaleString()} AFN
                           </td>
+                          <td className="py-3 px-4 font-mono font-bold text-purple-600 dark:text-purple-400">
+                            {visPendingRemittances > 0 ? `${visPendingRemittances.toLocaleString()} AFN` : '-'}
+                          </td>
                           <td className="py-3 px-4 font-mono font-black text-amber-700 dark:text-amber-400 text-sm">
                             {inHand.toLocaleString()} AFN
+                          </td>
+                          <td className="py-3 px-4">
+                            {inHand === 0 ? (
+                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 flex items-center gap-1 w-fit">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>تسویه کامل (تراز صفر)</span>
+                              </span>
+                            ) : visPendingRemittances >= inHand ? (
+                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-300 flex items-center gap-1 w-fit">
+                                <Clock className="w-3 h-3" />
+                                <span>فیش در صف تایید</span>
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300 flex items-center gap-1 w-fit">
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>در انتظار واریز فیش</span>
+                              </span>
+                            )}
                           </td>
                           <td className="py-3 px-4">
                             <span
