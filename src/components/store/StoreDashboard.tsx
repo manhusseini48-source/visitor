@@ -32,9 +32,14 @@ interface Props {
 }
 
 export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
-  const { currentStore, trialDaysRemaining, shamsiDate } = useApp();
+  const { currentStore, trialDaysRemaining, shamsiDate, currentUser } = useApp();
 
   const storeId = currentStore?.id || '';
+
+  // Eisenhower Matrix Tasks for the logged-in user
+  const eisenhowerTasks = useMemo(() => Storage.getEisenhowerTasks(currentUser?.id), [currentUser?.id]);
+  const pendingTasksCount = eisenhowerTasks.filter((t) => !t.isCompleted).length;
+  const urgentImportantCount = eisenhowerTasks.filter((t) => !t.isCompleted && t.quadrant === 'q1_urgent_important').length;
 
   // Real data calculations
   const orders = useMemo(() => Storage.getOrders(storeId), [storeId]);
@@ -353,6 +358,39 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Eisenhower Matrix & Personal Notes Widget */}
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 border border-purple-700/60 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center font-black flex-shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-black text-sm">ماتریس اولویت‌بندی آیزنهاور و یادداشت‌های شخصی</h4>
+              <span className="text-[10px] bg-purple-500/30 text-purple-200 border border-purple-400/30 px-2 py-0.5 rounded-full font-bold">
+                برنامه‌ریزی کارها
+              </span>
+            </div>
+            <p className="text-xs text-purple-200 mt-1">
+              شما دارای <strong>{pendingTasksCount}</strong> کار ثبت‌شده در دست اقدام هستید{' '}
+              {urgentImportantCount > 0 && (
+                <span className="bg-rose-500/30 text-rose-300 px-2 py-0.5 rounded-full font-bold text-[11px] mr-1">
+                  {urgentImportantCount} کار فوری و مهم (Q1)
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onNavigateTab('notes')}
+          className="px-4 py-2.5 bg-white text-purple-950 hover:bg-purple-50 font-black rounded-xl text-xs shadow-md transition cursor-pointer self-start sm:self-auto flex items-center gap-1.5 active:scale-95"
+        >
+          <span>ورود به ماتریس و دفترچه یادداشت</span>
+          <ArrowUpRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Main KPI Cards with Interactive Sparklines */}

@@ -44,6 +44,41 @@ export const VisitsScheduleManager: React.FC = () => {
   const [outcomeNotes, setOutcomeNotes] = useState('');
   const [nextFollowupDate, setNextFollowupDate] = useState('');
 
+  // Store Advice for Visitor (up to 300 chars)
+  const [adviceModalVisit, setAdviceModalVisit] = useState<VisitRecord | null>(null);
+  const [adviceText, setAdviceText] = useState('');
+
+  const handleOpenAdviceModal = (v: VisitRecord) => {
+    setAdviceModalVisit(v);
+    setAdviceText(v.storeAdvice?.text || '');
+  };
+
+  const handleSaveAdvice = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adviceModalVisit) return;
+    const trimmed = adviceText.trim().slice(0, 300);
+    const all = Storage.getVisits(storeId);
+    const updated = all.map((v) => {
+      if (v.id === adviceModalVisit.id) {
+        return {
+          ...v,
+          storeAdvice: trimmed
+            ? {
+                text: trimmed,
+                adviceDate: new Date().toISOString(),
+                advisorName: currentUser?.name || 'مدیریت فروشگاه',
+              }
+            : undefined,
+        };
+      }
+      return v;
+    });
+    Storage.saveVisits(updated, storeId);
+    reloadData();
+    setAdviceModalVisit(null);
+    setAdviceText('');
+  };
+
   const reloadData = () => {
     setVisits(Storage.getVisits(storeId));
   };
@@ -179,10 +214,11 @@ export const VisitsScheduleManager: React.FC = () => {
             <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
               <tr>
                 <th className="p-3.5">زمان مقرر</th>
-                <th className="p-3.5">دواخانه / مشتری</th>
+                <th className="p-3.5">دواخانه / مشتری و موقعیت</th>
                 <th className="p-3.5">ویزیتور مسئول</th>
                 <th className="p-3.5">نتیجه و وضعیت مراجعه</th>
                 <th className="p-3.5">یادداشت ویزیتور</th>
+                <th className="p-3.5">توصیه فروشگاه برای مذاکره (حداکثر ۳۰۰ کاراکتر)</th>
                 <th className="p-3.5">پیگیری بعدی</th>
                 <th className="p-3.5 text-center">عملیات</th>
               </tr>
@@ -190,7 +226,7 @@ export const VisitsScheduleManager: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {visits.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={8} className="p-8 text-center text-slate-400">
                     ویزیت زمان‌بندی شده‌ای ثبت نشده است.
                   </td>
                 </tr>
@@ -209,7 +245,21 @@ export const VisitsScheduleManager: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="p-3.5 font-bold text-slate-800">{v.customerName}</td>
+                    <td className="p-3.5 font-bold text-slate-800">
+                      <div>{v.customerName}</div>
+                      {v.location && (
+                        <a
+                          href={`https://www.google.com/maps?q=${v.location.latitude},${v.location.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full mt-1 font-bold"
+                          title="مشاهده موقعیت جغرافیایی ثبت‌شده روی نقشه گوگل"
+                        >
+                          <MapPin className="w-3 h-3 text-red-500" />
+                          <span>نقشه GPS ({v.location.latitude.toFixed(3)}, {v.location.longitude.toFixed(3)})</span>
+                        </a>
+                      )}
+                    </td>
 
                     <td className="p-3.5 text-slate-600">{v.visitorName}</td>
 
@@ -217,6 +267,30 @@ export const VisitsScheduleManager: React.FC = () => {
 
                     <td className="p-3.5 text-slate-600 max-w-xs truncate">
                       {v.notes || '-'}
+                    </td>
+
+                    <td className="p-3.5 max-w-xs">
+                      {v.storeAdvice ? (
+                        <div className="bg-amber-50 border border-amber-200/80 p-2 rounded-xl text-[11px] text-amber-900">
+                          <p className="line-clamp-2 leading-relaxed">{v.storeAdvice.text}</p>
+                          <div className="flex items-center justify-between mt-1 text-[9px] text-amber-700/80">
+                            <span>نویسنده: {v.storeAdvice.advisorName}</span>
+                            <button
+                              onClick={() => handleOpenAdviceModal(v)}
+                              className="text-amber-800 font-bold hover:underline cursor-pointer"
+                            >
+                              ویرایش
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenAdviceModal(v)}
+                          className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[10px] font-bold transition cursor-pointer"
+                        >
+                          + افزودن توصیه مذاکره
+                        </button>
+                      )}
                     </td>
 
                     <td className="p-3.5 text-slate-500">
@@ -402,6 +476,68 @@ export const VisitsScheduleManager: React.FC = () => {
                   className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold"
                 >
                   ذخیره نتیجه
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Store Advice for Visitor Modal (Up to 300 characters) */}
+      {adviceModalVisit && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <span>توصیه فروشگاه برای ادامه مذاکره</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+                  {adviceModalVisit.customerName}
+                </span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setAdviceModalVisit(null)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 mb-3">
+              ویزیتور مسئول ({adviceModalVisit.visitorName}) این متن توصیه را در بخش ویزیت‌های خود مشاهده خواهد کرد تا در مذاکره با این مشتری بهتر عمل کند:
+            </p>
+
+            <form onSubmit={handleSaveAdvice} className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
+                  <label className="font-semibold">متن توصیه فروشگاه به ویزیتور:</label>
+                  <span className={`text-[10px] font-mono ${adviceText.length > 280 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                    {adviceText.length} / ۳۰۰ کاراکتر
+                  </span>
+                </div>
+                <textarea
+                  rows={4}
+                  maxLength={300}
+                  value={adviceText}
+                  onChange={(e) => setAdviceText(e.target.value)}
+                  placeholder="مثلاً: آقای دکتر در خرید اول تخفیف ۳ درصدی طلب می‌کند، روی تحویل فوری داروهای آلمانی تأکید کن و چک صیادی را تأیید کن..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs leading-relaxed focus:bg-white focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAdviceModalVisit(null)}
+                  className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-xl text-xs cursor-pointer"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs"
+                >
+                  ذخیره و ارسال به ویزیتور
                 </button>
               </div>
             </form>

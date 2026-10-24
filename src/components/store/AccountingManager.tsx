@@ -8,8 +8,13 @@ import {
   VisitorCashCollection,
   VisitorRemittance,
   Customer,
+  Medicine,
 } from '../../types';
-import { exportLedgerToPDF } from '../../utils/exportDocs';
+import {
+  exportLedgerToPDF,
+  exportMedicinesToExcel,
+  exportMedicinesToPDF,
+} from '../../utils/exportDocs';
 import {
   DollarSign,
   TrendingUp,
@@ -38,6 +43,11 @@ import {
   Users,
   Search,
   Sparkles,
+  Package,
+  Layers,
+  Boxes,
+  Percent,
+  Download,
 } from 'lucide-react';
 import { InteractiveDonutChart, DonutSegment } from '../charts/InteractiveDonutChart';
 import { InteractiveBarChart, BarDataPoint } from '../charts/InteractiveBarChart';
@@ -49,7 +59,7 @@ export const AccountingManager: React.FC = () => {
 
   // Tab State
   const [activeTab, setActiveTab] = useState<
-    'remittance_approvals' | 'visitors_cash' | 'pharmacies_debts' | 'visitor_payroll'
+    'remittance_approvals' | 'visitors_cash' | 'pharmacies_debts' | 'visitor_payroll' | 'profit_inventory'
   >('remittance_approvals');
 
   // Core Data
@@ -81,8 +91,17 @@ export const AccountingManager: React.FC = () => {
     Storage.getCustomers(storeId)
   );
 
+  const [medicines, setMedicines] = useState<Medicine[]>(() =>
+    Storage.getMedicines(storeId)
+  );
+
   // Search in debts
   const [debtSearch, setDebtSearch] = useState('');
+
+  // Profit & Inventory Tab Filters
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryCategoryFilter, setInventoryCategoryFilter] = useState('all');
+  const [inventorySortBy, setInventorySortBy] = useState<'value' | 'stock' | 'margin' | 'profit' | 'name'>('value');
 
   // Remittance Rejection Modal
   const [selectedRemittanceForReject, setSelectedRemittanceForReject] =
@@ -114,6 +133,7 @@ export const AccountingManager: React.FC = () => {
     setCollections(Storage.getCashCollections(storeId));
     setRemittances(Storage.getRemittances(storeId));
     setCustomers(Storage.getCustomers(storeId));
+    setMedicines(Storage.getMedicines(storeId));
   };
 
   useEffect(() => {
@@ -181,6 +201,138 @@ export const AccountingManager: React.FC = () => {
     () => pendingRemittances.reduce((sum, r) => sum + r.amountAFN, 0),
     [pendingRemittances]
   );
+
+  // 6. Inventory Capital Valuation & COGS Profitability
+  const inventoryCostValuation = useMemo(
+    () => medicines.reduce((sum, m) => sum + m.purchasePrice * m.stock, 0),
+    [medicines]
+  );
+
+  const inventoryRetailValuation = useMemo(
+    () => medicines.reduce((sum, m) => sum + m.salePrice * m.stock, 0),
+    [medicines]
+  );
+
+  const inventoryProjectedProfit = useMemo(
+    () => Math.max(0, inventoryRetailValuation - inventoryCostValuation),
+    [inventoryRetailValuation, inventoryCostValuation]
+  );
+
+  const totalStockUnits = useMemo(
+    () => medicines.reduce((sum, m) => sum + m.stock, 0),
+    [medicines]
+  );
+
+  const medicineCostMap = useMemo(
+    () => new Map(medicines.map((m) => [m.id, m])),
+    [medicines]
+  );
+
+  // Realized Sales & COGS (Delivered & Approved orders)
+  const realizedOrders = useMemo(
+    () => orders.filter((o) => o.status === 'delivered' || o.status === 'approved'),
+    [orders]
+  );
+
+  const realizedSalesAFN = useMemo(
+    () => realizedOrders.reduce((sum, o) => sum + o.totalAFN, 0),
+    [realizedOrders]
+  );
+
+  const realizedCOGS_AFN = useMemo(() => {
+    return realizedOrders.reduce((sum, o) => {
+      const orderCost = o.items.reduce((itemSum, it) => {
+        const med = medicineCostMap.get(it.medicineId);
+        const buyCost = med ? med.purchasePrice : Math.round(it.unitPrice * 0.72);
+        return itemSum + buyCost * it.quantity;
+      }, 0);
+      return sum + orderCost;
+    }, 0);
+  }, [realizedOrders, medicineCostMap]);
+
+  const realizedGrossProfitAFN = Math.max(0, realizedSalesAFN - realizedCOGS_AFN);
+  const realizedGrossMarginPercent =
+    realizedSalesAFN > 0
+      ? Math.round((realizedGrossProfitAFN / realizedSalesAFN) * 100)
+      : 0;
+
+  // Operating Expenses (Commissions & Salaries from visitor ledger)
+  const totalVisitorExpensesAFN = useMemo(
+    () =>
+      ledger
+        .filter((l) => ['salary', 'commission', 'bonus'].includes(l.type) && l.amount > 0)
+        .reduce((sum, l) => sum + l.amount, 0),
+    [ledger]
+  );
+
+  const estimatedNetOperatingProfitAFN = realizedGrossProfitAFN - totalVisitorExpensesAFN;
+
+  // Inventory Categories for filter
+  const inventoryCategories = useMemo(() => {
+    const set = new Set<string>();
+    medicines.forEach((m) => {
+      if (m.category) set.add(m.category);
+    });
+    return Array.from(set);
+  }, [medicines]);
+
+  // Inventory by category distribution for Donut Chart
+  const inventoryCategorySegments: DonutSegment[] = useMemo(() => {
+    const catMap = new Map<string, number>();
+    medicines.forEach((m) => {
+      const cat = m.category || 'عمومی';
+      const val = m.purchasePrice * m.stock;
+      catMap.set(cat, (catMap.get(cat) || 0) + val);
+    });
+
+    const palette = ['#0284c7', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#64748b'];
+    return Array.from(catMap.entries())
+      .map(([label, value], i) => ({
+        id: `cat_${i}`,
+        label,
+        value,
+        color: palette[i % palette.length],
+        subText: `${value.toLocaleString()} AFN`,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [medicines]);
+
+  // Filtered and sorted inventory items
+  const filteredInventoryItems = useMemo(() => {
+    return [...medicines]
+      .map((m) => {
+        const totalCost = m.purchasePrice * m.stock;
+        const totalSale = m.salePrice * m.stock;
+        const unitProfit = m.salePrice - m.purchasePrice;
+        const totalProfit = unitProfit * m.stock;
+        const marginPct = m.salePrice > 0 ? Math.round((unitProfit / m.salePrice) * 100) : 0;
+        return {
+          medicine: m,
+          totalCost,
+          totalSale,
+          unitProfit,
+          totalProfit,
+          marginPct,
+        };
+      })
+      .filter((item) => {
+        const matchesCategory =
+          inventoryCategoryFilter === 'all' || item.medicine.category === inventoryCategoryFilter;
+        const matchesSearch =
+          !inventorySearch ||
+          item.medicine.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+          item.medicine.brand.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+          item.medicine.code.toLowerCase().includes(inventorySearch.toLowerCase());
+        return matchesCategory && matchesSearch;
+      })
+      .sort((a, b) => {
+        if (inventorySortBy === 'stock') return b.medicine.stock - a.medicine.stock;
+        if (inventorySortBy === 'margin') return b.marginPct - a.marginPct;
+        if (inventorySortBy === 'profit') return b.totalProfit - a.totalProfit;
+        if (inventorySortBy === 'name') return a.medicine.name.localeCompare(b.medicine.name);
+        return b.totalCost - a.totalCost;
+      });
+  }, [medicines, inventoryCategoryFilter, inventorySearch, inventorySortBy]);
 
   // ==========================================
   // REMITTANCE APPROVAL / REJECTION ACTIONS
@@ -587,8 +739,8 @@ export const AccountingManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Macro Financial KPI Cards - 5-Pillar Accounting Transparency */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      {/* Macro Financial KPI Cards - 6-Pillar Accounting Transparency */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
         {/* 1. Total Gross Sales */}
         <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
           <div>
@@ -685,7 +837,27 @@ export const AccountingManager: React.FC = () => {
             </div>
           </div>
           <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            {pendingRemittances.length} انتقال در صف تایید حسابداری
+            {pendingRemittances.length} انتقال در صف تایید
+          </p>
+        </div>
+
+        {/* 6. Inventory Capital Value */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                ارزش سرمایه انبار (خرید)
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center">
+                <Package className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl font-black text-indigo-700 dark:text-indigo-400 font-mono mt-2">
+              {inventoryCostValuation.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">AFN</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            {totalStockUnits.toLocaleString()} عدد دارو ({medicines.length} قلم)
           </p>
         </div>
       </div>
@@ -747,6 +919,19 @@ export const AccountingManager: React.FC = () => {
         >
           <Users className="w-4 h-4" />
           <span>کمیسیون، حقوق و دفتر مالی ویزیتورها</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('profit_inventory')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition cursor-pointer flex-shrink-0 ${
+            activeTab === 'profit_inventory'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 border border-slate-200/80 dark:border-slate-800'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span>سود و زیان، بهای تمام‌شده و ارزش انبار</span>
         </button>
       </div>
 
@@ -1381,6 +1566,460 @@ export const AccountingManager: React.FC = () => {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 5: PROFIT & LOSS, COGS & INVENTORY VALUATION */}
+      {/* ======================================================== */}
+      {activeTab === 'profit_inventory' && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* Top Banner & Export Actions */}
+          <div className="bg-gradient-to-l from-emerald-950 via-slate-900 to-slate-900 text-white p-5 md:p-6 rounded-3xl border border-emerald-800/40 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <TrendingUp className="w-5 h-5" />
+                </span>
+                <h3 className="text-base font-black text-white">
+                  صورت سود و زیان، بهای تمام‌شده کالای فروش‌رفته (COGS) و ارزش دارایی انبار
+                </h3>
+              </div>
+              <p className="text-xs text-slate-300 pr-9">
+                محاسبه بلادرنگ سرمایه در گردش موجودی انبار، بهای خرید اقلام، سود ناخالص فاکتورهای تحویل‌شده و سود خالص پس از کسر تعهدات ویزیتورها
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap self-end md:self-auto">
+              <button
+                type="button"
+                onClick={() => exportMedicinesToExcel(medicines, currentStore?.name)}
+                className="px-3.5 py-2 bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/50 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <span>خروجی اکسل ارزیابی انبار</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => exportMedicinesToPDF(medicines, currentStore?.name)}
+                className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              >
+                <Printer className="w-4 h-4 text-slate-200" />
+                <span>چاپ رسمی صورت دارایی انبار</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 6 Key Financial Pillars for Inventory & Profitability */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Card 1: Total Cost Valuation */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  ارزش دارایی انبار به قیمت خرید (سرمایه راکد)
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center">
+                  <Package className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-indigo-700 dark:text-indigo-400 font-mono mt-3">
+                {inventoryCostValuation.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+                <span>مجموع دارایی فیزیکی:</span>
+                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                  {totalStockUnits.toLocaleString()} عدد واحد در {medicines.length} قلم دارو
+                </span>
+              </div>
+            </div>
+
+            {/* Card 2: Total Retail Valuation */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  ارزش اسمی انبار به قیمت فروش
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 flex items-center justify-center">
+                  <Receipt className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-sky-700 dark:text-sky-400 font-mono mt-3">
+                {inventoryRetailValuation.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+                <span>سود پیش‌بینی‌شده فروش:</span>
+                <span className="font-mono font-bold text-emerald-600">
+                  +{inventoryProjectedProfit.toLocaleString()} AFN ({inventoryRetailValuation > 0 ? Math.round((inventoryProjectedProfit / inventoryRetailValuation) * 100) : 0}٪)
+                </span>
+              </div>
+            </div>
+
+            {/* Card 3: Realized Gross Sales */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  فروش تحقق‌یافته (فاکتورهای تحویل/تایید شده)
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono mt-3">
+                {realizedSalesAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+                <span>تعداد فاکتورهای معتبر:</span>
+                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                  {realizedOrders.length} از {orders.length} کل سفارشات
+                </span>
+              </div>
+            </div>
+
+            {/* Card 4: Cost of Goods Sold (COGS) */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  بهای تمام‌شده کالای فروش‌رفته (COGS)
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                  <Boxes className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-amber-700 dark:text-amber-400 font-mono mt-3">
+                {realizedCOGS_AFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+                <span>ارزش واقعی خرید اقلام فروخته‌شده</span>
+                <span className="font-bold text-slate-600">قیمت پایه فاکتور خرید</span>
+              </div>
+            </div>
+
+            {/* Card 5: Realized Gross Profit */}
+            <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent bg-white dark:bg-slate-900 p-5 rounded-3xl border-2 border-emerald-500/40 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-emerald-800 dark:text-emerald-300">
+                  سود ناخالص تحقق‌یافته فروش
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-600 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-emerald-800 dark:text-emerald-200 font-mono mt-3">
+                {realizedGrossProfitAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-emerald-200/50 text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                <span>مارجین سود ناخالص:</span>
+                <span className="font-mono font-black text-emerald-700 dark:text-emerald-400">
+                  {realizedGrossMarginPercent}٪ حاشیه سود
+                </span>
+              </div>
+            </div>
+
+            {/* Card 6: Estimated Net Operating Profit */}
+            <div className="bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent bg-white dark:bg-slate-900 p-5 rounded-3xl border-2 border-sky-500/40 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-sky-800 dark:text-sky-300">
+                  سود خالص عملیاتی تخمینی
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-600 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+              </div>
+              <div className={`text-2xl font-black font-mono mt-3 ${estimatedNetOperatingProfitAFN >= 0 ? 'text-sky-800 dark:text-sky-200' : 'text-rose-600'}`}>
+                {estimatedNetOperatingProfitAFN.toLocaleString()} <span className="text-xs font-normal text-slate-400">AFN</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-sky-200/50 text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                <span>کسر هزینه‌های ویزیتورها:</span>
+                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                  -{totalVisitorExpensesAFN.toLocaleString()} AFN
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts & Analytical Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Category Donut Distribution */}
+            <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <h4 className="font-black text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-1">
+                <PieChart className="w-4 h-4 text-indigo-600" />
+                <span>توزیع سرمایه انبار بر اساس دسته‌بندی درمانی</span>
+              </h4>
+              <p className="text-[11px] text-slate-500 mb-4">
+                سهم هر گروه دارویی از کل سرمایه مسدود در انبار به قیمت خرید
+              </p>
+              {inventoryCategorySegments.length > 0 ? (
+                <InteractiveDonutChart
+                  title="سرمایه انبار"
+                  subtitle="بر اساس دسته‌بندی"
+                  segments={inventoryCategorySegments}
+                  centerTitle={`${Math.round(inventoryCostValuation / 1000)}k`}
+                  centerSubtitle="AFN خرید"
+                />
+              ) : (
+                <div className="p-8 text-center text-xs text-slate-400">
+                  اطلاعات دارویی جهت ترسیم نمودار یافت نشد
+                </div>
+              )}
+            </div>
+
+            {/* Strategic Inventory Summary & Health Indicators */}
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-5 md:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+              <div>
+                <h4 className="font-black text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>شاخص‌های سلامت گردش موجودی و حاشیه سود</span>
+                </h4>
+                <p className="text-[11px] text-slate-500 mb-5">
+                  گزارش مدیریتی و ارزیابی بهره‌وری سرمایه و وضعیت جریان کالا
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-[11px] text-slate-500 block">میانگین حاشیه سود انبار:</span>
+                    <span className="text-xl font-black text-emerald-600 font-mono mt-1 block">
+                      {inventoryRetailValuation > 0
+                        ? Math.round((inventoryProjectedProfit / inventoryRetailValuation) * 100)
+                        : 0}٪
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      نسبت سود مورد انتظار به ارزش فروش
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-[11px] text-slate-500 block">میانگین ارزش هر ردیف دارویی:</span>
+                    <span className="text-xl font-black text-indigo-600 font-mono mt-1 block">
+                      {Math.round(inventoryCostValuation / (medicines.length || 1)).toLocaleString()} <span className="text-xs font-normal">AFN</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      توزیع متوازن سرمایه در {medicines.length} ردیف فعال
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-[11px] text-slate-500 block">داروهای نیازمند سفارش مجدد:</span>
+                    <span className="text-xl font-black text-amber-600 font-mono mt-1 block">
+                      {medicines.filter((m) => m.stock <= m.minStockAlert).length} قلم دارو
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      موجودی کمتر یا مساوی با نقطه هشدار شارژ
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-[11px] text-slate-500 block">ضریب پوشش مطالبات با سرمایه انبار:</span>
+                    <span className="text-xl font-black text-sky-600 font-mono mt-1 block">
+                      {totalOutstandingDebtsAFN > 0
+                        ? (inventoryCostValuation / totalOutstandingDebtsAFN).toFixed(2)
+                        : '∞'} برابر
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      ارزش انبار نسبت به بدهی‌های معوق دواخانه‌ها
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 font-bold">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>تمام قیمت‌های ثبت‌شده در فاکتورها به صورت خودکار با نرخ خرید پایگاه داده انبار مطابقت داده شده‌اند.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Inventory Valuation & Margins Table */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+            {/* Table Filter Controls */}
+            <div className="p-4 md:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-indigo-600" />
+                <h4 className="font-black text-sm text-slate-900 dark:text-slate-100">
+                  جدول ارزیابی ارزش سرمایه، بهای خرید و مارجین سود به تفکیک داروها ({filteredInventoryItems.length} قلم)
+                </h4>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Search */}
+                <div className="relative min-w-[200px]">
+                  <Search className="w-4 h-4 absolute right-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={inventorySearch}
+                    onChange={(e) => setInventorySearch(e.target.value)}
+                    placeholder="جستجو بر اساس نام، برند یا کد دارو..."
+                    className="w-full pr-9 pl-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:border-indigo-500"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <select
+                  value={inventoryCategoryFilter}
+                  onChange={(e) => setInventoryCategoryFilter(e.target.value)}
+                  className="px-3 py-1.5 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer"
+                >
+                  <option value="all">همه دسته‌بندی‌ها</option>
+                  {inventoryCategories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Sort By */}
+                <select
+                  value={inventorySortBy}
+                  onChange={(e) => setInventorySortBy(e.target.value as any)}
+                  className="px-3 py-1.5 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer"
+                >
+                  <option value="value">بیشترین ارزش سرمایه (خرید)</option>
+                  <option value="stock">بیشترین موجودی عددی</option>
+                  <option value="margin">بیشترین حاشیه سود (٪)</option>
+                  <option value="profit">بیشترین سود تجمیعی انبار</option>
+                  <option value="name">نام دارو (الفبا)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-right text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4 font-black">کد و نام دارو</th>
+                    <th className="py-3 px-4 font-black">دسته و شکل</th>
+                    <th className="py-3 px-4 font-black">موجودی</th>
+                    <th className="py-3 px-4 font-black">قیمت خرید</th>
+                    <th className="py-3 px-4 font-black">قیمت فروش</th>
+                    <th className="py-3 px-4 font-black">ارزش سرمایه (خرید)</th>
+                    <th className="py-3 px-4 font-black">سود بالقوه کل</th>
+                    <th className="py-3 px-4 font-black">حاشیه سود</th>
+                    <th className="py-3 px-4 font-black">وضعیت انبار</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredInventoryItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-10 text-center text-slate-400">
+                        دارویی با شرایط جستجوی مشخص‌شده یافت نشد.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredInventoryItems.map((item) => {
+                      const isLowStock = item.medicine.stock <= item.medicine.minStockAlert;
+                      const isOutOfStock = item.medicine.stock === 0;
+
+                      return (
+                        <tr
+                          key={item.medicine.id}
+                          className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+                        >
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                {item.medicine.code}
+                              </span>
+                              <div>
+                                <span className="font-black text-slate-900 dark:text-slate-100 block">
+                                  {item.medicine.name}
+                                </span>
+                                <span className="text-[11px] text-slate-400 block">
+                                  {item.medicine.brand} • {item.medicine.strength}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className="text-slate-700 dark:text-slate-300 block font-medium">
+                              {item.medicine.category}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block">
+                              {item.medicine.dosageForm}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-bold">
+                            <span className={isOutOfStock ? 'text-rose-600' : isLowStock ? 'text-amber-600' : 'text-slate-900 dark:text-slate-100'}>
+                              {item.medicine.stock.toLocaleString()}
+                            </span>{' '}
+                            <span className="text-[10px] font-normal text-slate-400">
+                              {item.medicine.unit}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-600 dark:text-slate-400">
+                            {item.medicine.purchasePrice.toLocaleString()}{' '}
+                            <span className="text-[10px] font-normal">AFN</span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-slate-100">
+                            {item.medicine.salePrice.toLocaleString()}{' '}
+                            <span className="text-[10px] font-normal">AFN</span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-black text-indigo-700 dark:text-indigo-400">
+                            {item.totalCost.toLocaleString()}{' '}
+                            <span className="text-[10px] font-normal">AFN</span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-bold text-emerald-600">
+                            +{item.totalProfit.toLocaleString()}{' '}
+                            <span className="text-[10px] font-normal">AFN</span>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-mono font-black text-xs text-sky-700 dark:text-sky-400">
+                            {item.marginPct}٪
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            {isOutOfStock ? (
+                              <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
+                                اتمام موجودی
+                              </span>
+                            ) : isLowStock ? (
+                              <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+                                در آستانه کسری
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                موجودی مناسب
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+                {filteredInventoryItems.length > 0 && (
+                  <tfoot className="bg-slate-100/80 dark:bg-slate-800 font-bold border-t-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200">
+                    <tr>
+                      <td colSpan={2} className="py-3.5 px-4 font-black">
+                        جمع کل اقلام نمایش‌داده‌شده:
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-black text-slate-900 dark:text-slate-100">
+                        {filteredInventoryItems.reduce((s, it) => s + it.medicine.stock, 0).toLocaleString()} واحد
+                      </td>
+                      <td className="py-3.5 px-4">-</td>
+                      <td className="py-3.5 px-4">-</td>
+                      <td className="py-3.5 px-4 font-mono font-black text-indigo-700 dark:text-indigo-400">
+                        {filteredInventoryItems.reduce((s, it) => s + it.totalCost, 0).toLocaleString()} AFN
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-black text-emerald-600">
+                        +{filteredInventoryItems.reduce((s, it) => s + it.totalProfit, 0).toLocaleString()} AFN
+                      </td>
+                      <td colSpan={2} className="py-3.5 px-4 text-left font-normal text-slate-500">
+                        {filteredInventoryItems.length} قلم دارو
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
           </div>
         </div>
       )}

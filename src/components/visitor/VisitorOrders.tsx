@@ -13,6 +13,7 @@ import {
 } from '../../utils/exportDocs';
 import { MedicineDetailsModal } from '../common/MedicineDetailsModal';
 import { MedicineImageViewerModal } from '../common/MedicineImageViewerModal';
+import { OrdersOperationalPipeline } from '../common/OrdersOperationalPipeline';
 import { parseNumberInput } from '../../utils/numberUtils';
 import {
   ShoppingCart,
@@ -34,6 +35,8 @@ import {
   Building2,
   Pill,
   CreditCard,
+  Boxes,
+  List,
 } from 'lucide-react';
 
 interface Props {
@@ -52,6 +55,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
   const [orders, setOrders] = useState<Order[]>(() =>
     Storage.getOrders(storeId).filter((o) => o.visitorId === visitorId)
   );
+  const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline');
 
   const [medicines, setMedicines] = useState<Medicine[]>(() =>
     Storage.getMedicines(storeId)
@@ -426,6 +430,31 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => setViewMode('pipeline')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'pipeline'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              <Boxes className="w-4 h-4" />
+              <span>پایپ‌لاین مراحل دارو</span>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              <span>لیست فاکتورها</span>
+            </button>
+          </div>
+
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('gallery')}
@@ -442,7 +471,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
             title="دانلود اکسل سفارشات من"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>اکسل سفارشات</span>
+            <span>اکسل</span>
           </button>
 
           <button
@@ -457,7 +486,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
             title="دانلود PDF سفارشات من"
           >
             <FileText className="w-4 h-4" />
-            <span>PDF سفارشات</span>
+            <span>PDF</span>
           </button>
 
           <button
@@ -473,8 +502,11 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
         </div>
       </div>
 
-      {/* Orders List */}
-      <div className="space-y-3">
+      {viewMode === 'pipeline' ? (
+        <OrdersOperationalPipeline isVisitorView visitorId={visitorId} storeId={storeId} />
+      ) : (
+        /* Orders List */
+        <div className="space-y-3">
         {orders.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 text-center text-slate-400 text-xs">
             تاکنون سفارشی ثبت نکرده‌اید. با دکمه «گالری داروها و صدور فاکتور» یا «ثبت سریع فاکتور» شروع کنید.
@@ -657,6 +689,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
           })
         )}
       </div>
+      )}
 
       {/* New Order Modal */}
       {isModalOpen && (

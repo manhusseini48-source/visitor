@@ -11,6 +11,7 @@ import {
   exportOrdersListToPDF,
 } from '../../utils/exportDocs';
 import { MedicineDetailsModal } from '../common/MedicineDetailsModal';
+import { OrdersOperationalPipeline } from '../common/OrdersOperationalPipeline';
 import { parseNumberInput } from '../../utils/numberUtils';
 import {
   ShoppingCart,
@@ -28,6 +29,8 @@ import {
   AlertCircle,
   X,
   Share2,
+  Boxes,
+  List,
 } from 'lucide-react';
 
 interface Props {
@@ -39,6 +42,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
   const storeId = currentStore?.id || '';
 
   const [orders, setOrders] = useState<Order[]>(() => Storage.getOrders(storeId));
+  const [viewMode, setViewMode] = useState<'pipeline' | 'table'>('pipeline');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
@@ -203,12 +207,37 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setViewMode('pipeline')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'pipeline'
+                  ? 'bg-white text-sky-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Boxes className="w-4 h-4" />
+              <span>پایپ‌لاین مراحل دارو</span>
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'table'
+                  ? 'bg-white text-sky-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              <span>جدول و فاکتورها</span>
+            </button>
+          </div>
+
           <button
             onClick={() => exportOrdersListToExcel(orders)}
             className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>خروجی اکسل سفارشات</span>
+            <span>خروجی اکسل</span>
           </button>
 
           <button
@@ -216,13 +245,17 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileText className="w-4 h-4" />
-            <span>خروجی PDF سفارشات</span>
+            <span>خروجی PDF</span>
           </button>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-3">
+      {viewMode === 'pipeline' ? (
+        <OrdersOperationalPipeline storeId={storeId} />
+      ) : (
+        <>
+          {/* Filters and Search */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <input
             type="text"
@@ -388,6 +421,8 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {/* Order Details & Pipeline Workflow Modal */}
       {selectedOrder && (

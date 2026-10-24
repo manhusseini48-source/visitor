@@ -13,6 +13,7 @@ export interface UserProfile {
   address?: string;
   city?: string;
   createdAt: string;
+  lastActiveAt?: string;
   isActive: boolean;
   // Specific to visitor:
   baseSalary?: number;
@@ -78,6 +79,7 @@ export interface Medicine {
   fullDescription: string;
   images: string[];
   status: 'active' | 'inactive';
+  customCommissionRate?: number; // درصد پورسانت اختصاصی این دارو برای ویزیتور (مثلاً ۵٪ یا ۸٪)
   createdAt: string;
   updatedAt: string;
 }
@@ -108,6 +110,9 @@ export interface Customer {
   latitude?: number;
   longitude?: number;
   notes?: string;
+  licenseNumber?: string; // جواز یا پروانه دواخانه
+  taxId?: string; // کد اقتصادی یا شماره ثبت
+  creditLimitAFN?: number; // سقف اعتبار خرید
   createdBy: string; // ID of creator (visitor or owner)
   primaryVisitorId?: string; // ID of primary assigned visitor
   sharedVisitorIds: string[]; // Other visitors with access
@@ -218,6 +223,19 @@ export interface VisitRecord {
   locationRecorded?: {
     latitude: number;
     longitude: number;
+    accuracy?: number;
+    timestamp?: string;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    timestamp?: string;
+  };
+  storeAdvice?: {
+    text: string;
+    adviceDate: string;
+    advisorName: string;
   };
 }
 
@@ -368,5 +386,50 @@ export interface VisitorRemittance {
   reviewedBy?: string;
   reviewedByName?: string;
   rejectionReason?: string;
+}
+
+export interface PersonalNote {
+  id: string;
+  userId: string;
+  storeId?: string;
+  title: string;
+  content: string;
+  category: 'general' | 'client_followup' | 'idea' | 'checklist' | 'private';
+  colorTag?: string; // hex or tailwind class
+  isPinned?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type EisenhowerQuadrant =
+  | 'q1_urgent_important'
+  | 'q2_important_not_urgent'
+  | 'q3_urgent_not_important'
+  | 'q4_not_urgent_not_important';
+
+export interface EisenhowerTask {
+  id: string;
+  userId: string;
+  storeId?: string;
+  title: string;
+  description?: string;
+  quadrant: EisenhowerQuadrant;
+  priority: 'high' | 'medium' | 'low';
+  isCompleted: boolean;
+  dueDate?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface AppAnalytics {
+  totalInstalls: number;
+  activeInstalls7Days: number;
+  visitsDaily: number;
+  visitsWeekly: number;
+  visitsMonthly: number;
+  visitsYearly: number;
+  visitsInstalledPWA: number;
+  visitsWebBrowser: number;
+  visitsGuestMode: number;
 }
 

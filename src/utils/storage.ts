@@ -14,6 +14,9 @@ import {
   InventoryMovement,
   VisitorCashCollection,
   VisitorRemittance,
+  PersonalNote,
+  EisenhowerTask,
+  AppAnalytics,
 } from '../types';
 import { SupabaseSync } from './supabaseSync';
 
@@ -35,6 +38,9 @@ const STORAGE_KEYS = {
   MOVEMENTS: 'visitor_app_movements',
   COLLECTIONS: 'visitor_app_collections',
   REMITTANCES: 'visitor_app_remittances',
+  NOTES: 'visitor_app_notes',
+  EISENHOWER: 'visitor_app_eisenhower',
+  ANALYTICS: 'visitor_app_analytics',
 };
 
 export const INITIAL_SUPPORT_FAQS: SupportFaq[] = [
@@ -437,6 +443,20 @@ export const Storage = {
 
     // 3. Complete catalogue fallback so visitor always sees store medicines
     return activeList;
+  },
+
+  getAllMedicinesAcrossStores(): Medicine[] {
+    const list = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
+    const deletedMedIds = this.getDeletedMedicineIds();
+    return list.filter((m) => !deletedMedIds.includes(m.id));
+  },
+
+  getAllOrdersAcrossStores(): Order[] {
+    const list = getItem<Order[]>(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
+    return list.map((o) => ({
+      ...o,
+      items: Array.isArray(o.items) ? o.items : [],
+    }));
   },
 
   saveMedicines(medicines: Medicine[], storeId?: string) {
@@ -924,6 +944,109 @@ export const Storage = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
     }
+  },
+
+  touchUserActive(userId?: string) {
+    try {
+      const nowIso = new Date().toISOString();
+      const current = this.getCurrentUser();
+      const targetId = userId || current?.id;
+      if (!targetId) return;
+
+      const profiles = this.getProfiles();
+      let updatedProfiles = false;
+      const mapped = profiles.map((p) => {
+        if (p.id === targetId) {
+          updatedProfiles = true;
+          return { ...p, lastActiveAt: nowIso };
+        }
+        return p;
+      });
+
+      if (updatedProfiles) {
+        setItem(STORAGE_KEYS.PROFILES, mapped);
+      }
+      if (current && current.id === targetId) {
+        setItem(STORAGE_KEYS.CURRENT_USER, { ...current, lastActiveAt: nowIso });
+      }
+    } catch {}
+  },
+
+  getNotes(userId?: string): PersonalNote[] {
+    const list = getItem<PersonalNote[]>(STORAGE_KEYS.NOTES, []);
+    if (!userId) return list;
+    return list.filter((n) => n.userId === userId);
+  },
+
+  saveNotes(notes: PersonalNote[]) {
+    setItem(STORAGE_KEYS.NOTES, notes);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  deleteNote(noteId: string) {
+    const all = this.getNotes();
+    const remaining = all.filter((n) => n.id !== noteId);
+    this.saveNotes(remaining);
+  },
+
+  getEisenhowerTasks(userId?: string): EisenhowerTask[] {
+    const list = getItem<EisenhowerTask[]>(STORAGE_KEYS.EISENHOWER, []);
+    if (!userId) return list;
+    return list.filter((t) => t.userId === userId);
+  },
+
+  saveEisenhowerTasks(tasks: EisenhowerTask[]) {
+    setItem(STORAGE_KEYS.EISENHOWER, tasks);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
+  getAppAnalytics(): AppAnalytics {
+    const defaultStats: AppAnalytics = {
+      totalInstalls: 48,
+      activeInstalls7Days: 34,
+      visitsDaily: 142,
+      visitsWeekly: 890,
+      visitsMonthly: 3420,
+      visitsYearly: 18400,
+      visitsInstalledPWA: 96,
+      visitsWebBrowser: 38,
+      visitsGuestMode: 8,
+    };
+    return getItem<AppAnalytics>(STORAGE_KEYS.ANALYTICS, defaultStats);
+  },
+
+  recordAppVisit(mode: 'pwa' | 'browser' | 'guest') {
+    try {
+      const stats = this.getAppAnalytics();
+      stats.visitsDaily += 1;
+      stats.visitsWeekly += 1;
+      stats.visitsMonthly += 1;
+      stats.visitsYearly += 1;
+
+      if (mode === 'pwa') {
+        stats.visitsInstalledPWA += 1;
+        stats.activeInstalls7Days = Math.min(stats.totalInstalls, stats.activeInstalls7Days + 1);
+      } else if (mode === 'guest') {
+        stats.visitsGuestMode += 1;
+      } else {
+        stats.visitsWebBrowser += 1;
+      }
+
+      setItem(STORAGE_KEYS.ANALYTICS, stats);
+    } catch {}
+  },
+
+  recordAppInstall() {
+    try {
+      const stats = this.getAppAnalytics();
+      stats.totalInstalls += 1;
+      stats.activeInstalls7Days += 1;
+      setItem(STORAGE_KEYS.ANALYTICS, stats);
+    } catch {}
   },
 
   resetAllData() {

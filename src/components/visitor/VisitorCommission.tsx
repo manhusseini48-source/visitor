@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Storage, getEffectiveStoreId } from '../../utils/storage';
-import { VisitorLedgerEntry, Order, VisitorCashCollection, VisitorRemittance } from '../../types';
+import { VisitorLedgerEntry, Order, VisitorCashCollection, VisitorRemittance, Medicine } from '../../types';
 import {
   DollarSign,
   CheckCircle2,
@@ -59,6 +59,10 @@ export const VisitorCommission: React.FC = () => {
     Storage.getRemittances(storeId).filter((r) => r.visitorId === visitorId)
   );
 
+  const [medicines, setMedicines] = useState<Medicine[]>(() =>
+    Storage.getMedicines(storeId)
+  );
+
   // Transfer to store modal
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferAmount, setTransferAmount] = useState<number>(0);
@@ -81,6 +85,7 @@ export const VisitorCommission: React.FC = () => {
     setRemittances(
       Storage.getRemittances(storeId).filter((r) => r.visitorId === visitorId)
     );
+    setMedicines(Storage.getMedicines(storeId));
   };
 
   useEffect(() => {
@@ -154,9 +159,26 @@ export const VisitorCommission: React.FC = () => {
 
   const totalSales = orders.reduce((s, o) => s + o.totalAFN, 0);
   const eligibleSales = eligibleOrders.reduce((s, o) => s + o.totalAFN, 0);
-  const calculatedCommissionFromOrders = Math.round(
-    (eligibleSales * (currentUser?.commissionRate || 4)) / 100
-  );
+  const calculatedCommissionFromOrders = useMemo(() => {
+    const defaultRate = currentUser?.commissionRate || 4;
+    const medMap = new Map<string, Medicine>(medicines.map((m) => [m.id, m]));
+    let totalComm = 0;
+    eligibleOrders.forEach((order) => {
+      if (order.items && order.items.length > 0) {
+        order.items.forEach((item) => {
+          const med = medMap.get(item.medicineId);
+          const effectiveRate =
+            med && typeof med.customCommissionRate === 'number' && med.customCommissionRate > 0
+              ? med.customCommissionRate
+              : defaultRate;
+          totalComm += ((item.totalAFN || (item.unitPrice * item.quantity)) * effectiveRate) / 100;
+        });
+      } else {
+        totalComm += (order.totalAFN * defaultRate) / 100;
+      }
+    });
+    return Math.round(totalComm);
+  }, [eligibleOrders, currentUser?.commissionRate, medicines]);
 
   // Donut segments: ONLY REAL DATA
   const segments: DonutSegment[] = useMemo(() => {

@@ -65,7 +65,7 @@ interface AppContextType {
   updateStoreSettings: (settings: Partial<Store>) => void;
   syncCloud: (storeId?: string) => Promise<{ success: boolean; medicinesCount: number; customersCount: number; ordersCount: number }>;
   refreshState: () => void;
-  updatePlatformConfig: (cfg: Partial<PlatformConfig>) => void;
+  updatePlatformConfig: (cfg: Partial<PlatformConfig>) => Promise<{ success: boolean; message?: string }>;
   quickSwitchUser: (username: string) => void;
   resetDatabase: () => void;
 }
@@ -818,10 +818,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const updatePlatformConfig = (cfg: Partial<PlatformConfig>) => {
+  const updatePlatformConfig = async (cfg: Partial<PlatformConfig>): Promise<{ success: boolean; message?: string }> => {
     const updated = { ...platformConfig, ...cfg, updatedAt: new Date().toISOString() };
     Storage.saveConfig(updated);
     setPlatformConfig(updated);
+    try {
+      const res = await SupabaseSync.syncPlatformConfig(updated);
+      return res;
+    } catch (err: any) {
+      console.warn('Sync platform config to Supabase failed:', err);
+      return { success: false, message: err?.message };
+    }
   };
 
   const updateStoreSettings = (settings: Partial<Store>) => {

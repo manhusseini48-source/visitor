@@ -16,12 +16,14 @@ import {
   Award,
   Sparkles,
   Target,
+  ArrowUpRight,
 } from 'lucide-react';
 import { InteractiveAreaTrendChart, DataPoint } from '../charts/InteractiveAreaTrendChart';
 import { InteractiveDonutChart, DonutSegment } from '../charts/InteractiveDonutChart';
 import { InteractiveHorizontalRankChart, RankItem } from '../charts/InteractiveHorizontalRankChart';
 import { InteractiveRadialGauge } from '../charts/InteractiveRadialGauge';
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
+import { VisitorLeaderboard } from '../common/VisitorLeaderboard';
 
 interface Props {
   onNavigateTab: (tab: string) => void;
@@ -56,6 +58,11 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
     () => Storage.getLedger(storeId).filter((l) => l.visitorId === visitorId),
     [storeId, visitorId]
   );
+
+  // Eisenhower Tasks for this visitor
+  const eisenhowerTasks = useMemo(() => Storage.getEisenhowerTasks(visitorId), [visitorId]);
+  const pendingTasksCount = eisenhowerTasks.filter((t) => !t.isCompleted).length;
+  const urgentImportantCount = eisenhowerTasks.filter((t) => !t.isCompleted && t.quadrant === 'q1_urgent_important').length;
 
   // Sales calculations
   const totalSales = orders.reduce((s, o) => s + o.totalAFN, 0);
@@ -237,6 +244,39 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         </div>
       </div>
 
+      {/* Eisenhower Matrix & Personal Notepad Widget for Visitor */}
+      <div className="bg-gradient-to-r from-teal-900 via-emerald-950 to-slate-900 text-white rounded-3xl p-5 border border-emerald-700/60 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center font-black flex-shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-black text-sm">ماتریس اولویت‌بندی آیزنهاور و دفترچه یادداشت من</h4>
+              <span className="text-[10px] bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
+                برنامه‌ریزی ویزیتور
+              </span>
+            </div>
+            <p className="text-xs text-emerald-200 mt-1">
+              شما <strong>{pendingTasksCount}</strong> وظیفه فعال ثبت کرده‌اید{' '}
+              {urgentImportantCount > 0 && (
+                <span className="bg-rose-500/30 text-rose-300 px-2 py-0.5 rounded-full font-bold text-[11px] mr-1">
+                  {urgentImportantCount} کار در اولویت فوری و مهم (Q1)
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onNavigateTab('notes')}
+          className="px-4 py-2.5 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-xl text-xs shadow-md transition cursor-pointer self-start sm:self-auto flex items-center gap-1.5 active:scale-95"
+        >
+          <span>مشاهده ماتریس و یادداشت‌ها</span>
+          <ArrowUpRight className="w-4 h-4" />
+        </button>
+      </div>
+
       {/* KPI Cards with Live Sparklines */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCardWithSparkline
@@ -343,6 +383,9 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           maxItems={4}
         />
       </div>
+
+      {/* Visitor Performance & Podium Leaderboard */}
+      <VisitorLeaderboard storeId={storeId} />
 
       {/* Scheduled visits & quick route */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">

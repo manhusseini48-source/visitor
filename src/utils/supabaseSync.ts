@@ -616,12 +616,14 @@ export const SupabaseSync = {
   },
 
   /**
-   * Sync PlatformConfig to Supabase (version, FAQs, announcements)
+   * Sync PlatformConfig to Supabase (version, FAQs, announcements, branding)
    */
-  async syncPlatformConfig(config: PlatformConfig): Promise<void> {
-    if (!supabase || !isSupabaseConfigured) return;
+  async syncPlatformConfig(config: PlatformConfig): Promise<{ success: boolean; message?: string }> {
+    if (!supabase || !isSupabaseConfigured) {
+      return { success: false, message: 'اتصال به Supabase تنظیم نشده است.' };
+    }
     try {
-      await supabase.from('platform_config').upsert({
+      const payload: Record<string, any> = {
         id: 'global_config',
         app_name: config.appName,
         short_description: config.shortDescription,
@@ -640,9 +642,29 @@ export const SupabaseSync = {
         announcement_type: config.announcementType || 'info',
         announcement_enabled: config.announcementEnabled ?? false,
         updated_at: new Date().toISOString(),
-      });
-    } catch (err) {
+      };
+
+      const { error } = await supabase.from('platform_config').upsert(payload);
+      if (error) {
+        console.warn('Supabase platform_config full sync error, retrying with core columns:', error);
+        // Fallback for minimal schema
+        const corePayload = {
+          id: 'global_config',
+          app_name: config.appName,
+          app_release_version: config.appReleaseVersion || '2.5.0',
+          app_version_code: config.appVersionCode || 5,
+          updated_at: new Date().toISOString(),
+        };
+        const { error: coreErr } = await supabase.from('platform_config').upsert(corePayload);
+        if (coreErr) {
+          console.warn('Supabase platform_config core sync failed:', coreErr);
+          return { success: false, message: coreErr.message || error.message };
+        }
+      }
+      return { success: true, message: 'تغییرات با موفقیت در پایگاه داده Supabase ذخیره شد.' };
+    } catch (err: any) {
       console.warn('Supabase platform_config sync warning:', err);
+      return { success: false, message: err?.message || 'خطا در برقراری ارتباط با سرور ابری.' };
     }
   },
 

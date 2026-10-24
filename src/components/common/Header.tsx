@@ -141,8 +141,8 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-black text-base sm:text-lg md:text-xl text-slate-800 dark:text-white tracking-tight truncate">
                 {getAppText(platformConfig, 'app_name', platformConfig.appName)}
               </span>
-              <span className="bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full font-bold flex-shrink-0">
-                نسخه ۲.۴
+              <span className="bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 transition-colors">
+                {getAppText(platformConfig, 'app_version_label', `نسخه ${platformConfig.appReleaseVersion || '2.5.0'}`)}
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate">

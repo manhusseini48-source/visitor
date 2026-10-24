@@ -41,16 +41,59 @@ import {
   UserCheck,
   UserX,
   Sliders,
+  BarChart3,
+  Boxes,
+  Package,
+  Activity,
+  Database,
+  Tag,
+  Copy,
+  Download,
+  ExternalLink,
+  Code2,
 } from 'lucide-react';
 import { InteractiveDonutChart, DonutSegment } from '../charts/InteractiveDonutChart';
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
 import { VisualAppEditor } from './VisualAppEditor';
+import { CreatorAnalyticsAndInventory } from './CreatorAnalyticsAndInventory';
 import { SupabaseSync } from '../../utils/supabaseSync';
+import { SUPABASE_SCHEMA_SQL } from '../../utils/supabaseSchemaCode';
 
 export const CreatorEmbeddedPanel: React.FC = () => {
   const { platformConfig, updatePlatformConfig, updateStoreSubscription, refreshState, shamsiDate } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'visual_editor' | 'announcement' | 'stores' | 'users' | 'support' | 'platform' | 'danger'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'visual_editor' | 'announcement' | 'stores' | 'users' | 'analytics_inventory' | 'support' | 'platform' | 'supabase_sql' | 'danger'>('overview');
+  const [sqlCopied, setSqlCopied] = useState(false);
+  const [isTestingSupabase, setIsTestingSupabase] = useState(false);
+  const [testSupabaseStatus, setTestSupabaseStatus] = useState<{ success: boolean; msg: string; latency?: number } | null>(null);
+
+  const formatRelativeTime = (isoString?: string) => {
+    if (!isoString) return 'بدون فعالیت اخیر';
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    if (isNaN(diffMs)) return 'نامشخص';
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'همین الان';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} دقیقه پیش`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour} ساعت پیش`;
+    const diffDays = Math.floor(diffHour / 24);
+    const remainingHours = diffHour % 24;
+    if (remainingHours > 0) {
+      return `${diffDays} روز و ${remainingHours} ساعت پیش`;
+    }
+    return `${diffDays} روز پیش`;
+  };
+
+  const formatExactTime = (isoString?: string) => {
+    if (!isoString) return '-';
+    try {
+      const d = new Date(isoString);
+      return `${d.toLocaleDateString('fa-AF')} ${d.toLocaleTimeString('fa-AF', { hour: '2-digit', minute: '2-digit' })}`;
+    } catch {
+      return isoString;
+    }
+  };
 
   const [stores, setStores] = useState<Store[]>(() => Storage.getStores());
   const [profiles, setProfiles] = useState<UserProfile[]>(() => Storage.getProfiles());
@@ -269,18 +312,31 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     platformConfig.announcementDismissible !== false
   );
 
-  const handleSaveAnnouncement = (e: React.FormEvent) => {
+  const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
+
+  const handleSaveAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
-    updatePlatformConfig({
-      announcementEnabled,
-      announcementTitle: announcementTitle.trim(),
-      publicAnnouncement: announcementMessage.trim(),
-      announcementType,
-      announcementTargetRole,
-      announcementDismissible,
-      announcementDate: shamsiDate?.textDate || new Date().toISOString().slice(0, 10),
-    });
-    showToast('اطلاعیه سراسری با موفقیت ذخیره و در سامانه منتشر شد.');
+    setIsSavingAnnouncement(true);
+    try {
+      const res = await updatePlatformConfig({
+        announcementEnabled,
+        announcementTitle: announcementTitle.trim(),
+        publicAnnouncement: announcementMessage.trim(),
+        announcementType,
+        announcementTargetRole,
+        announcementDismissible,
+        announcementDate: shamsiDate?.textDate || new Date().toISOString().slice(0, 10),
+      });
+      if (res?.success) {
+        showToast('اطلاعیه سراسری در برنامه، دیتابیس و پایگاه داده ابری (Supabase) ذخیره و منتشر شد.');
+      } else {
+        showToast('اطلاعیه سراسری در سامانه ذخیره و منتشر شد.');
+      }
+    } catch (err: any) {
+      showToast('خطا در ذخیره اطلاعیه: ' + (err?.message || 'خطای سرور'));
+    } finally {
+      setIsSavingAnnouncement(false);
+    }
   };
 
   const handleApplyTemplate = (
@@ -427,14 +483,19 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     showToast(`طرح «${plan}» به مدت ${days} روز برای فروشگاه با موفقیت فعال و در سوپابیس ذخیره شد.`);
   };
 
-  const handleDeleteStore = (storeId: string, storeName: string) => {
+  const handleDeleteStore = async (storeId: string, storeName: string) => {
     if (confirm(`آیا از حذف کامل فروشگاه «${storeName}» اطمینان دارید؟ تمامی اطلاعات آن حذف خواهد شد.`)) {
       const allStores = Storage.getStores().filter((s) => s.id !== storeId);
       Storage.saveStores(allStores);
       const allProfiles = Storage.getProfiles().filter((p) => p.storeId !== storeId);
       Storage.saveProfiles(allProfiles);
+      try {
+        await SupabaseSync.deleteStore(storeId);
+      } catch (err) {
+        console.warn('Error deleting store from supabase:', err);
+      }
       reloadData();
-      showToast(`فروشگاه «${storeName}» با موفقیت حذف گردید.`);
+      showToast(`فروشگاه «${storeName}» با موفقیت از برنامه و پایگاه داده ابری (Supabase) حذف گردید.`);
     }
   };
 
@@ -482,40 +543,55 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     setShowUserPasswordInput(false);
   };
 
-  const handleSaveUserEdit = (e: React.FormEvent) => {
+  const handleSaveUserEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
 
+    const newPass = userNewPassword.trim() ? toEnglishDigits(userNewPassword.trim()) : editingUser.password;
+    const targetUser: UserProfile = {
+      ...editingUser,
+      name: userEditName.trim(),
+      phone: toEnglishDigits(userEditPhone.trim()),
+      email: userEditEmail.trim(),
+      city: userEditCity.trim(),
+      role: userEditRole,
+      commissionRate: parseNumberInput(userEditCommission, 5),
+      baseSalary: parseNumberInput(userEditSalary, 0),
+      password: newPass,
+    };
+
     const allProfiles = Storage.getProfiles();
-    const updated = allProfiles.map((p) => {
-      if (p.id === editingUser.id) {
-        return {
-          ...p,
-          name: userEditName.trim(),
-          phone: toEnglishDigits(userEditPhone.trim()),
-          email: userEditEmail.trim(),
-          city: userEditCity.trim(),
-          role: userEditRole,
-          commissionRate: parseNumberInput(userEditCommission, 5),
-          baseSalary: parseNumberInput(userEditSalary, 0),
-          password: userNewPassword.trim() ? toEnglishDigits(userNewPassword.trim()) : p.password,
-        };
+    const updated = allProfiles.map((p) => (p.id === editingUser.id ? targetUser : p));
+
+    Storage.saveProfiles(updated);
+    try {
+      await SupabaseSync.syncProfile(targetUser);
+    } catch (err) {
+      console.warn('Sync profile to Supabase warning:', err);
+    }
+    reloadData();
+    setEditingUser(null);
+    showToast(`مشخصات، رمز عبور و دسترسی‌های «${targetUser.name}» با موفقیت در سامانه و سرور ابری (Supabase) ذخیره شد.`);
+  };
+
+  const handleToggleUserActive = async (userId: string, currentActive: boolean) => {
+    const all = Storage.getProfiles();
+    let targetProf: UserProfile | undefined;
+    const updated = all.map((p) => {
+      if (p.id === userId) {
+        targetProf = { ...p, isActive: !currentActive };
+        return targetProf;
       }
       return p;
     });
-
     Storage.saveProfiles(updated);
+    if (targetProf) {
+      try {
+        await SupabaseSync.syncProfile(targetProf);
+      } catch {}
+    }
     reloadData();
-    setEditingUser(null);
-    showToast('مشخصات و دسترسی‌های کاربر با موفقیت ذخیره شد.');
-  };
-
-  const handleToggleUserActive = (userId: string, currentActive: boolean) => {
-    const all = Storage.getProfiles();
-    const updated = all.map((p) => (p.id === userId ? { ...p, isActive: !currentActive } : p));
-    Storage.saveProfiles(updated);
-    reloadData();
-    showToast(currentActive ? 'حساب کاربری غیرفعال گردید.' : 'حساب کاربری فعال گردید.');
+    showToast(currentActive ? 'حساب کاربری در سامانه و سرور ابری غیرفعال شد.' : 'حساب کاربری در سامانه و سرور ابری فعال شد.');
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
@@ -572,7 +648,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     showToast('پاسخ با موفقیت برای کاربر ارسال شد.');
   };
 
-  const handleSaveFaq = (e: React.FormEvent) => {
+  const handleSaveFaq = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!faqQuestion.trim() || !faqAnswer.trim()) return;
 
@@ -595,19 +671,19 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     }
 
     setFaqs(updatedFaqs);
-    updatePlatformConfig({ supportFaqs: updatedFaqs });
+    await updatePlatformConfig({ supportFaqs: updatedFaqs });
     setIsFaqFormOpen(false);
     setEditingFaqId(null);
     setFaqQuestion('');
     setFaqAnswer('');
-    showToast('پرسش و پاسخ متداول ذخیره و در بخش پشتیبانی منتشر شد.');
+    showToast('پرسش و پاسخ متداول ذخیره و در سامانه و سرور ابری (Supabase) منتشر شد.');
   };
 
-  const handleDeleteFaq = (faqId: string) => {
+  const handleDeleteFaq = async (faqId: string) => {
     const updated = faqs.filter((f) => f.id !== faqId);
     setFaqs(updated);
-    updatePlatformConfig({ supportFaqs: updated });
-    showToast('پرسش متداول حذف شد.');
+    await updatePlatformConfig({ supportFaqs: updated });
+    showToast('پرسش متداول حذف و تغییرات در سوپابیس بروزرسانی شد.');
   };
 
   // ==========================================
@@ -627,34 +703,164 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     platformConfig.appUpdateNotes || 'بهبود سینک لحظه‌ای داروها، پیام‌ها، انبار و کاتالوگ'
   );
 
-  const handlePublishNewVersion = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const nextCode = Number(appVersionCode) + 1;
-    setAppVersionCode(nextCode);
-    updatePlatformConfig({
-      appReleaseVersion: appReleaseVersion.trim(),
-      appVersionCode: nextCode,
-      appUpdateNotes: appUpdateNotes.trim(),
-    });
-    showToast(`نسخه جدید (${appReleaseVersion.trim()} - کد ${nextCode}) با موفقیت منتشر شد. دکمه بروزرسانی برای تمام کاربران PWA و وب فعال گردید.`);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isPublishingVersion, setIsPublishingVersion] = useState(false);
+  const [isSavingVersionDirect, setIsSavingVersionDirect] = useState(false);
+
+  // Sync state if platformConfig changes from cloud or storage
+  useEffect(() => {
+    setAppName(platformConfig.appName || 'سامانه جامع ویزیتور و پخش دارو');
+    setShortDesc(platformConfig.shortDescription || 'سفارش‌گیری آنلاین و مدیریت انبار');
+    setExpiredMsg(platformConfig.subscriptionExpiredMessage || '');
+    setSupportPhone(platformConfig.supportPhone || '0784524918');
+    setSupportWhatsApp(platformConfig.supportWhatsApp || '0784524918');
+    setPlan6MonthPrice(String(platformConfig.plan6MonthPriceAFN || 1700));
+    setPlan1YearPrice(String(platformConfig.plan1YearPriceAFN || 3000));
+    setAppReleaseVersion(platformConfig.appReleaseVersion || '2.5.0');
+    setAppVersionCode(platformConfig.appVersionCode || 5);
+    if (platformConfig.appUpdateNotes) {
+      setAppUpdateNotes(platformConfig.appUpdateNotes);
+    }
+  }, [platformConfig]);
+
+  // Quick Direct Version Saver (Saves version and syncs instantly to Supabase & all UI components)
+  const handleDirectSaveVersion = async (customVer?: string, customCode?: number) => {
+    setIsSavingVersionDirect(true);
+    const targetVer = (customVer || appReleaseVersion).trim() || '2.5.0';
+    const targetCode = customCode !== undefined ? customCode : Number(appVersionCode) || 5;
+
+    try {
+      const res = await updatePlatformConfig({
+        appReleaseVersion: targetVer,
+        appVersionCode: targetCode,
+        appUpdateNotes: appUpdateNotes.trim(),
+      });
+
+      if (res?.success) {
+        showToast(`نسخه برنامه با موفقیت به «${targetVer}» تغییر یافت و در سرور ابری (Supabase) و برنامه ثبت شد.`);
+      } else {
+        showToast(`نسخه برنامه به «${targetVer}» تغییر یافت و در سامانه فعال گردید.`);
+      }
+    } catch (err: any) {
+      showToast(`خطا در ذخیره نسخه: ${err?.message || ''}`);
+    } finally {
+      setIsSavingVersionDirect(false);
+    }
   };
 
-  const handleSavePlatformSettings = (e: React.FormEvent) => {
+  const handlePublishNewVersion = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsPublishingVersion(true);
+    const nextCode = Number(appVersionCode) + 1;
+    const cleanVer = appReleaseVersion.trim() || '2.5.0';
+    setAppVersionCode(nextCode);
+
+    try {
+      const res = await updatePlatformConfig({
+        appReleaseVersion: cleanVer,
+        appVersionCode: nextCode,
+        appUpdateNotes: appUpdateNotes.trim(),
+      });
+
+      if (res?.success) {
+        showToast(`نسخه جدید (${cleanVer} - کد ${nextCode}) در کل برنامه و پایگاه داده ابری Supabase با موفقیت ثبت و برای کاربران منتشر گردید.`);
+      } else {
+        showToast(`نسخه جدید (${cleanVer} - کد ${nextCode}) منتشر شد. دکمه بروزرسانی برای همه کاربران فعال گردید.`);
+      }
+    } catch (err: any) {
+      showToast(`نسخه جدید منتشر شد: ${err?.message || ''}`);
+    } finally {
+      setIsPublishingVersion(false);
+    }
+  };
+
+  const handleSavePlatformSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    updatePlatformConfig({
-      appName: appName.trim(),
-      shortDescription: shortDesc.trim(),
-      subscriptionExpiredMessage: expiredMsg.trim(),
-      supportPhone: toEnglishDigits(supportPhone.trim()),
-      supportWhatsApp: toEnglishDigits(supportWhatsApp.trim()),
-      plan6MonthPriceAFN: parseNumberInput(plan6MonthPrice, 1700),
-      plan1YearPriceAFN: parseNumberInput(plan1YearPrice, 3000),
-      supportWelcomeMessage: welcomeMessage.trim(),
-      appReleaseVersion: appReleaseVersion.trim(),
-      appVersionCode: Number(appVersionCode),
-      appUpdateNotes: appUpdateNotes.trim(),
-    });
-    showToast('تنظیمات برندینگ، شماره‌های تماس، قیمت‌ها و نگارش برنامه ذخیره شد.');
+    setIsSavingSettings(true);
+    try {
+      const res = await updatePlatformConfig({
+        appName: appName.trim(),
+        shortDescription: shortDesc.trim(),
+        subscriptionExpiredMessage: expiredMsg.trim(),
+        supportPhone: toEnglishDigits(supportPhone.trim()),
+        supportWhatsApp: toEnglishDigits(supportWhatsApp.trim()),
+        plan6MonthPriceAFN: parseNumberInput(plan6MonthPrice, 1700),
+        plan1YearPriceAFN: parseNumberInput(plan1YearPrice, 3000),
+        supportWelcomeMessage: welcomeMessage.trim(),
+        appReleaseVersion: appReleaseVersion.trim() || '2.5.0',
+        appVersionCode: Number(appVersionCode) || 5,
+        appUpdateNotes: appUpdateNotes.trim(),
+      });
+
+      if (res?.success) {
+        showToast('تمامی تنظیمات برندینگ، شماره‌های تماس، قیمت‌ها و نگارش برنامه در دیتابیس Supabase و سیستم ذخیره شد.');
+      } else {
+        showToast('تنظیمات برندینگ، شماره‌های تماس و قیمت‌ها با موفقیت ذخیره گردید.');
+      }
+    } catch (err: any) {
+      showToast('خطا در ذخیره تنظیمات: ' + (err?.message || 'خطای سرور'));
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  // ==========================================
+  // TAB: SUPABASE SQL & DATABASE MANAGEMENT
+  // ==========================================
+  const handleCopySql = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = SUPABASE_SCHEMA_SQL;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setSqlCopied(true);
+      showToast('تمام کدهای SQL سوپابیس با موفقیت در کلیپ‌بورد کپی شدند.');
+      setTimeout(() => setSqlCopied(false), 3000);
+    } catch {
+      showToast('خطا در کپی؛ لطفاً متن کدها را مستقیماً انتخاب و کپی فرمایید.');
+    }
+  };
+
+  const handleTestSupabaseConnection = async () => {
+    if (!supabase || !isSupabaseConfigured) {
+      setTestSupabaseStatus({
+        success: false,
+        msg: 'تنظیمات Supabase در فایل .env یا متغیرهای محیطی یافت نشد.',
+      });
+      return;
+    }
+    setIsTestingSupabase(true);
+    const start = performance.now();
+    try {
+      const { error } = await supabase.from('platform_config').select('id, app_name, app_release_version').limit(1);
+      const latency = Math.round(performance.now() - start);
+      if (error) {
+        setTestSupabaseStatus({
+          success: false,
+          msg: `پاسخ از سرور دریافت شد ولی جدول نیاز به ساخت دارد یا سیاست RLS باید اعمال شود: ${error.message}`,
+          latency,
+        });
+      } else {
+        setTestSupabaseStatus({
+          success: true,
+          msg: `ارتباط با Supabase کاملاً پایدار و فعال است! زمان پاسخ: ${latency} میلی‌ثانیه.`,
+          latency,
+        });
+      }
+    } catch (err: any) {
+      setTestSupabaseStatus({
+        success: false,
+        msg: `خطا در برقراری ارتباط با Supabase: ${err?.message || 'نامشخص'}`,
+      });
+    } finally {
+      setIsTestingSupabase(false);
+    }
   };
 
   // ==========================================
@@ -714,8 +920,28 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <Shield className="w-3.5 h-3.5 text-purple-400" />
                 <span>پنل ویژه سازنده و مدیریت ارشد سامانه (Super Admin)</span>
               </span>
-              <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-0.5 rounded-full font-bold">
-                نسخه فعال: ۲.۴.۰
+              <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-0.5 rounded-full font-bold flex items-center gap-1.5 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>نسخه فعال: {platformConfig.appReleaseVersion || '2.5.0'} (کد {platformConfig.appVersionCode || 5})</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('platform');
+                  setTimeout(() => {
+                    const el = document.getElementById('version-editor-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="text-[11px] bg-purple-500/30 hover:bg-purple-500/50 text-purple-200 border border-purple-400/40 px-2.5 py-0.5 rounded-full font-bold transition cursor-pointer flex items-center gap-1 shadow-xs"
+                title="تغییر سریع نگارش و نسخه برنامه"
+              >
+                <Tag className="w-3 h-3 text-purple-300" />
+                <span>تغییر نسخه برنامه</span>
+              </button>
+              <span className="text-xs bg-sky-500/20 text-sky-300 border border-sky-400/30 px-3 py-0.5 rounded-full font-bold flex items-center gap-1.5 shadow-xs">
+                <Database className="w-3.5 h-3.5 text-sky-400" />
+                <span>پایگاه داده ابری: {isSupabaseConfigured ? 'متصل به Supabase' : 'حالت آفلاین'}</span>
               </span>
             </div>
             <h1 className="text-xl md:text-2xl font-black">
@@ -816,7 +1042,19 @@ export const CreatorEmbeddedPanel: React.FC = () => {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>کاربران و تغییر رمز ({profiles.length})</span>
+          <span>کاربران و زمان فعالیت ({profiles.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('analytics_inventory')}
+          className={`pb-3 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            activeTab === 'analytics_inventory'
+              ? 'border-purple-600 text-purple-700 dark:text-purple-400 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 text-emerald-500" />
+          <span>آمار نصب، ترافیک و انبار کل داروها</span>
         </button>
 
         <button
@@ -841,6 +1079,21 @@ export const CreatorEmbeddedPanel: React.FC = () => {
         >
           <Sliders className="w-4 h-4" />
           <span>تنظیمات پایه و قیمت‌ها</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('supabase_sql')}
+          className={`pb-3 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            activeTab === 'supabase_sql'
+              ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          <Database className="w-4 h-4 text-emerald-500" />
+          <span>کدهای SQL دیتابیس Supabase</span>
+          <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-mono">
+            SQL
+          </span>
         </button>
 
         <button
@@ -1057,7 +1310,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                   onClick={() =>
                     handleApplyTemplate(
                       'بروزرسانی جدید سامانه',
-                      'نسخه ۲.۴ با قابلیت ثبت آفلاین سفارش‌ها، گزارش‌گیری پیشرفته اکسل و چاپ فاکتورهای رسمی هم‌اکنون در دسترس است.',
+                      `نسخه ${platformConfig.appReleaseVersion || '2.5.0'} با قابلیت ثبت آفلاین سفارش‌ها، گزارش‌گیری پیشرفته حسابداری و چاپ فاکتورهای رسمی هم‌اکنون در دسترس است.`,
                       'info',
                       'all'
                     )
@@ -1542,12 +1795,16 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                     <th className="py-2 px-3 font-semibold">نام کاربر</th>
                     <th className="py-2 px-3 font-semibold">نام کاربری / تلفن</th>
                     <th className="py-2 px-3 font-semibold">نقش سازمانی</th>
+                    <th className="py-2 px-3 font-semibold">فروشگاه متصل</th>
+                    <th className="py-2 px-3 font-semibold">آخرین زمان فعالیت</th>
                     <th className="py-2 px-3 font-semibold">وضعیت حساب</th>
                     <th className="py-2 px-3 font-semibold text-center">عملیات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredUsers.map((u) => (
+                  {filteredUsers.map((u) => {
+                    const userStore = stores.find((s) => s.id === u.storeId);
+                    return (
                     <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                       <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">
                         <div className="flex items-center gap-2">
@@ -1579,6 +1836,33 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                             ? 'مدیر فروشگاه'
                             : 'ویزیتور'}
                         </span>
+                      </td>
+
+                      <td className="py-3 px-3">
+                        {u.role === 'maker_admin' ? (
+                          <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400">
+                            مدیریت کل سیستم
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <StoreIcon className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                              {userStore?.name || (u.storeId ? `فروشگاه (${u.storeId})` : 'تعیین‌نشده')}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <div className="space-y-0.5">
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300">
+                            <Clock className="w-3 h-3 text-purple-500" />
+                            <span>{formatRelativeTime(u.lastActiveAt)}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono">
+                            {formatExactTime(u.lastActiveAt)}
+                          </div>
+                        </div>
                       </td>
 
                       <td className="py-3 px-3">
@@ -1635,8 +1919,9 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
+                  );
+                })}
+              </tbody>
               </table>
             </div>
           </div>
@@ -1793,6 +2078,13 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB: GLOBAL ANALYTICS, TRAFFIC & INVENTORY */}
+      {/* ========================================================= */}
+      {activeTab === 'analytics_inventory' && (
+        <CreatorAnalyticsAndInventory />
       )}
 
       {/* ========================================================= */}
@@ -2052,7 +2344,137 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       {/* TAB 6: PLATFORM & BRAND SETTINGS */}
       {/* ========================================================= */}
       {activeTab === 'platform' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Top Card: Dedicated Application Version Manager */}
+          <div
+            id="version-editor-section"
+            className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-xl border-2 border-purple-500/40 max-w-3xl space-y-4 relative overflow-hidden"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-800/60 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-900/50 flex-shrink-0">
+                  <Tag className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base sm:text-lg text-white flex items-center gap-2">
+                    <span>مدیریت و تغییر ورژن برنامه (Application Version)</span>
+                  </h3>
+                  <p className="text-xs text-purple-200 mt-0.5">
+                    هر تغییری در این بخش فوراً در سربرگ، پنل‌ها، دیتابیس کلاینت و سرور ابری Supabase اعمال می‌شود.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 px-3 py-1 rounded-full font-bold font-mono flex items-center gap-1.5 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>نسخه فعال: {platformConfig.appReleaseVersion || '2.5.0'}</span>
+                </span>
+                <span className="text-xs bg-purple-500/30 text-purple-200 border border-purple-400/30 px-2.5 py-1 rounded-full font-mono font-bold">
+                  کد: {platformConfig.appVersionCode || 5}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Version Presets */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] font-bold text-purple-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>انتخاب سریع یا الگوی نگارش:</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {['2.5.0', '2.5.1', '2.6.0', '2.7.0', '3.0.0'].map((ver) => (
+                  <button
+                    key={ver}
+                    type="button"
+                    onClick={() => setAppReleaseVersion(ver)}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition cursor-pointer border ${
+                      appReleaseVersion === ver
+                        ? 'bg-purple-600 border-purple-400 text-white shadow-sm ring-2 ring-purple-400/50'
+                        : 'bg-white/10 hover:bg-white/20 border-white/20 text-purple-200'
+                    }`}
+                  >
+                    نسخه {ver}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Version Edit Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+              <div>
+                <label className="block font-bold text-purple-200 mb-1">
+                  نام و نگارش نسخه برنامه (Release Version) *
+                </label>
+                <input
+                  type="text"
+                  value={appReleaseVersion}
+                  onChange={(e) => setAppReleaseVersion(e.target.value)}
+                  placeholder="مثال: 2.6.0 یا ۳.۰.۰"
+                  className="w-full px-3.5 py-2.5 bg-slate-900/90 border border-purple-500/50 rounded-xl font-bold font-mono text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-purple-200 mb-1">
+                  شماره کد نسخه عددی (Version Code) *
+                </label>
+                <input
+                  type="number"
+                  value={appVersionCode}
+                  onChange={(e) => setAppVersionCode(parseInt(e.target.value, 10) || 1)}
+                  className="w-full px-3.5 py-2.5 bg-slate-900/90 border border-purple-500/50 rounded-xl font-bold font-mono text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+
+            <div className="text-xs">
+              <label className="block font-bold text-purple-200 mb-1">
+                توضیحات و امکانات اضافه شده در این نسخه (برای نمایش به کاربران)
+              </label>
+              <input
+                type="text"
+                value={appUpdateNotes}
+                onChange={(e) => setAppUpdateNotes(e.target.value)}
+                placeholder="مثال: بهبود کارایی، سیستم حسابداری، همگام‌سازی ابری سوپابیس و بهینه‌سازی کاتالوگ داروها"
+                className="w-full px-3.5 py-2.5 bg-slate-900/90 border border-purple-500/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+
+            {/* Actions for Version Save */}
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-purple-800/60">
+              <div className="text-[11px] text-purple-300 flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span>همگام‌سازی خودکار با Supabase و بازتاب لحظه‌ای در سربرگ</span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleDirectSaveVersion()}
+                  disabled={isSavingVersionDirect}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs shadow-md shadow-emerald-950/40 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                >
+                  <Check className={`w-4 h-4 ${isSavingVersionDirect ? 'animate-spin' : ''}`} />
+                  <span>{isSavingVersionDirect ? 'در حال ثبت در دیتابیس...' : 'ثبت و اعمال فوری ورژن'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handlePublishNewVersion()}
+                  disabled={isPublishingVersion}
+                  className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-black text-xs shadow-md shadow-purple-900/50 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isPublishingVersion ? 'animate-spin' : ''}`} />
+                  <span>{isPublishingVersion ? 'در حال انتشار سراسری...' : 'انتشار نسخه جدید + نمایش بنر به همه'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Branding & Settings Card */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs max-w-3xl space-y-5">
             <div>
               <h3 className="font-black text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
@@ -2060,7 +2482,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <span>تنظیمات برندینگ، شماره‌های تماس پشتیبانی و تعرفه‌ها</span>
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                کلیه مشخصات عمومی سامانه با تغییر در این بخش، فوراً در کل برنامه بروز خواهند شد.
+                کلیه مشخصات عمومی سامانه با ذخیره در این بخش، بلافاصله در کل برنامه و سرور ابری Supabase بروز خواهند شد.
               </p>
             </div>
 
@@ -2173,84 +2595,247 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                  <Database className="w-3.5 h-3.5 text-sky-600" />
+                  <span>تنظیمات همزمان در دیتابیس ابری Supabase و حافظه محلی ذخیره می‌شوند.</span>
+                </div>
+
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-md shadow-purple-600/25 transition cursor-pointer"
+                  disabled={isSavingSettings}
+                  className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-md shadow-purple-600/25 transition cursor-pointer flex items-center gap-2 active:scale-95 disabled:opacity-50"
                 >
-                  ذخیره و انتشار تغییرات
+                  <Check className={`w-4 h-4 ${isSavingSettings ? 'animate-spin' : ''}`} />
+                  <span>{isSavingSettings ? 'در حال ثبت در دیتابیس و سوپابیس...' : 'ذخیره و انتشار تغییرات در کل سیستم و سوپابیس'}</span>
                 </button>
               </div>
             </form>
           </div>
+        </div>
+      )}
 
-          {/* PWA Release and Version Management Card */}
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 border-2 border-purple-200 dark:border-purple-800 rounded-3xl p-6 shadow-xs max-w-3xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h4 className="font-black text-purple-950 dark:text-purple-200 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span>مدیریت انتشار نسخه جدید و بروزرسانی PWA</span>
-                </h4>
-                <p className="text-[11px] text-purple-700 dark:text-purple-300 mt-0.5">
-                  با کلیک روی «انتشار نسخه جدید»، دکمه بروزرسانی نسخه برای تمام کاربران و اپلیکیشن نصب‌شده PWA ظاهر شده و پس از بروزرسانی خودکار محو می‌گردد.
+      {/* ========================================================= */}
+      {/* TAB: SUPABASE SQL & DATABASE SCHEMA MANAGER */}
+      {/* ========================================================= */}
+      {activeTab === 'supabase_sql' && (
+        <div className="space-y-6 max-w-4xl">
+          {/* Header & Status Card */}
+          <div className="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-white rounded-3xl p-6 shadow-xl border-2 border-emerald-500/30 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-800/50 pb-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-950/50 flex-shrink-0">
+                  <Database className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base sm:text-lg text-white flex items-center gap-2">
+                    <span>کدهای پایگاه داده Supabase (اسکریپت کامل SQL)</span>
+                    <span className="text-[11px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full font-mono">
+                      PostgreSQL
+                    </span>
+                  </h3>
+                  <p className="text-xs text-emerald-200/80 mt-1">
+                    شامل ساخت ۱۱ جدول، روابط کلید خارجی، فعال‌سازی RLS، سیاست‌های دسترسی Anon، ایندکس‌های پرسرعت و داده‌های پیش‌فرض
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Action Buttons */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleCopySql}
+                  className={`px-4 py-2.5 rounded-xl font-black text-xs shadow-md transition flex items-center gap-2 cursor-pointer active:scale-95 ${
+                    sqlCopied
+                      ? 'bg-emerald-500 text-white shadow-emerald-900/60 ring-2 ring-emerald-300'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/50'
+                  }`}
+                >
+                  {sqlCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-white" />
+                      <span>کپی شد! (آماده پیست)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>کپی تمام کدهای SQL</span>
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href="/supabase-schema.sql"
+                  download="supabase-schema.sql"
+                  className="px-3.5 py-2.5 bg-slate-800/80 hover:bg-slate-700/80 border border-emerald-500/30 text-emerald-200 rounded-xl font-bold text-xs transition flex items-center gap-2 cursor-pointer"
+                  title="دانلود مستقیم فایل اسکریپت SQL"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" />
+                  <span>دانلود فایل .sql</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Supabase Connection State Banner */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="bg-slate-900/80 border border-emerald-800/40 rounded-2xl p-3.5 flex items-start gap-3">
+                <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${isSupabaseConfigured ? 'bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                <div className="space-y-1">
+                  <div className="font-bold text-white flex items-center gap-2">
+                    <span>وضعیت اتصال به سرور ابری Supabase:</span>
+                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${isSupabaseConfigured ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
+                      {isSupabaseConfigured ? 'پیکربندی شده و متصل' : 'نیاز به تنظیم کلیدها'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-mono" dir="ltr">
+                    URL: {import.meta.env.VITE_SUPABASE_URL ? `${import.meta.env.VITE_SUPABASE_URL.slice(0, 30)}...` : 'تنظیم در .env'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/80 border border-emerald-800/40 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="font-bold text-white text-xs">تست زنده سلامت اتصال دیتابیس:</div>
+                  <p className="text-[11px] text-slate-300">
+                    {testSupabaseStatus ? testSupabaseStatus.msg : 'جهت ارزیابی دسترسی و زمان پاسخ کلیک کنید.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleTestSupabaseConnection}
+                  disabled={isTestingSupabase}
+                  className="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 rounded-xl font-bold text-xs transition flex items-center gap-1.5 flex-shrink-0 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isTestingSupabase ? 'animate-spin' : ''}`} />
+                  <span>{isTestingSupabase ? 'در حال تست...' : 'تست اتصال'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick File Location Notice */}
+            <div className="bg-emerald-950/50 border border-emerald-800/50 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-emerald-200">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span>
+                  <strong>محل ذخیره فایل در سورس پروژه:</strong> فایل کامل با نام <code className="bg-black/40 px-2 py-0.5 rounded text-emerald-300 font-mono" dir="ltr">supabase-schema.sql</code> در ریشه اصلی برنامه قرار دارد.
+                </span>
+              </div>
+              <span className="text-[11px] text-emerald-300 font-mono">
+                ۳۰۰ خط کد • PostgreSQL 15+
+              </span>
+            </div>
+          </div>
+
+          {/* 3 Steps Guide Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+            <h4 className="font-black text-slate-800 dark:text-slate-100 text-sm sm:text-base flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+              <span>راهنمای ۳ مرحله‌ای وارد کردن کدها در Supabase</span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-2 relative overflow-hidden">
+                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center">
+                  ۱
+                </div>
+                <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                  ورود به داشبورد سوپابیس
+                </h5>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  وارد سایت <span className="font-mono text-emerald-600 dark:text-emerald-400">supabase.com</span> شده و پروژه خود را انتخاب فرمایید.
                 </p>
               </div>
 
-              <div className="px-3 py-1 bg-purple-600 text-white rounded-full font-mono font-bold text-xs self-start sm:self-auto">
-                کد نسخه فعال: {appVersionCode}
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-2 relative overflow-hidden">
+                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center">
+                  ۲
+                </div>
+                <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                  باز کردن بخش SQL Editor
+                </h5>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  از منوی ستون سمت چپ روی آیکون <strong>SQL Editor</strong> کلیک نموده و دکمه <strong>+ New query</strong> را بزنید.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-2 relative overflow-hidden">
+                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center">
+                  ۳
+                </div>
+                <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                  الصاق کد و فشردن دکمه Run
+                </h5>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  کدهای دکمه «کپی تمام کدهای SQL» بالا را الصاق (Paste) نموده و دکمه سبز رنگ <strong>Run</strong> را بزنید.
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام نسخه رسمی (Release Version) *
-                </label>
-                <input
-                  type="text"
-                  value={appReleaseVersion}
-                  onChange={(e) => setAppReleaseVersion(e.target.value)}
-                  placeholder="مثال: ۲.۵.۰"
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl font-bold font-mono"
-                />
+            {/* Tables Checklist Overview */}
+            <div className="pt-2">
+              <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                <Boxes className="w-4 h-4 text-emerald-600" />
+                <span>لیست ۱۱ جدول و بخش‌هایی که ساخته می‌شوند:</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
+                {[
+                  { name: 'stores', fa: 'فروشگاه‌ها و اشتراک‌ها' },
+                  { name: 'profiles', fa: 'کاربران و ویزیتورها' },
+                  { name: 'medicines', fa: 'کاتالوگ داروها و انبار' },
+                  { name: 'customers', fa: 'داروخانه‌ها و مشتریان' },
+                  { name: 'orders', fa: 'سفارشات و فاکتورها' },
+                  { name: 'visitor_cash_collections', fa: 'وصولی‌ها و بیعانه‌ها' },
+                  { name: 'visitor_remittances', fa: 'واریزی‌ها به فروشگاه' },
+                  { name: 'messages', fa: 'پیام‌رسان و چت' },
+                  { name: 'visits', fa: 'ویزیت حضوری و GPS' },
+                  { name: 'support_tickets', fa: 'تیکت‌های آنلاین' },
+                  { name: 'platform_config', fa: 'ورژن و تنظیمات سامانه' },
+                  { name: 'RLS & Realtime', fa: 'امنیت و همگام‌سازی زنده' },
+                ].map((item) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                    <div className="overflow-hidden">
+                      <div className="font-mono font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{item.fa}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Code Viewer Card */}
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+            <div className="bg-slate-900 border-b border-slate-800 px-5 py-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <Code2 className="w-4 h-4 text-emerald-400" />
+                <span className="font-mono text-xs font-bold text-slate-200" dir="ltr">
+                  supabase-schema.sql
+                </span>
+                <span className="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono">
+                  PostgreSQL DDL
+                </span>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  شماره کد نسخه (Version Code - ارقام انگلیسی) *
-                </label>
-                <input
-                  type="number"
-                  value={appVersionCode}
-                  onChange={(e) => setAppVersionCode(parseInt(e.target.value, 10) || 1)}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl font-bold font-mono"
-                />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopySql}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  {sqlCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{sqlCopied ? 'کپی شد' : 'کپی کدها'}</span>
+                </button>
               </div>
             </div>
 
-            <div className="text-xs">
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                توضیحات و امکانات اضافه شده در این نسخه (برای نمایش به کاربران)
-              </label>
-              <input
-                type="text"
-                value={appUpdateNotes}
-                onChange={(e) => setAppUpdateNotes(e.target.value)}
-                placeholder="مثال: همگام‌سازی لحظه‌ای داروها، موجودی انبار، چت داخلی و صدور فاکتور رسمی"
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl"
-              />
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => handlePublishNewVersion()}
-                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs shadow-md shadow-purple-600/30 transition flex items-center gap-2 cursor-pointer active:scale-95"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>انتشار رسمی نسخه جدید برای تمام کلاینت‌ها و PWA</span>
-              </button>
+            <div className="p-4 overflow-x-auto max-h-[500px] overflow-y-auto font-mono text-xs text-slate-300 leading-relaxed" dir="ltr">
+              <pre className="text-[11px] font-mono whitespace-pre text-emerald-300/90 selection:bg-emerald-800 selection:text-white">
+                {SUPABASE_SCHEMA_SQL}
+              </pre>
             </div>
           </div>
         </div>

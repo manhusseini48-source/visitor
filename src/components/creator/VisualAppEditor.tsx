@@ -446,7 +446,7 @@ export const VisualAppEditor: React.FC = () => {
                     </div>
                   </div>
                   <span className="text-[9px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded-md font-bold">
-                    نسخه ۲.۴
+                    {previewVal('app_version_label', `نسخه ${platformConfig.appReleaseVersion || '2.5.0'}`)}
                   </span>
                 </div>
 

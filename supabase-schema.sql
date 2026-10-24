@@ -16,9 +16,11 @@ drop table if exists public.customers cascade;
 drop table if exists public.medicines cascade;
 drop table if exists public.profiles cascade;
 drop table if exists public.stores cascade;
+drop table if exists public.support_tickets cascade;
+drop table if exists public.platform_config cascade;
 
 -- ۲. جدول شرکت‌های پخش و فروشگاه‌ها (STORES)
-create table public.stores (
+create table if not exists public.stores (
     id text primary key,
     name text not null,
     owner_name text not null default '',
@@ -34,7 +36,7 @@ create table public.stores (
 );
 
 -- ۳. جدول کاربران، مدیران، مالکین و ویزیتورها (PROFILES)
-create table public.profiles (
+create table if not exists public.profiles (
     id text primary key,
     store_id text references public.stores(id) on delete cascade,
     name text not null,
@@ -50,7 +52,7 @@ create table public.profiles (
 );
 
 -- ۴. جدول کاتالوگ و انبار داروها همراه با عکس Cloudinary (MEDICINES)
-create table public.medicines (
+create table if not exists public.medicines (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
     code text not null,
@@ -73,7 +75,7 @@ create table public.medicines (
 );
 
 -- ۵. جدول داروخانه‌ها، مطب‌ها و کلینیک‌ها (CUSTOMERS)
-create table public.customers (
+create table if not exists public.customers (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
     visitor_id text,
@@ -88,7 +90,7 @@ create table public.customers (
 );
 
 -- ۶. جدول سفارشات ثبت شده ویزیتورها همراه با وضعیت مالی (ORDERS)
-create table public.orders (
+create table if not exists public.orders (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
     visitor_id text not null,
@@ -106,7 +108,7 @@ create table public.orders (
 );
 
 -- ۷. جدول صندوق وصولی‌های و بیعانه‌های ویزیتورها (VISITOR_CASH_COLLECTIONS)
-create table public.visitor_cash_collections (
+create table if not exists public.visitor_cash_collections (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
     visitor_id text not null,
@@ -127,7 +129,7 @@ create table public.visitor_cash_collections (
 );
 
 -- ۸. جدول واریزی‌ها و انتقالات ویزیتور به فروشگاه (VISITOR_REMITTANCES)
-create table public.visitor_remittances (
+create table if not exists public.visitor_remittances (
     id text primary key,
     remittance_number text not null,
     store_id text references public.stores(id) on delete cascade not null,
@@ -150,7 +152,7 @@ create table public.visitor_remittances (
 );
 
 -- ۹. جدول پیام‌رسان و چت داخلی (MESSAGES)
-create table public.messages (
+create table if not exists public.messages (
     id text primary key,
     store_id text references public.stores(id) on delete cascade,
     conversation_id text not null,
@@ -165,7 +167,7 @@ create table public.messages (
 );
 
 -- ۱۰. جدول گزارش ویزیت حضوری و مراجعات (VISITS)
-create table public.visits (
+create table if not exists public.visits (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
     visitor_id text not null,
@@ -178,7 +180,7 @@ create table public.visits (
 );
 
 -- ۱۱. جدول تیکت‌ها و پیام‌های پشتیبانی آنلاین (SUPPORT_TICKETS)
-create table public.support_tickets (
+create table if not exists public.support_tickets (
     id text primary key,
     store_id text not null,
     store_name text default '',
@@ -191,7 +193,7 @@ create table public.support_tickets (
 );
 
 -- ۱۲. جدول تنظیمات سراسری پلتفرم، نسخه و سوالات متداول (PLATFORM_CONFIG)
-create table public.platform_config (
+create table if not exists public.platform_config (
     id text primary key default 'global_config',
     app_name text default 'ویزیتور',
     short_description text default 'پنل ویزیتور دارو',
@@ -267,3 +269,34 @@ begin
 exception
   when others then null;
 end $$;
+
+-- ۱۳. ایندکس‌های کلیدی جهت افزایش سرعت کوئری‌ها
+create index if not exists idx_medicines_store_id on public.medicines(store_id);
+create index if not exists idx_customers_store_id on public.customers(store_id);
+create index if not exists idx_orders_store_id on public.orders(store_id);
+create index if not exists idx_orders_customer_id on public.orders(customer_id);
+create index if not exists idx_messages_conversation on public.messages(conversation_id);
+create index if not exists idx_cash_collections_store on public.visitor_cash_collections(store_id);
+create index if not exists idx_remittances_store on public.visitor_remittances(store_id);
+
+-- ۱۴. رکوردهای پیش‌فرض اولیه (Seed Data)
+insert into public.platform_config (
+    id, app_name, short_description, app_release_version, app_version_code,
+    app_update_notes, plan_6month_price_afn, plan_1year_price_afn,
+    support_phone, support_whatsapp, support_welcome_message, updated_at
+) values (
+    'global_config', 'ویزیتور', 'پنل ویزیتور دارو', '2.5.0', 5,
+    'همگام‌سازی کامل داروها، پیام‌ها، مدیریت پیشرفته کاربران و نسخه آنلاین',
+    1700, 3000, '0784524918', '0784524918',
+    'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام، سؤال یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.',
+    now()
+) on conflict (id) do update set
+    app_name = excluded.app_name,
+    updated_at = now();
+
+insert into public.profiles (
+    id, name, phone, username, password_hash, role, city, is_active, created_at
+) values (
+    'user_maker_01', 'مدیر کل سامانه', '0700000000', 'maker_admin', '123456', 'maker_admin', 'کابل', true, now()
+) on conflict (username) do nothing;
+

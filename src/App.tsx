@@ -47,6 +47,9 @@ import { VisitorCustomers } from './components/visitor/VisitorCustomers';
 import { VisitorVisits } from './components/visitor/VisitorVisits';
 import { VisitorCommission } from './components/visitor/VisitorCommission';
 
+// Common Views
+import { NotesAndEisenhowerView } from './components/common/NotesAndEisenhowerView';
+
 // Creator View
 import { CreatorEmbeddedPanel } from './components/creator/CreatorEmbeddedPanel';
 import { getAppText } from './utils/customText';
@@ -72,6 +75,7 @@ import {
   LogOut,
   ChevronLeft,
   Lock,
+  Grid,
 } from 'lucide-react';
 
 function AppContent() {
@@ -413,11 +417,12 @@ function AppContent() {
   // Store Owner Navigation items
   const storeMenuItems = [
     { id: 'dashboard', label: 'داشبورد', icon: LayoutDashboard },
-    { id: 'orders', label: 'سفارش‌ها و ارسال', icon: ShoppingCart },
+    { id: 'orders', label: 'سفارش‌ها و پایپلاین تحویل', icon: ShoppingCart },
     { id: 'medicines', label: 'داروها و موجودی', icon: Pill },
     { id: 'customers', label: 'مشتریان', icon: Users },
-    { id: 'visitors', label: 'ویزیتورها', icon: UserCheck },
-    { id: 'visits', label: 'برنامه ویزیت', icon: Calendar },
+    { id: 'visitors', label: 'ویزیتورها و رتبه‌بندی', icon: UserCheck },
+    { id: 'visits', label: 'برنامه ویزیت و نظارت', icon: Calendar },
+    { id: 'notes', label: 'دفترچه یادداشت و آیزنهاور', icon: Grid },
     { id: 'accounting', label: 'حسابداری و پورسانت', icon: DollarSign },
     { id: 'messenger', label: 'پیام‌رسان', icon: MessageSquare },
     { id: 'reports', label: 'گزارش‌ها', icon: FileSpreadsheet },
@@ -430,9 +435,10 @@ function AppContent() {
     { id: 'dashboard', label: 'داشبورد من', icon: LayoutDashboard },
     { id: 'gallery', label: 'گالری دارو و صدور فاکتور', icon: Sparkles },
     { id: 'medicines', label: 'کاتالوگ و موجودی داروها', icon: Pill },
-    { id: 'orders', label: 'سفارشات من', icon: ShoppingCart },
+    { id: 'orders', label: 'سفارشات و پایپلاین تحویل', icon: ShoppingCart },
     { id: 'customers', label: 'دواخانه‌های من', icon: Users },
     { id: 'visits', label: 'برنامه ویزیت و مراجعات', icon: Calendar },
+    { id: 'notes', label: 'دفترچه یادداشت و آیزنهاور', icon: Grid },
     { id: 'accounting', label: 'حسابداری، صندوق و پورسانت', icon: DollarSign },
     { id: 'messenger', label: 'پیام‌رسان کاری', icon: MessageSquare },
   ];
@@ -565,11 +571,13 @@ function AppContent() {
                   ) : activeTab === 'medicines' ? (
                     <VisitorMedicinesView onNavigateTab={(t) => handleNavigateTab(t)} />
                   ) : activeTab === 'orders' ? (
-                    <VisitorOrders />
+                    <VisitorOrders onNavigateTab={(t) => handleNavigateTab(t)} />
                   ) : activeTab === 'customers' ? (
                     <VisitorCustomers />
                   ) : activeTab === 'visits' ? (
-                    <VisitorVisits />
+                    <VisitorVisits onNavigateTab={(t: string) => handleNavigateTab(t)} />
+                  ) : activeTab === 'notes' ? (
+                    <NotesAndEisenhowerView />
                   ) : activeTab === 'accounting' ? (
                     <VisitorCommission />
                   ) : activeTab === 'messenger' ? (
@@ -591,6 +599,8 @@ function AppContent() {
                     <VisitorsManager />
                   ) : activeTab === 'visits' ? (
                     <VisitsScheduleManager />
+                  ) : activeTab === 'notes' ? (
+                    <NotesAndEisenhowerView />
                   ) : activeTab === 'accounting' ? (
                     <AccountingManager />
                   ) : activeTab === 'messenger' ? (
@@ -797,15 +807,15 @@ function AppContent() {
             <span className="text-[10px]">داشبورد</span>
           </button>
 
-          {/* 4. مشتریان */}
+          {/* 4. برنامه ویزیت (جایگزین مشتریان) */}
           <button
-            onClick={() => handleNavigateTab('customers')}
+            onClick={() => handleNavigateTab('visits')}
             className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition cursor-pointer ${
-              activeTab === 'customers' ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-500 dark:text-slate-400 font-medium'
+              activeTab === 'visits' ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-500 dark:text-slate-400 font-medium'
             }`}
           >
-            <Users className="w-5 h-5" />
-            <span className="text-[10px]">مشتریان</span>
+            <Calendar className="w-5 h-5" />
+            <span className="text-[10px]">برنامه ویزیت</span>
           </button>
 
           {/* 5. پیام‌ها */}

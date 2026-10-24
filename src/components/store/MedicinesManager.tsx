@@ -68,6 +68,7 @@ export const MedicinesManager: React.FC = () => {
   const [shortDescription, setShortDescription] = useState('');
   const [fullDescription, setFullDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [customCommissionRate, setCustomCommissionRate] = useState<string>('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -104,6 +105,7 @@ export const MedicinesManager: React.FC = () => {
       setShortDescription(med.shortDescription || '');
       setFullDescription(med.fullDescription || '');
       setImages(med.images || []);
+      setCustomCommissionRate(med.customCommissionRate !== undefined ? String(med.customCommissionRate) : '');
     } else {
       setEditingMed(null);
       setName('');
@@ -122,6 +124,7 @@ export const MedicinesManager: React.FC = () => {
       setShortDescription('');
       setFullDescription('');
       setImages([]);
+      setCustomCommissionRate('');
     }
     setIsModalOpen(true);
   };
@@ -217,6 +220,7 @@ export const MedicinesManager: React.FC = () => {
               shortDescription,
               fullDescription,
               images,
+              customCommissionRate: customCommissionRate.trim() ? Number(customCommissionRate) : undefined,
               updatedAt: new Date().toISOString(),
             }
           : m
@@ -242,6 +246,7 @@ export const MedicinesManager: React.FC = () => {
         shortDescription,
         fullDescription,
         images,
+        customCommissionRate: customCommissionRate.trim() ? Number(customCommissionRate) : undefined,
         status: 'active',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -443,7 +448,14 @@ export const MedicinesManager: React.FC = () => {
                         >
                           {m.name}
                         </button>
-                        <div className="text-[11px] text-slate-400">{m.brand} • {m.category}</div>
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                          <span>{m.brand} • {m.category}</span>
+                          {m.customCommissionRate !== undefined && (
+                            <span className="text-[9px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.5 rounded-full">
+                              پورسانت اختصاصی: {m.customCommissionRate}٪
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="p-3.5">
@@ -665,6 +677,29 @@ export const MedicinesManager: React.FC = () => {
                     dir="ltr"
                   />
                 </div>
+              </div>
+
+              {/* Row: Smart Commission Setting per Product */}
+              <div className="bg-purple-50/70 p-3 rounded-xl border border-purple-200/80">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                  <label className="text-xs font-black text-purple-900 flex items-center gap-1.5">
+                    <span>تنظیم پورسانت هوشمند این دارو (٪)</span>
+                  </label>
+                  <span className="text-[10px] text-purple-700">
+                    مثلاً ۵٪ یا ۸٪ (در صورت تعیین، این درصد جایگزین پورسانت ویزیتور می‌شود)
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  max="100"
+                  value={customCommissionRate}
+                  onChange={(e) => setCustomCommissionRate(e.target.value)}
+                  placeholder="خالی بگذارید تا از پورسانت عمومی ویزیتور استفاده شود (مثال: 5 یا 8)"
+                  className="w-full px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-xs font-mono font-bold text-purple-950 focus:ring-2 focus:ring-purple-500"
+                  dir="ltr"
+                />
               </div>
 
               {/* Row 4: Stock, Alert, Expiry, Batch */}

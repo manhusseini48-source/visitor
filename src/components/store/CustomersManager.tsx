@@ -54,6 +54,9 @@ export const CustomersManager: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [primaryVisitorId, setPrimaryVisitorId] = useState<string>('');
   const [sharedVisitorIds, setSharedVisitorIds] = useState<string[]>([]);
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [taxId, setTaxId] = useState('');
+  const [creditLimitAFN, setCreditLimitAFN] = useState<string>('');
 
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
@@ -82,6 +85,9 @@ export const CustomersManager: React.FC = () => {
       setNotes(cust.notes || '');
       setPrimaryVisitorId(cust.primaryVisitorId || '');
       setSharedVisitorIds(cust.sharedVisitorIds || []);
+      setLicenseNumber(cust.licenseNumber || '');
+      setTaxId(cust.taxId || '');
+      setCreditLimitAFN(cust.creditLimitAFN ? String(cust.creditLimitAFN) : '');
     } else {
       setEditingCustomer(null);
       setName('');
@@ -97,6 +103,9 @@ export const CustomersManager: React.FC = () => {
       setNotes('');
       setPrimaryVisitorId(visitors[0]?.id || '');
       setSharedVisitorIds([]);
+      setLicenseNumber('');
+      setTaxId('');
+      setCreditLimitAFN('');
     }
     setIsModalOpen(true);
   };
@@ -182,6 +191,9 @@ export const CustomersManager: React.FC = () => {
               notes,
               primaryVisitorId,
               sharedVisitorIds,
+              licenseNumber: licenseNumber.trim() || undefined,
+              taxId: taxId.trim() || undefined,
+              creditLimitAFN: creditLimitAFN.trim() ? Number(creditLimitAFN) : undefined,
             }
           : c
       );
@@ -201,6 +213,9 @@ export const CustomersManager: React.FC = () => {
         latitude,
         longitude,
         notes,
+        licenseNumber: licenseNumber.trim() || undefined,
+        taxId: taxId.trim() || undefined,
+        creditLimitAFN: creditLimitAFN.trim() ? Number(creditLimitAFN) : undefined,
         createdBy: currentUser?.id || 'owner',
         primaryVisitorId,
         sharedVisitorIds,
@@ -562,6 +577,54 @@ export const CustomersManager: React.FC = () => {
                   <MapPin className="w-3.5 h-3.5" />
                   <span>{locating ? 'دریافت GPS...' : 'ثبت موقعیت فعلی'}</span>
                 </button>
+              </div>
+
+              {/* Commercial Data: License, Tax ID, Credit Limit */}
+              <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 rounded-xl border border-purple-200/80 space-y-3">
+                <div className="text-xs font-black text-purple-900 flex items-center gap-1.5">
+                  <span>اطلاعات تجاری، اداری و سقف اعتبار مشتری</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      شماره جواز فعالیت / صنف
+                    </label>
+                    <input
+                      type="text"
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                      placeholder="LIC-1403/89"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      شناسه مالیاتی (TIN / Tax ID)
+                    </label>
+                    <input
+                      type="text"
+                      value={taxId}
+                      onChange={(e) => setTaxId(e.target.value)}
+                      placeholder="TAX-998210"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      سقف اعتبار نسیه (AFN)
+                    </label>
+                    <input
+                      type="number"
+                      value={creditLimitAFN}
+                      onChange={(e) => setCreditLimitAFN(e.target.value)}
+                      placeholder="500000"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold"
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Assignment to Visitor */}
