@@ -23,7 +23,6 @@ import { InteractiveDonutChart, DonutSegment } from '../charts/InteractiveDonutC
 import { InteractiveHorizontalRankChart, RankItem } from '../charts/InteractiveHorizontalRankChart';
 import { InteractiveRadialGauge } from '../charts/InteractiveRadialGauge';
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
-import { VisitorLeaderboard } from '../common/VisitorLeaderboard';
 
 interface Props {
   onNavigateTab: (tab: string) => void;
@@ -384,8 +383,126 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         />
       </div>
 
-      {/* Visitor Performance & Podium Leaderboard */}
-      <VisitorLeaderboard storeId={storeId} />
+      {/* Personal Performance Scorecard (کاملاً خصوصی و منحصر به خود ویزیتور) */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-6 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-sky-600/20 flex-shrink-0">
+              <Award className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-black text-sm md:text-base text-slate-800 dark:text-slate-100">
+                  کارنامه ارزیابی عملکرد و تارگت شخصی من
+                </h3>
+                <span className="text-[10px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 px-2.5 py-0.5 rounded-full font-bold">
+                  محرمانه و اختصاصی شما
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                تحلیل میزان پیشرفت تارگت فروش، نرخ تحقق سفارش‌ها و وضعیت دواخانه‌های تحت پوشش شما
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              امتیاز فردی: <strong className="text-sky-600 dark:text-sky-400 font-mono text-sm">{targetProgress}٪</strong>
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Private Personal Performance Pillars */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 1. Target Fulfillment */}
+          <div className="p-4 rounded-2xl bg-sky-50/60 dark:bg-slate-800/60 border border-sky-100 dark:border-slate-700 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                <Target className="w-4 h-4 text-sky-600" />
+                تحقق تارگت ماهانه
+              </span>
+              <span className="text-xs font-black text-sky-600 font-mono">{targetProgress}٪</span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 rounded-full transition-all duration-500"
+                style={{ width: `${targetProgress}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span>فروش: {totalSales.toLocaleString()}</span>
+              <span>هدف: {target.toLocaleString()} AFN</span>
+            </div>
+          </div>
+
+          {/* 2. Completed Visits */}
+          <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-slate-800/60 border border-emerald-100 dark:border-slate-700 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-emerald-600" />
+                نرخ موفقیت ویزیت‌ها
+              </span>
+              <span className="text-xs font-black text-emerald-600 font-mono">
+                {visits.length > 0 ? Math.round((visits.filter((v) => v.status === 'completed').length / visits.length) * 100) : 0}٪
+              </span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+                style={{
+                  width: `${visits.length > 0 ? Math.round((visits.filter((v) => v.status === 'completed').length / visits.length) * 100) : 0}%`,
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span>انجام‌شده: {visits.filter((v) => v.status === 'completed').length}</span>
+              <span>کل مراجعات: {visits.length} ویزیت</span>
+            </div>
+          </div>
+
+          {/* 3. Customer Coverage */}
+          <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/60 border border-indigo-100 dark:border-slate-700 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-indigo-600" />
+                دواخانه‌های من
+              </span>
+              <span className="text-xs font-black text-indigo-600 font-mono">{customers.length} مرکز</span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              شما مسئول تامین دارویی {customers.length} دواخانه در منطقه کاری خود هستید.
+            </p>
+            <button
+              onClick={() => onNavigateTab('customers')}
+              className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 pt-1"
+            >
+              <span>مشاهده لیست دواخانه‌ها</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* 4. Commission Balance */}
+          <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-slate-800/60 border border-amber-100 dark:border-slate-700 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-amber-600" />
+                مطالبات پورسانت
+              </span>
+              <span className="text-xs font-black text-amber-600 font-mono">{currentUser?.commissionRate || 0}٪</span>
+            </div>
+            <div className="font-black text-slate-800 dark:text-white text-base">
+              {currentBalance.toLocaleString()} <span className="text-xs text-slate-400 font-normal">AFN</span>
+            </div>
+            <button
+              onClick={() => onNavigateTab('accounting')}
+              className="text-[11px] text-amber-700 dark:text-amber-400 font-bold hover:underline flex items-center gap-1"
+            >
+              <span>مشاهده صورتحساب و واریزها</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Scheduled visits & quick route */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">

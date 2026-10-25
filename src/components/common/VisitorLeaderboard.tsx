@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Storage } from '../../utils/storage';
 import { UserProfile, Order, Customer, VisitRecord } from '../../types';
+import { useApp } from '../../context/AppContext';
 import {
   Trophy,
   Award,
@@ -22,6 +23,13 @@ interface Props {
 }
 
 export const VisitorLeaderboard: React.FC<Props> = ({ storeId, currentUserId }) => {
+  const { currentUser } = useApp();
+
+  // Strict Security: The Leaderboard and Podium is strictly for store owners/management, NOT visitors!
+  if (currentUser?.role === 'visitor') {
+    return null;
+  }
+
   const visitors = useMemo(
     () => Storage.getProfiles().filter((p) => p.storeId === storeId && p.role === 'visitor'),
     [storeId]

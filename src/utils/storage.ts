@@ -751,6 +751,47 @@ export const Storage = {
     }
   },
 
+  softDeleteMessage(messageId: string, storeId?: string): boolean {
+    const msgs = getItem<Message[]>(STORAGE_KEYS.MESSAGES, INITIAL_MESSAGES);
+    const targetIdx = msgs.findIndex((m) => m.id === messageId);
+    if (targetIdx === -1) return false;
+
+    const target = msgs[targetIdx];
+    msgs[targetIdx] = {
+      ...target,
+      isDeleted: true,
+      deletedAt: new Date().toISOString(),
+      text: 'این پیام حذف شده است',
+      imageUrl: undefined,
+      orderDocAttachment: undefined,
+    };
+    setItem(STORAGE_KEYS.MESSAGES, msgs);
+
+    const activeStoreId = storeId || this.getCurrentUser()?.storeId || '';
+    if (activeStoreId) {
+      const convs = this.getConversations(activeStoreId);
+      const conv = convs.find((c) => c.id === target.conversationId);
+      if (conv) {
+        const convMsgs = msgs.filter((m) => m.conversationId === conv.id);
+        if (convMsgs.length > 0) {
+          const lastMsg = convMsgs[convMsgs.length - 1];
+          conv.lastMessageText = lastMsg.isDeleted ? 'این پیام حذف شده است' : (lastMsg.text || 'تصویر پیوست شده');
+          conv.lastMessageTime = lastMsg.createdAt;
+          this.saveConversations(convs);
+        }
+      }
+    }
+
+    try {
+      SupabaseSync.syncMessage(msgs[targetIdx], activeStoreId);
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+    return true;
+  },
+
   mergeCloudMessages(cloudMsgs: Message[], storeId?: string) {
     if (!cloudMsgs || cloudMsgs.length === 0) return;
     const current = getItem<Message[]>(STORAGE_KEYS.MESSAGES, INITIAL_MESSAGES);

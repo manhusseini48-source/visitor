@@ -22,7 +22,9 @@ import {
   Eye,
   EyeOff,
   Key,
+  Trophy,
 } from 'lucide-react';
+import { VisitorLeaderboard } from '../common/VisitorLeaderboard';
 
 export const VisitorsManager: React.FC = () => {
   const { currentStore, createVisitor, updateVisitor, toggleVisitorActive } = useApp();
@@ -33,6 +35,7 @@ export const VisitorsManager: React.FC = () => {
   );
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeViewTab, setActiveViewTab] = useState<'leaderboard' | 'accounts'>('leaderboard');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingVisitor, setEditingVisitor] = useState<UserProfile | null>(null);
 
@@ -229,40 +232,98 @@ export const VisitorsManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
+      {/* Top Header & Tab Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+          <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-sky-600" />
-            <span>مدیریت تیم ویزیتورهای فروشگاه ({profiles.length})</span>
+            <span>مدیریت تیم ویزیتورها و رتبه‌بندی فروشگاه ({profiles.length})</span>
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            ایجاد حساب، تعیین حقوق ثابت، درصد پورسانت، تارگت فروش و سیاست‌های ماندگاری سوابق
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            مشاهده تابلوی افتخارات، جدول امتیازات عملکردی، شرایط حقوق و پورسانت و حساب‌های کاری
           </p>
         </div>
 
+        {activeViewTab === 'accounts' && (
+          <button
+            onClick={openAddModal}
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>افزودن ویزیتور جدید</span>
+          </button>
+        )}
+      </div>
+
+      {/* Tabs Navigation: 1. Leaderboard / Podium, 2. Accounts & Settings */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2 pb-0.5">
         <button
-          onClick={openAddModal}
-          className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+          onClick={() => setActiveViewTab('leaderboard')}
+          className={`pb-3 px-4 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer ${
+            activeViewTab === 'leaderboard'
+              ? 'border-amber-500 text-amber-700 dark:text-amber-400 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          <span>افزودن ویزیتور جدید</span>
+          <Trophy className="w-4 h-4 text-amber-500" />
+          <span>تابلوی افتخارات و جدول امتیازات ویزیتورها</span>
+          <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">
+            مخصوص مدیریت فروشگاه
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveViewTab('accounts')}
+          className={`pb-3 px-4 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer ${
+            activeViewTab === 'accounts'
+              ? 'border-sky-600 text-sky-700 dark:text-sky-400 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          <Users className="w-4 h-4 text-sky-600" />
+          <span>فهرست حساب‌ها و شرایط کاری ({profiles.length})</span>
         </button>
       </div>
 
-      {/* Policy Reminder Card */}
-      <div className="bg-sky-50 border border-sky-200/80 p-4 rounded-2xl text-xs text-sky-900 flex items-start gap-3">
-        <ShieldAlert className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <div className="font-bold">سیاست ماندگاری داده‌های ویزیتور:</div>
-          <p className="text-sky-800 text-[11px] leading-relaxed">
-            ویزیتورها امکان حذف حساب کاربری خود را ندارند. در صورت غیرفعال‌سازی توسط مدیر فروشگاه، حساب ویزیتور قفل شده و امکان ورود نخواهد داشت، اما تمام سوابق تاریخی فروش، مراجعات و حسابداری او در سامانه محفوظ خواهد ماند.
-          </p>
+      {/* ========================================================= */}
+      {/* TAB 1: VISITOR LEADERBOARD & PODIUM (Only visible to Store) */}
+      {/* ========================================================= */}
+      {activeViewTab === 'leaderboard' && (
+        <div className="animate-in fade-in duration-150">
+          <VisitorLeaderboard storeId={storeId} />
         </div>
-      </div>
+      )}
 
-      {/* Visitors List Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ========================================================= */}
+      {/* TAB 2: VISITOR ACCOUNTS & SETTINGS */}
+      {/* ========================================================= */}
+      {activeViewTab === 'accounts' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Policy Reminder Card */}
+          <div className="bg-sky-50 dark:bg-slate-800/80 border border-sky-200/80 dark:border-slate-700 p-4 rounded-2xl text-xs text-sky-900 dark:text-sky-200 flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-bold">سیاست ماندگاری داده‌های ویزیتور:</div>
+              <p className="text-sky-800 dark:text-slate-300 text-[11px] leading-relaxed">
+                ویزیتورها امکان حذف حساب کاربری خود را ندارند. در صورت غیرفعال‌سازی توسط مدیر فروشگاه، حساب ویزیتور قفل شده و امکان ورود نخواهد داشت، اما تمام سوابق تاریخی فروش، مراجعات و حسابداری او در سامانه محفوظ خواهد ماند.
+              </p>
+            </div>
+          </div>
+
+          {/* Search Input for Accounts */}
+          <div className="relative max-w-md">
+            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="جستجو بر اساس نام، تلفن یا نام کاربری..."
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-9 pl-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-sky-500"
+            />
+          </div>
+
+          {/* Visitors List Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredVisitors.map((v) => (
           <div
             key={v.id}
@@ -375,6 +436,8 @@ export const VisitorsManager: React.FC = () => {
           </div>
         ))}
       </div>
+    </div>
+  )}
 
       {/* Add / Edit Visitor Modal */}
       {isAddModalOpen && (

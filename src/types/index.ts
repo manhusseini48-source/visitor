@@ -268,6 +268,8 @@ export interface Message {
   };
   createdAt: string;
   isRead: boolean;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface Conversation {

@@ -353,7 +353,7 @@ function AppContent() {
   const authenticatedUser = currentUser || Storage.getCurrentUser();
   if (!authenticatedUser && !isGuest) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between">
+      <div className="min-h-screen min-h-dvh bg-slate-950 text-white flex flex-col justify-between overflow-x-hidden">
         <AppUpdateBanner />
         <PWAInstallBar />
         <AnnouncementBanner />
@@ -362,9 +362,9 @@ function AppContent() {
           onOpenRegister={handleOpenRegister}
         />
 
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-8 my-auto">
-          <div className="w-20 h-20 bg-sky-500/20 text-sky-400 border border-sky-400/30 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-sky-500/10">
-            <Pill className="w-10 h-10 rotate-45" />
+        <div className="max-w-4xl w-full mx-auto px-4 py-8 sm:py-16 text-center space-y-6 sm:space-y-8 my-auto">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-sky-500/20 text-sky-400 border border-sky-400/30 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-sky-500/10">
+            <Pill className="w-8 h-8 sm:w-10 sm:h-10 rotate-45" />
           </div>
 
           <div className="space-y-3">
@@ -470,7 +470,7 @@ function AppContent() {
     currentUser?.role === 'visitor' ? visitorMenuItems : storeMenuItems;
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200">
+    <div className="min-h-screen min-h-dvh bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200 overflow-x-hidden">
       {/* App Update Banner (Shown when a new version is published by the creator) */}
       <AppUpdateBanner />
 
@@ -494,10 +494,10 @@ function AppContent() {
       <TrialBanner onNavigateSubscription={() => handleNavigateTab('subscription')} />
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6 flex flex-col md:flex-row gap-6">
+      <div className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-8 flex flex-col md:flex-row gap-4 sm:gap-6">
         {/* Guest View */}
         {isGuest ? (
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <GuestView
               onOpenLogin={handleOpenAuth}
               onOpenRegister={handleOpenRegister}
@@ -505,14 +505,14 @@ function AppContent() {
           </div>
         ) : currentUser?.role === 'maker_admin' ? (
           /* Maker Admin Super Panel View */
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <CreatorEmbeddedPanel />
           </div>
         ) : (
           /* Normal Authenticated User (Store Owner or Visitor) */
           <>
             {/* Desktop Sidebar Navigation */}
-            <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs h-fit sticky top-20">
+            <aside className="hidden md:flex flex-col w-56 lg:w-64 flex-shrink-0 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs h-fit sticky top-20">
               <div className="px-2 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500 mb-2">
                 {currentUser?.role === 'store_owner' ? 'پنل فروشگاه' : 'پنل ویزیتور'}
               </div>

@@ -350,8 +350,8 @@ export const SupabaseSync = {
         sender_name: message.senderName,
         sender_role: message.senderRole,
         recipient_id: null,
-        text: message.text || '',
-        image_url: message.imageUrl || null,
+        text: message.isDeleted ? 'این پیام حذف شده است' : (message.text || ''),
+        image_url: message.isDeleted ? null : (message.imageUrl || null),
         is_read: message.isRead ?? false,
         created_at: message.createdAt || new Date().toISOString(),
       });
@@ -569,17 +569,21 @@ export const SupabaseSync = {
       }
       const { data, error } = await query;
       if (error || !data) return [];
-      return data.map((m: any) => ({
-        id: m.id,
-        conversationId: m.conversation_id,
-        senderId: m.sender_id,
-        senderName: m.sender_name,
-        senderRole: m.sender_role,
-        text: m.text || undefined,
-        imageUrl: m.image_url || undefined,
-        createdAt: m.created_at || new Date().toISOString(),
-        isRead: m.is_read ?? false,
-      }));
+      return data.map((m: any) => {
+        const isDel = m.text === 'این پیام حذف شده است' || m.text === 'حذف شده';
+        return {
+          id: m.id,
+          conversationId: m.conversation_id,
+          senderId: m.sender_id,
+          senderName: m.sender_name,
+          senderRole: m.sender_role,
+          text: isDel ? 'این پیام حذف شده است' : (m.text || undefined),
+          imageUrl: isDel ? undefined : (m.image_url || undefined),
+          createdAt: m.created_at || new Date().toISOString(),
+          isRead: m.is_read ?? false,
+          isDeleted: isDel,
+        };
+      });
     } catch (err) {
       console.warn('Pulling messages error:', err);
       return [];
