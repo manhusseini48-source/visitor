@@ -170,6 +170,29 @@ function AppContent() {
     };
   }, [currentUser]);
 
+  // Real Observatory Analytics: Track actual visits and install events
+  useEffect(() => {
+    try {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+      const mode = isStandalone ? 'pwa' : isGuest ? 'guest' : 'browser';
+
+      if (!sessionStorage.getItem('visitor_session_tracked')) {
+        Storage.recordAppVisit(mode);
+        sessionStorage.setItem('visitor_session_tracked', 'true');
+      }
+
+      const handleAppInstalled = () => {
+        Storage.recordAppInstall();
+      };
+      window.addEventListener('appinstalled', handleAppInstalled);
+      return () => {
+        window.removeEventListener('appinstalled', handleAppInstalled);
+      };
+    } catch {}
+  }, [isGuest]);
+
   const handleUnlockApp = () => {
     setIsAppLocked(false);
     setSessionLocked(false);

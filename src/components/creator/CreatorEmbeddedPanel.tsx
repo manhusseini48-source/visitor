@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Storage } from '../../utils/storage';
-import { Store, UserProfile, SupportTicket, SupportFaq, SubscriptionStatus, UserRole } from '../../types';
+import { Store, UserProfile, SupportTicket, SupportFaq, SubscriptionStatus, UserRole, Medicine, Order, Customer } from '../../types';
 import { parseNumberInput, toEnglishDigits } from '../../utils/numberUtils';
 import { supabase, isSupabaseConfigured } from '../../utils/supabaseClient';
 import {
@@ -18,6 +18,8 @@ import {
   Send,
   Sparkles,
   Plus,
+  Pill,
+  TrendingUp,
   Edit2,
   Trash2,
   Check,
@@ -98,6 +100,9 @@ export const CreatorEmbeddedPanel: React.FC = () => {
   const [stores, setStores] = useState<Store[]>(() => Storage.getStores());
   const [profiles, setProfiles] = useState<UserProfile[]>(() => Storage.getProfiles());
   const [tickets, setTickets] = useState<SupportTicket[]>(() => Storage.getSupportTickets());
+  const [medicines, setMedicines] = useState<Medicine[]>(() => Storage.getAllMedicinesAcrossStores());
+  const [orders, setOrders] = useState<Order[]>(() => Storage.getAllOrdersAcrossStores());
+  const [customers, setCustomers] = useState<Customer[]>(() => Storage.getCustomers());
 
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
 
@@ -251,6 +256,9 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       setTickets(Storage.getSupportTickets());
       setStores(Storage.getStores());
       setProfiles(Storage.getProfiles());
+      setMedicines(Storage.getAllMedicinesAcrossStores());
+      setOrders(Storage.getAllOrdersAcrossStores());
+      setCustomers(Storage.getCustomers());
     };
     window.addEventListener('storage', handleStorageChange);
     const interval = setInterval(() => {
@@ -272,6 +280,9 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     setStores(Storage.getStores());
     setProfiles(Storage.getProfiles());
     setTickets(Storage.getSupportTickets());
+    setMedicines(Storage.getAllMedicinesAcrossStores());
+    setOrders(Storage.getAllOrdersAcrossStores());
+    setCustomers(Storage.getCustomers());
   };
 
   // ==========================================
@@ -281,6 +292,14 @@ export const CreatorEmbeddedPanel: React.FC = () => {
   const activeStores = useMemo(() => stores.filter((s) => s.subscription.status === 'active'), [stores]);
   const expiredStores = useMemo(() => stores.filter((s) => s.subscription.status === 'expired'), [stores]);
   const activeVisitors = useMemo(() => profiles.filter((p) => p.role === 'visitor' && p.isActive), [profiles]);
+
+  const totalSalesRevenueAFN = useMemo(() => {
+    return orders.reduce((sum, o) => sum + (o.totalAFN || o.subtotalAFN || 0), 0);
+  }, [orders]);
+
+  const totalInventoryUnitsCount = useMemo(() => {
+    return medicines.reduce((sum, m) => sum + (m.stock || 0), 0);
+  }, [medicines]);
 
   const subscriptionSegments: DonutSegment[] = useMemo(() => {
     return [
@@ -991,7 +1010,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
           }`}
         >
           <BarChartIcon className="w-4 h-4" />
-          <span>آمار کل سامانه</span>
+          <span>رصدخانه و آمار کل سامانه</span>
         </button>
 
         <button
@@ -1054,7 +1073,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
           }`}
         >
           <BarChart3 className="w-4 h-4 text-emerald-500" />
-          <span>آمار نصب، ترافیک و انبار کل داروها</span>
+          <span>رصدخانه پیشرفته (فروش، انبار و ترافیک)</span>
         </button>
 
         <button
@@ -1118,7 +1137,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       {/* ========================================================= */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <MetricCardWithSparkline
               title="کل داروخانه‌ها و عمده‌فروشی‌ها"
               value={stores.length}
@@ -1153,14 +1172,58 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             />
 
             <MetricCardWithSparkline
+              title="مشتریان و داروخانه‌های طرف حساب"
+              value={customers.length}
+              unit="مشتری"
+              icon={<UserCheck className="w-4 h-4" />}
+              iconBg="bg-indigo-100 text-indigo-600"
+              trend={customers.length > 0 ? { percent: customers.length, direction: 'up', label: 'ثبت‌شده' } : undefined}
+              sparklineData={customers.length > 0 ? [customers.length * 0.7, customers.length] : []}
+              sparklineColor="#6366f1"
+            />
+
+            <MetricCardWithSparkline
+              title="تنوع اقلام دارویی در انبارها"
+              value={medicines.length}
+              unit="قلم دارو"
+              icon={<Pill className="w-4 h-4" />}
+              iconBg="bg-blue-100 text-blue-600"
+              trend={medicines.length > 0 ? { percent: medicines.length, direction: 'up', label: `${totalInventoryUnitsCount} عدد موجود` } : undefined}
+              sparklineData={medicines.length > 0 ? [medicines.length * 0.6, medicines.length] : []}
+              sparklineColor="#3b82f6"
+            />
+
+            <MetricCardWithSparkline
+              title="کل سفارشات ثبت‌شده"
+              value={orders.length}
+              unit="سفارش"
+              icon={<TrendingUp className="w-4 h-4" />}
+              iconBg="bg-teal-100 text-teal-600"
+              trend={orders.length > 0 ? { percent: orders.length, direction: 'up', label: 'سفارشات قطعی' } : undefined}
+              sparklineData={orders.length > 0 ? [orders.length * 0.5, orders.length] : []}
+              sparklineColor="#0d9488"
+            />
+
+            <MetricCardWithSparkline
+              title="مجموع گردش مالی فروش فاکتورها"
+              value={totalSalesRevenueAFN.toLocaleString()}
+              unit="AFN"
+              icon={<DollarSign className="w-4 h-4" />}
+              iconBg="bg-amber-100 text-amber-600"
+              trend={totalSalesRevenueAFN > 0 ? { percent: 100, direction: 'up', label: 'گردش کل' } : undefined}
+              sparklineData={totalSalesRevenueAFN > 0 ? [totalSalesRevenueAFN * 0.5, totalSalesRevenueAFN] : []}
+              sparklineColor="#d97706"
+            />
+
+            <MetricCardWithSparkline
               title="تیکت‌های باز پشتیبانی"
               value={tickets.filter((t) => t.status === 'open').length}
               unit="گفتگو"
               icon={<MessageSquare className="w-4 h-4" />}
-              iconBg="bg-amber-100 text-amber-600"
+              iconBg="bg-rose-100 text-rose-600"
               trend={tickets.length > 0 ? { percent: tickets.length, direction: 'neutral', label: 'مجموع تیکت‌ها' } : undefined}
               sparklineData={tickets.length > 0 ? [tickets.length * 0.5, tickets.length] : []}
-              sparklineColor="#f59e0b"
+              sparklineColor="#f43f5e"
             />
           </div>
 

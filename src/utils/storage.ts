@@ -1005,47 +1005,63 @@ export const Storage = {
   },
 
   getAppAnalytics(): AppAnalytics {
-    const defaultStats: AppAnalytics = {
-      totalInstalls: 48,
-      activeInstalls7Days: 34,
-      visitsDaily: 142,
-      visitsWeekly: 890,
-      visitsMonthly: 3420,
-      visitsYearly: 18400,
-      visitsInstalledPWA: 96,
-      visitsWebBrowser: 38,
-      visitsGuestMode: 8,
+    const EVENTS_KEY = 'visitor_app_visit_events';
+    const events = getItem<{ ts: number; mode: 'pwa' | 'browser' | 'guest' }[]>(EVENTS_KEY, []);
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const sevenDays = 7 * oneDay;
+    const thirtyDays = 30 * oneDay;
+    const oneYear = 365 * oneDay;
+
+    const daily = events.filter((e) => now - e.ts < oneDay).length;
+    const weekly = events.filter((e) => now - e.ts < sevenDays).length;
+    const monthly = events.filter((e) => now - e.ts < thirtyDays).length;
+    const yearly = events.filter((e) => now - e.ts < oneYear).length;
+
+    const pwaVisits = events.filter((e) => e.mode === 'pwa').length;
+    const browserVisits = events.filter((e) => e.mode === 'browser').length;
+    const guestVisits = events.filter((e) => e.mode === 'guest').length;
+
+    const recordedInstalls = getItem<number>('visitor_app_installs_count', 0);
+    const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true);
+    const totalInstalls = Math.max(recordedInstalls, isStandalone ? 1 : 0);
+    const activeInstalls7Days = events.filter((e) => e.mode === 'pwa' && now - e.ts < sevenDays).length;
+
+    return {
+      totalInstalls,
+      activeInstalls7Days: Math.min(totalInstalls, activeInstalls7Days),
+      visitsDaily: daily,
+      visitsWeekly: weekly,
+      visitsMonthly: monthly,
+      visitsYearly: yearly,
+      visitsInstalledPWA: pwaVisits,
+      visitsWebBrowser: browserVisits,
+      visitsGuestMode: guestVisits,
     };
-    return getItem<AppAnalytics>(STORAGE_KEYS.ANALYTICS, defaultStats);
   },
 
   recordAppVisit(mode: 'pwa' | 'browser' | 'guest') {
     try {
+      const EVENTS_KEY = 'visitor_app_visit_events';
+      const events = getItem<{ ts: number; mode: 'pwa' | 'browser' | 'guest' }[]>(EVENTS_KEY, []);
+      events.push({ ts: Date.now(), mode });
+      // Keep within 5000 recent events
+      if (events.length > 5000) events.splice(0, events.length - 5000);
+      setItem(EVENTS_KEY, events);
+
       const stats = this.getAppAnalytics();
-      stats.visitsDaily += 1;
-      stats.visitsWeekly += 1;
-      stats.visitsMonthly += 1;
-      stats.visitsYearly += 1;
-
-      if (mode === 'pwa') {
-        stats.visitsInstalledPWA += 1;
-        stats.activeInstalls7Days = Math.min(stats.totalInstalls, stats.activeInstalls7Days + 1);
-      } else if (mode === 'guest') {
-        stats.visitsGuestMode += 1;
-      } else {
-        stats.visitsWebBrowser += 1;
-      }
-
       setItem(STORAGE_KEYS.ANALYTICS, stats);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+      }
     } catch {}
   },
 
   recordAppInstall() {
     try {
-      const stats = this.getAppAnalytics();
-      stats.totalInstalls += 1;
-      stats.activeInstalls7Days += 1;
-      setItem(STORAGE_KEYS.ANALYTICS, stats);
+      const count = getItem<number>('visitor_app_installs_count', 0) + 1;
+      setItem('visitor_app_installs_count', count);
+      this.recordAppVisit('pwa');
     } catch {}
   },
 
