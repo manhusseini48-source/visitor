@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Calendar,
   TrendingUp,
-  Sparkles,
   PieChart,
   FileText,
   Clock,
@@ -303,7 +302,7 @@ export const VisitorCommission: React.FC = () => {
               exportLedgerToPDF(
                 ledger,
                 currentUser?.name || 'ویزیتور',
-                currentStore?.name || 'فروشگاه دوایی'
+                currentStore?.name || 'فروشگاه ادویه'
               )
             }
             className="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"

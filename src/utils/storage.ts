@@ -294,8 +294,12 @@ export const Storage = {
   },
 
   updateUserProfile(userId: string, updates: Partial<UserProfile>): UserProfile | null {
+    // Strictly prevent guest profile mutations
+    if (userId === 'user_guest') {
+      return this.getCurrentUser();
+    }
     const profiles = this.getProfiles().map((p) =>
-      p.id === userId ? { ...p, ...updates } : p
+      p.id === userId && !p.isGuest ? { ...p, ...updates } : p
     );
     this.saveProfiles(profiles);
     const updated = profiles.find((p) => p.id === userId) || null;

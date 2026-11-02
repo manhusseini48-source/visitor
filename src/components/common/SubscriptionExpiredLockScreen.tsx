@@ -8,7 +8,7 @@ import {
   ShieldAlert,
   LogOut,
   Calendar,
-  Sparkles,
+  Award,
   RefreshCw,
   Building2,
   CheckCircle2,
@@ -111,7 +111,7 @@ export const SubscriptionExpiredLockScreen: React.FC<Props> = ({ onOpenSubscript
           <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-800/80 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
+                <Award className="w-4 h-4 text-amber-500" />
                 <span>تعرفه‌های تمدید و فعال‌سازی فوری</span>
               </h3>
               <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">

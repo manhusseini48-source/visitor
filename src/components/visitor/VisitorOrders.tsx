@@ -28,8 +28,7 @@ import {
   X,
   Package,
   DollarSign,
-  Sparkles,
-  ChevronDown,
+    ChevronDown,
   ChevronUp,
   ShieldCheck,
   Building2,
@@ -422,7 +421,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
         <div>
           <h2 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-emerald-600" />
-            <span>سفارشات من و ثبت فاکتور دوایی ({orders.length})</span>
+            <span>سفارشات من و ثبت فاکتور ادویه ({orders.length})</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             فهرست فاکتورهای ثبت‌شده، پیگیری وضعیت آماده‌سازی در انبار و صدور فاکتور جدید
@@ -460,7 +459,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
               onClick={() => onNavigateTab('gallery')}
               className="px-3.5 py-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <CheckCircle2 className="w-4 h-4 text-amber-300" />
               <span>گالری دواها و صدور فاکتور</span>
             </button>
           )}
@@ -622,7 +621,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                   <div className="bg-slate-50 dark:bg-slate-850 p-4 border-t border-slate-100 dark:border-slate-800 animate-in fade-in">
                     <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 mb-2.5 flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-sky-600" />
-                      <span>ریز اقلام دوایی ثبت‌شده در فاکتور:</span>
+                      <span>ریز اقلام ادویه ثبت‌شده در فاکتور:</span>
                     </h4>
 
                     <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-2xl bg-white dark:bg-slate-900">
@@ -698,7 +697,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-emerald-600" />
-                <span>ثبت فاکتور دوایی سریع</span>
+                <span>ثبت فاکتور ادویه سریع</span>
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -738,7 +737,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    افزودن اقلام دوایی از انبار
+                    افزودن اقلام ادویه از انبار
                   </label>
                 </div>
                 <div className="relative mb-2">
@@ -747,7 +746,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                     type="text"
                     value={medSearch}
                     onChange={(e) => setMedSearch(e.target.value)}
-                    placeholder="جستجو بر اساس نام دوا، کد یا شکل دوایی..."
+                    placeholder="جستجو بر اساس نام دوا، کد یا شکل ادویه..."
                     className="w-full pr-9 pl-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
                   />
                 </div>

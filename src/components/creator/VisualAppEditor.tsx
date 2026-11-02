@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { APP_TEXT_DEFINITIONS, AppTextItem, getAppText } from '../../utils/customText';
 import {
-  Sparkles,
+  Award,
   Search,
   Save,
   RotateCcw,
@@ -207,7 +207,7 @@ export const VisualAppEditor: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-400/30 px-3 py-0.5 rounded-full font-bold flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                <Award className="w-3.5 h-3.5 text-purple-400" />
                 <span>ویرایشگر زنده متن‌های سامانه (Visual Copy Editor)</span>
               </span>
             </div>
@@ -467,7 +467,7 @@ export const VisualAppEditor: React.FC = () => {
                       {previewVal('medicines_title', 'دواها و موجودی انبار')}
                     </div>
                     <div className="text-[10px] text-slate-400 mb-2">
-                      {previewVal('medicines_subtitle', 'مدیریت اقلام دوایی')}
+                      {previewVal('medicines_subtitle', 'مدیریت اقلام ادویه')}
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-slate-300 bg-slate-900/60 p-1.5 rounded-lg">
                       <span>{previewVal('medicines_search_placeholder', 'جستجو در دواها...')}</span>

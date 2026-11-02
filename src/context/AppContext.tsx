@@ -341,9 +341,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const s = Storage.getStore(u.storeId);
         if (s) setCurrentStore(s);
       }
-    } else if (isGuestMode) {
+    } else if (isGuestMode && !isLoggedOut) {
       setIsGuest(true);
-      setCurrentUser(null);
+      const stores = Storage.getStores();
+      const targetStore = stores[0];
+      const guestProfile: UserProfile = {
+        id: 'guest_user_demo',
+        name: 'کاربر مهمان',
+        phone: '0700000000',
+        username: 'guest_user',
+        role: 'store_owner',
+        storeId: targetStore?.id || 'store_demo_guest',
+        avatarUrl: 'م',
+        city: 'کابل',
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        isGuest: true,
+      };
+      Storage.setCurrentUser(guestProfile);
+      setCurrentUser(guestProfile);
+      if (targetStore) setCurrentStore(targetStore);
     } else {
       setCurrentUser(null);
       setIsGuest(false);
@@ -369,6 +386,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (calc.isExpired || currentStore.subscription.status === 'expired') {
       isSubscriptionExpired = true;
     }
+  }
+
+  // Guest users browsing the app are never locked out of viewing any section
+  if (currentUser?.isGuest || currentUser?.id === 'guest_user_demo' || currentUser?.role === 'guest' || isGuest) {
+    isSubscriptionExpired = false;
   }
 
   // Helper to normalize phone numbers (strips country code +93, 0093, leading 0, non-digits)
@@ -583,7 +605,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (!targetStore) {
         targetStore = {
           id: 'store_demo_guest',
-          name: 'فروشگاه دوایی نمونه سلامت',
+          name: 'فروشگاه ادویه نمونه سلامت',
           ownerId: 'guest_user_demo',
           phone: '0780000000',
           email: 'guest@modesk.org',
@@ -852,8 +874,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; message?: string }> => {
-    if (checkGuestAndPrompt('ویرایش اطلاعات حساب')) {
-      return { success: false, message: 'جهت ویرایش اطلاعات، لطفاً ثبت‌نام نمایید.' };
+    if (currentUser?.isGuest || currentUser?.role === 'guest' || currentUser?.id === 'user_guest' || checkGuestAndPrompt('ویرایش اطلاعات حساب')) {
+      return { success: false, message: 'اطلاعات حساب کاربری مهمان قابل تغییر نمی‌باشد. جهت ثبت اطلاعات اختصاصی، لطفاً ثبت‌نام کنید.' };
     }
     if (!currentUser) return { success: false, message: 'کاربری وارد نشده است.' };
 

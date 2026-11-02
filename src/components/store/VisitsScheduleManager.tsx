@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export const VisitsScheduleManager: React.FC = () => {
-  const { currentStore, currentUser } = useApp();
+  const { currentStore, currentUser, checkGuestAndPrompt } = useApp();
   const storeId = currentStore?.id || '';
 
   const [visits, setVisits] = useState<VisitRecord[]>(() =>
@@ -55,6 +55,7 @@ export const VisitsScheduleManager: React.FC = () => {
 
   const handleSaveAdvice = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ثبت توصیه مدیریتی برای ویزیتور')) return;
     if (!adviceModalVisit) return;
     const trimmed = adviceText.trim().slice(0, 300);
     const all = Storage.getVisits(storeId);
@@ -92,6 +93,7 @@ export const VisitsScheduleManager: React.FC = () => {
 
   const handleCreateVisit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ثبت و برنامه‌ریزی ویزیت جدید')) return;
     const cust = customers.find((c) => c.id === customerId);
     const vis = visitors.find((v) => v.id === visitorId);
 
@@ -128,6 +130,7 @@ export const VisitsScheduleManager: React.FC = () => {
 
   const handleSaveOutcome = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ثبت نتیجه و گزارش ویزیت')) return;
     if (!outcomeModalVisit) return;
 
     const all = Storage.getVisits(storeId);

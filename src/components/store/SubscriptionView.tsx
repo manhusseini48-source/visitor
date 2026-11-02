@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import {
   ShieldCheck,
   Clock,
-  Sparkles,
+  Award,
   CheckCircle2,
   AlertTriangle,
   Send,
@@ -58,7 +58,7 @@ export const SubscriptionView: React.FC = () => {
 
   const SHARED_PLAN_FEATURES = [
     'دسترسی کامل و نامحدود به تمامی بخش‌ها و پنل‌های سامانه',
-    'ثبت سفارشات، فاکتورهای فروش و انبار دوایی نامحدود',
+    'ثبت سفارشات، فاکتورهای فروش و انبار ادویه نامحدود',
     'تعداد ویزیتورها و مشتریان (دواخانه‌ها) بدون سقف',
     'برنامه ویزیت حضوری، زمان‌بندی و ثبت موقعیت مکانی GPS',
     'سیستم حسابداری، محاسبه خودکار پورسانت و دفتر کل مالی',
@@ -117,7 +117,7 @@ export const SubscriptionView: React.FC = () => {
       <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-emerald-900 font-black text-sm">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>خرید و تمدید مستقیم از طریق پشتیبان فروش:</span>
           </div>
           <p className="text-xs text-emerald-800">
@@ -210,7 +210,7 @@ export const SubscriptionView: React.FC = () => {
 
               {/* Discount Notice Banner */}
               <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-2.5 text-xs font-bold flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <Award className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span>۴۰۰ افغانی تخفیف نسبت به دو دوره ۶ ماهه (۳۴۰۰ ⇦ ۳۰۰۰)</span>
               </div>
 

@@ -26,7 +26,6 @@ import {
   User,
   DollarSign,
   ArrowRight,
-  Sparkles,
   Inbox,
   Send,
   Boxes,
@@ -76,7 +75,7 @@ const PIPELINE_STAGES: PipelineStageConfig[] = [
   {
     id: 'preparing',
     title: 'انبار و بسته‌بندی',
-    subtitle: 'آماده‌سازی اقلام دوایی',
+    subtitle: 'آماده‌سازی اقلام ادویه',
     icon: Boxes,
     badgeBg: 'bg-blue-100 dark:bg-blue-950/80',
     badgeText: 'text-blue-800 dark:text-blue-300',
@@ -372,7 +371,7 @@ export const OrdersOperationalPipeline: React.FC<Props> = ({
               <div>
                 <h3 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                   <Boxes className="w-4 h-4 text-purple-600" />
-                  <span>گردش کار فاکتور دوایی {selectedOrderDetails.orderNumber}</span>
+                  <span>گردش کار فاکتور ادویه {selectedOrderDetails.orderNumber}</span>
                 </h3>
                 <span className="text-[11px] text-slate-400">
                   مشتری: {selectedOrderDetails.customerName} | ویزیتور: {selectedOrderDetails.visitorName}

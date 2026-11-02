@@ -9,8 +9,7 @@ import {
   MessageSquare,
   FileSpreadsheet,
   Clock,
-  Sparkles,
-  ShieldCheck,
+    ShieldCheck,
   CheckCircle2,
   ArrowRight,
   Smartphone,
@@ -18,6 +17,7 @@ import {
   Phone,
   MessageCircle,
   Calendar,
+  Eye,
 } from 'lucide-react';
 
 interface Props {
@@ -55,7 +55,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
         <div className="relative z-10 max-w-3xl">
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <div className="inline-flex items-center gap-2 bg-sky-500/20 border border-sky-400/30 text-sky-300 px-3.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5" />
               <span>پلتفرم تخصصی عمده‌فروشی و توزیع دوا</span>
             </div>
             <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-sky-100 px-3.5 py-1 rounded-full text-xs font-bold backdrop-blur-md">
@@ -126,7 +126,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
             </div>
             <div className="text-xs">
               <div className="font-bold text-white">واحد پول افغانی و تقویم محلی</div>
-              <div className="text-slate-400 text-[10px]">طراحی شده برای بازار دوایی افغانستان</div>
+              <div className="text-slate-400 text-[10px]">طراحی شده برای بازار ادویه افغانستان</div>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          امکانات پنل فروشگاه دوایی
+          امکانات پنل فروشگاه ادویه
         </button>
         <button
           onClick={() => setActiveTab('visitor_panel')}
@@ -235,7 +235,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="font-bold text-slate-800 mb-1">۲. مدیریت جامع دواها و انبار</div>
-              تعریف فرم دوایی، سری ساخت، تاریخ انقضا، واحد بسته‌بندی، قیمت خرید و فروش و بارگذاری تصاویر باکیفیت کاتالوگ.
+              تعریف فرم ادویه، سری ساخت، تاریخ انقضا، واحد بسته‌بندی، قیمت خرید و فروش و بارگذاری تصاویر باکیفیت کاتالوگ.
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="font-bold text-slate-800 mb-1">۳. ساخت حساب ویزیتور و قوانین پورسانت</div>
@@ -283,7 +283,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl animate-in zoom-in-95">
             <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full mx-auto flex items-center justify-center">
-              <Sparkles className="w-6 h-6" />
+              <Eye className="w-6 h-6" />
             </div>
             <h3 className="font-black text-slate-800 text-base">دسترسی حالت مهمان</h3>
             <p className="text-xs text-slate-600 leading-relaxed">

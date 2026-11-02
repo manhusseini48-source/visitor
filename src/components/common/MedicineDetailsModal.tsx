@@ -265,7 +265,7 @@ export const MedicineDetailsModal: React.FC<MedicineDetailsModalProps> = ({
                   <span className="font-bold text-slate-800">{medicine.category || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">شکل دوایی:</span>
+                  <span className="text-slate-400 block text-[11px]">شکل ادویه:</span>
                   <span className="font-bold text-slate-800">{medicine.dosageForm || '-'}</span>
                 </div>
                 <div>
@@ -292,7 +292,7 @@ export const MedicineDetailsModal: React.FC<MedicineDetailsModalProps> = ({
                   <span className="font-bold text-slate-800">{medicine.brand || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">وضعیت دوایی:</span>
+                  <span className="text-slate-400 block text-[11px]">وضعیت ادویه:</span>
                   <span className="font-bold text-emerald-700">مجاز و فعال</span>
                 </div>
               </div>

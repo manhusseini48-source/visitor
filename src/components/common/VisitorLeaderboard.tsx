@@ -11,7 +11,6 @@ import {
   Users,
   CheckCircle2,
   Calendar,
-  Sparkles,
   Target,
   ArrowUpRight,
   ShieldCheck,

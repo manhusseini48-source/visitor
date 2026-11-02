@@ -17,7 +17,7 @@ import {
   Calendar,
   Layers,
   Cpu,
-  Sparkles,
+  Eye,
   Info,
 } from 'lucide-react';
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
@@ -198,7 +198,7 @@ export const CreatorGuestAnalytics: React.FC = () => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-full text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Eye className="w-3.5 h-3.5" />
               <span>رصدخانه جامع ورود مهمان و تحلیل سخت‌افزار</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black">آمار ورود کاربران مهمان و دستگاه‌ها</h2>
@@ -619,7 +619,7 @@ export const CreatorGuestAnalytics: React.FC = () => {
                       <td className="p-3.5">
                         {s.isStandalonePWA ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                            <Sparkles className="w-3 h-3" />
+                            <Eye className="w-3 h-3" />
                             <span>اپ نصبی (PWA)</span>
                           </span>
                         ) : (

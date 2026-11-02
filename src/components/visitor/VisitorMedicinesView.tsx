@@ -21,7 +21,7 @@ import {
   PackageCheck,
   RefreshCw,
   ShoppingCart,
-  Sparkles,
+  Package,
 } from 'lucide-react';
 
 interface Props {
@@ -111,7 +111,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => exportMedicinesToExcel(filteredMedicines, currentStore?.name || 'فروشگاه دوایی')}
+            onClick={() => exportMedicinesToExcel(filteredMedicines, currentStore?.name || 'فروشگاه ادویه')}
             className="px-3 py-2 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
             title="دانلود فایل اکسل فهرست دواها"
           >
@@ -120,7 +120,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
           </button>
 
           <button
-            onClick={() => exportMedicinesToPDF(filteredMedicines, currentStore?.name || 'فروشگاه دوایی')}
+            onClick={() => exportMedicinesToPDF(filteredMedicines, currentStore?.name || 'فروشگاه ادویه')}
             className="px-3 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
             title="دانلود کاتالوگ PDF رسمی دواها"
           >
@@ -133,7 +133,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
               onClick={() => onNavigateTab('gallery')}
               className="px-3.5 py-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <Package className="w-4 h-4 text-amber-300" />
               <span>حالت گالری پرزنتیشن مشتری</span>
             </button>
           )}
@@ -153,7 +153,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
       {/* Stock Summary Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">کل اقلام دوایی</div>
+          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">کل اقلام ادویه</div>
           <div className="text-xl font-black text-slate-800 dark:text-slate-100 mt-1 font-mono">
             {medicines.length} <span className="text-xs font-normal text-slate-400">قلم</span>
           </div>
@@ -238,12 +238,12 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
           </div>
           <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">
             {medicines.length === 0
-              ? 'هنوز دوایی در انبار فروشگاه ثبت نشده است'
-              : 'دوایی مطابق با فیلتر جستجو یافت نشد'}
+              ? 'هنوز ادویه در انبار فروشگاه ثبت نشده است'
+              : 'ادویه مطابق با فیلتر جستجو یافت نشد'}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             {medicines.length === 0
-              ? 'مدیر فروشگاه با ثبت دوا در بخش انبار و موجودی، اقلام دوایی را بلافاصله در این بخش برای ویزیتورها فعال می‌نماید.'
+              ? 'مدیر فروشگاه با ثبت دوا در بخش انبار و موجودی، اقلام ادویه را بلافاصله در این بخش برای ویزیتورها فعال می‌نماید.'
               : 'عبارت جستجو یا فیلتر دسته‌بندی را تغییر دهید.'}
           </p>
         </div>

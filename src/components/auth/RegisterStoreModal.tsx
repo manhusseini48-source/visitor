@@ -7,9 +7,9 @@ import {
   Mail,
   Lock,
   CheckCircle,
+  CheckCircle2,
   X,
-  Sparkles,
-  Loader2,
+    Loader2,
   ArrowRight,
   AlertCircle,
   Eye,
@@ -165,7 +165,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
           
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <div className="inline-flex items-center gap-1.5 bg-amber-400 text-slate-950 px-3 py-1 rounded-full text-xs font-black shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5" />
               <span>۲ هفته مهلت تست رایگان (بدون نیاز به پرداخت)</span>
             </div>
           </div>
@@ -221,7 +221,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
                       maxLength={60}
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      placeholder="مثال: شرکت دوایی امید کابل"
+                      placeholder="مثال: شرکت ادویه امید کابل"
                       className="w-full pr-9 pl-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-xs text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"
                       required
                     />
@@ -368,7 +368,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   className="rounded text-sky-600 focus:ring-sky-500 h-4 w-4"
                 />
                 <span className="text-xs text-slate-600 dark:text-slate-400">
-                  شرایط استفاده از خدمات و حفظ حریم خصوصی داده‌های دوایی را می‌پذیرم.
+                  شرایط استفاده از خدمات و حفظ حریم خصوصی داده‌های ادویه را می‌پذیرم.
                 </span>
               </label>
 

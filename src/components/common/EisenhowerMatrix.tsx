@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useApp } from '../../context/AppContext';
 import { Storage } from '../../utils/storage';
 import { EisenhowerTask, EisenhowerQuadrant } from '../../types';
 import {
@@ -11,7 +12,6 @@ import {
   Calendar,
   Trash2,
   ArrowRight,
-  Sparkles,
   ChevronRight,
   Flame,
   Target,
@@ -93,6 +93,7 @@ export const EisenhowerMatrix: React.FC<Props> = ({
   userName,
   onTasksCountChange,
 }) => {
+  const { checkGuestAndPrompt } = useApp();
   const [tasks, setTasks] = useState<EisenhowerTask[]>(() =>
     Storage.getEisenhowerTasks(userId)
   );
@@ -116,6 +117,7 @@ export const EisenhowerMatrix: React.FC<Props> = ({
   };
 
   const handleOpenAdd = (quadrant: EisenhowerQuadrant) => {
+    if (checkGuestAndPrompt('افزودن وظیفه به ماتریس آیزنهاور')) return;
     setTargetQuadrant(quadrant);
     setTaskTitle('');
     setTaskDesc('');
@@ -126,6 +128,7 @@ export const EisenhowerMatrix: React.FC<Props> = ({
 
   const handleSaveTask = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ذخیره وظیفه در ماتریس')) return;
     if (!taskTitle.trim()) return;
 
     const all = Storage.getEisenhowerTasks();
@@ -149,6 +152,7 @@ export const EisenhowerMatrix: React.FC<Props> = ({
   };
 
   const handleToggleCompleted = (task: EisenhowerTask) => {
+    if (checkGuestAndPrompt('تغییر وضعیت انجام وظیفه')) return;
     const all = Storage.getEisenhowerTasks();
     const updated = all.map((t) =>
       t.id === task.id
@@ -164,6 +168,7 @@ export const EisenhowerMatrix: React.FC<Props> = ({
   };
 
   const handleDeleteTask = (taskId: string) => {
+    if (checkGuestAndPrompt('حذف وظیفه')) return;
     const all = Storage.getEisenhowerTasks();
     const remaining = all.filter((t) => t.id !== taskId);
     Storage.saveEisenhowerTasks(remaining);
@@ -171,6 +176,7 @@ export const EisenhowerMatrix: React.FC<Props> = ({
   };
 
   const handleMoveQuadrant = (task: EisenhowerTask, newQuadrant: EisenhowerQuadrant) => {
+    if (checkGuestAndPrompt('جابجایی وظیفه در ماتریس')) return;
     const all = Storage.getEisenhowerTasks();
     const updated = all.map((t) => (t.id === task.id ? { ...t, quadrant: newQuadrant } : t));
     Storage.saveEisenhowerTasks(updated);

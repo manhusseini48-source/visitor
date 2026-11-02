@@ -29,7 +29,6 @@ import {
   AlertTriangle,
   FileSpreadsheet,
   Check,
-  Sparkles,
   MapPin,
   FileText,
 } from 'lucide-react';
@@ -501,7 +500,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
 
   // Export CSV
   const handleExportCSV = () => {
-    const headers = ['ردیف', 'فروشگاه', 'کد دوا', 'نام دوا', 'برند/شرکت', 'شکل دوایی', 'موجودی انبار', 'قیمت خرید (AFN)', 'قیمت فروش (AFN)', 'ارزش کل موجودی'];
+    const headers = ['ردیف', 'فروشگاه', 'کد دوا', 'نام دوا', 'برند/شرکت', 'شکل ادویه', 'موجودی انبار', 'قیمت خرید (AFN)', 'قیمت فروش (AFN)', 'ارزش کل موجودی'];
     const rows = filteredMedicines.map((m, idx) => {
       const st = stores.find((s) => s.id === m.storeId)?.name || m.storeId || 'نامشخص';
       const val = (m.stock || 0) * (m.salePrice || 0);
@@ -630,7 +629,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">تنوع اقلام دوایی</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">تنوع اقلام ادویه</span>
             <Pill className="w-4 h-4 text-sky-600" />
           </div>
           <div className="text-xl font-black text-slate-900 dark:text-white">
@@ -877,7 +876,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
 
           <div className="bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/50 p-4 rounded-2xl">
             <div className="text-xs font-bold text-sky-700 dark:text-sky-300">
-              اقلام دوایی فروخته‌شده (خروجی)
+              اقلام ادویه فروخته‌شده (خروجی)
             </div>
             <div className="text-2xl font-black text-sky-900 dark:text-sky-100 mt-1">
               {globalPerformance.totalSoldUnits.toLocaleString()}{' '}
@@ -1106,7 +1105,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
                 {filteredMedicines.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="py-8 text-center text-slate-400">
-                      هیچ دوایی با مشخصات جستجو شده یافت نشد.
+                      هیچ ادویه با مشخصات جستجو شده یافت نشد.
                     </td>
                   </tr>
                 ) : (

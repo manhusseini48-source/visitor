@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, X, ArrowRight, ShieldCheck, CheckCircle2, UserPlus, LogIn } from 'lucide-react';
+import { ShieldAlert, X, ArrowRight, ShieldCheck, CheckCircle2, UserPlus, LogIn } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -34,7 +34,7 @@ export const GuestActionRestrictionModal: React.FC<Props> = ({
         {/* Header Ribbon */}
         <div className="bg-gradient-to-l from-sky-600 via-teal-600 to-indigo-700 text-white p-6 text-center relative">
           <div className="w-14 h-14 rounded-2xl bg-white/20 border border-white/30 backdrop-blur-md mx-auto flex items-center justify-center shadow-lg shadow-sky-900/20 mb-3">
-            <Sparkles className="w-7 h-7 text-amber-300 animate-pulse" />
+            <ShieldAlert className="w-7 h-7 text-amber-300" />
           </div>
           <h3 className="text-lg font-black">ثبت‌نام برای ایجاد تغییرات</h3>
           <p className="text-xs text-sky-100 mt-1 font-medium">
@@ -63,7 +63,7 @@ export const GuestActionRestrictionModal: React.FC<Props> = ({
             </div>
             <ul className="text-[11px] space-y-1 list-disc list-inside text-emerald-800 dark:text-emerald-300 pr-1 leading-relaxed">
               <li>۲ هفته اشتراک کاملاً رایگان بدون نیاز به پرداخت</li>
-              <li>انبار دوایی اختصاصی با قیمت‌گذاری و پورسانت‌دهی خودکار</li>
+              <li>انبار ادویه اختصاصی با قیمت‌گذاری و پورسانت‌دهی خودکار</li>
               <li>اتصال سریع ویزیتورها و صدور فاکتور آنلاین</li>
             </ul>
           </div>

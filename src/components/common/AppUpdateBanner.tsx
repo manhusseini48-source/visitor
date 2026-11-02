@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Sparkles, RefreshCw, X, ArrowUpCircle } from 'lucide-react';
+import { RefreshCw, X, ArrowUpCircle } from 'lucide-react';
 
 const INSTALLED_VERSION_KEY = 'visitor_app_installed_version_code';
 

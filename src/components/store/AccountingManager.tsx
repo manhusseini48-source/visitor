@@ -42,8 +42,7 @@ import {
   Receipt,
   Users,
   Search,
-  Sparkles,
-  Package,
+    Package,
   Layers,
   Boxes,
   Percent,
@@ -54,7 +53,7 @@ import { InteractiveBarChart, BarDataPoint } from '../charts/InteractiveBarChart
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
 
 export const AccountingManager: React.FC = () => {
-  const { currentStore, currentUser, updateStoreSettings } = useApp();
+  const { currentStore, currentUser, updateStoreSettings, checkGuestAndPrompt } = useApp();
   const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   // Tab State
@@ -338,6 +337,7 @@ export const AccountingManager: React.FC = () => {
   // REMITTANCE APPROVAL / REJECTION ACTIONS
   // ==========================================
   const handleApproveRemittance = (rem: VisitorRemittance) => {
+    if (checkGuestAndPrompt('تأیید حواله وصولی ویزیتور')) return;
     const updatedRemittances = remittances.map((r) =>
       r.id === rem.id
         ? {
@@ -394,6 +394,7 @@ export const AccountingManager: React.FC = () => {
   };
 
   const handleRejectRemittance = () => {
+    if (checkGuestAndPrompt('رد حواله وصولی')) return;
     if (!selectedRemittanceForReject) return;
 
     const updatedRemittances = remittances.map((r) =>
@@ -417,6 +418,7 @@ export const AccountingManager: React.FC = () => {
 
   // Toggle Store-level Cash Collection setting
   const handleToggleStoreCashCollection = () => {
+    if (checkGuestAndPrompt('تغییر تنظیمات وصول نقدی ویزیتورها')) return;
     const currentVal = currentStore?.allowVisitorCashCollection ?? true;
     updateStoreSettings({ allowVisitorCashCollection: !currentVal });
   };
@@ -426,6 +428,7 @@ export const AccountingManager: React.FC = () => {
   // ==========================================
   const handleRecordPharmacyPayment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ثبت وصولی طلب دواخانه')) return;
     if (!selectedCustomerForPayment || pharmacyPayAmount <= 0) return;
 
     // Find unpaid orders of this customer and apply payment
@@ -591,6 +594,7 @@ export const AccountingManager: React.FC = () => {
   const uncreditedCommission = Math.max(0, calculatedCommissionAFN - alreadyCreditedCommission);
 
   const handleAutoCreditCommission = () => {
+    if (checkGuestAndPrompt('محاسبه و ثبت پورسانت ویزیتور')) return;
     if (uncreditedCommission <= 0) return;
     const newEntry: VisitorLedgerEntry = {
       id: `led_${Date.now()}`,
@@ -611,6 +615,7 @@ export const AccountingManager: React.FC = () => {
 
   const handleAddManualEntry = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ثبت سند مالی و تسویه ویزیتور')) return;
     if (!selectedVisitorId || entryAmount <= 0) return;
 
     const isCredit = ['salary', 'commission', 'bonus'].includes(entryType);
@@ -1393,7 +1398,7 @@ export const AccountingManager: React.FC = () => {
                   exportLedgerToPDF(
                     visitorLedger,
                     selectedVisitor?.name || 'ویزیتور',
-                    currentStore?.name || 'فروشگاه دوایی'
+                    currentStore?.name || 'فروشگاه ادویه'
                   )
                 }
                 className="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
@@ -1408,7 +1413,7 @@ export const AccountingManager: React.FC = () => {
           <div className="bg-gradient-to-r from-slate-50 via-sky-50/50 to-indigo-50/50 dark:from-slate-900 dark:via-slate-850 dark:to-indigo-950/40 p-5 rounded-3xl border border-sky-200/80 dark:border-slate-800 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-sky-600" />
+                <DollarSign className="w-4 h-4 text-sky-600" />
                 <h4 className="font-black text-xs text-slate-800 dark:text-slate-100">
                   محاسبه دقیق پورسانت بر مبنای فاکتورهای واقعی {selectedVisitor?.name}
                 </h4>
@@ -1747,7 +1752,7 @@ export const AccountingManager: React.FC = () => {
                 <span>توزیع سرمایه انبار بر اساس دسته‌بندی درمانی</span>
               </h4>
               <p className="text-[11px] text-slate-500 mb-4">
-                سهم هر گروه دوایی از کل سرمایه مسدود در انبار به قیمت خرید
+                سهم هر گروه ادویه از کل سرمایه مسدود در انبار به قیمت خرید
               </p>
               {inventoryCategorySegments.length > 0 ? (
                 <InteractiveDonutChart
@@ -1759,7 +1764,7 @@ export const AccountingManager: React.FC = () => {
                 />
               ) : (
                 <div className="p-8 text-center text-xs text-slate-400">
-                  اطلاعات دوایی جهت ترسیم نمودار یافت نشد
+                  اطلاعات ادویه جهت ترسیم نمودار یافت نشد
                 </div>
               )}
             </div>
@@ -1789,7 +1794,7 @@ export const AccountingManager: React.FC = () => {
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-[11px] text-slate-500 block">میانگین ارزش هر ردیف دوایی:</span>
+                    <span className="text-[11px] text-slate-500 block">میانگین ارزش هر ردیف ادویه:</span>
                     <span className="text-xl font-black text-indigo-600 font-mono mt-1 block">
                       {Math.round(inventoryCostValuation / (medicines.length || 1)).toLocaleString()} <span className="text-xs font-normal">AFN</span>
                     </span>
@@ -1904,7 +1909,7 @@ export const AccountingManager: React.FC = () => {
                   {filteredInventoryItems.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="py-10 text-center text-slate-400">
-                        دوایی با شرایط جستجوی مشخص‌شده یافت نشد.
+                        ادویه با شرایط جستجوی مشخص‌شده یافت نشد.
                       </td>
                     </tr>
                   ) : (

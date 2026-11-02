@@ -12,8 +12,7 @@ import {
   AlertCircle,
   Delete,
   HelpCircle,
-  Sparkles,
-} from 'lucide-react';
+  } from 'lucide-react';
 
 interface Props {
   onUnlock: () => void;

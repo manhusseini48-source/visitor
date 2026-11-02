@@ -8,8 +8,7 @@ import { exportOrderToPDF } from '../../utils/exportDocs';
 import { MedicineDetailsModal } from '../common/MedicineDetailsModal';
 import { MedicineImageViewerModal } from '../common/MedicineImageViewerModal';
 import {
-  Sparkles,
-  Search,
+    Search,
   Filter,
   ShoppingCart,
   Pill,
@@ -426,7 +425,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
           note:
             collectedAmount > 0
               ? `ثبت فاکتور از گالری همراه با دریافت ${collectedAmount.toLocaleString()} AFN بیعانه/وجه نقد`
-              : 'ثبت فاکتور دوایی از گالری پرزنتیشن مشتری',
+              : 'ثبت فاکتور ادویه از گالری پرزنتیشن مشتری',
         },
       ],
       payments: paymentsList,
@@ -479,7 +478,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-3 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[11px] font-black border border-sky-400/30 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <Package className="w-3.5 h-3.5 text-amber-300" />
                 حالت ویژه پرزنتیشن و نمایش به داکتر و مشتری
               </span>
               <span className="text-slate-400 text-xs">•</span>
@@ -490,7 +489,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
               <span>گالری دواها و صدور فاکتور مشتری</span>
             </h1>
             <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-              دواها را با عکس، دوز، شکل دوایی و قیمت واحد به دکتر یا صاحب دواخانه نشان دهید، با یک کلیک به پیش‌فاکتور اضافه کنید و فاکتور رسمی را بلافاصله صادر نمایید.
+              دواها را با عکس، دوز، شکل ادویه و قیمت واحد به دکتر یا صاحب دواخانه نشان دهید، با یک کلیک به پیش‌فاکتور اضافه کنید و فاکتور رسمی را بلافاصله صادر نمایید.
             </p>
           </div>
 
@@ -534,7 +533,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
             </div>
             <div>
               <h3 className="font-black text-sm text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
-                <span>فاکتور دوایی رسمی با موفقیت ثبت و ارسال شد!</span>
+                <span>فاکتور ادویه رسمی با موفقیت ثبت و ارسال شد!</span>
                 <span className="font-mono text-xs bg-emerald-100 dark:bg-emerald-900 px-2 py-0.5 rounded-lg font-bold">
                   {completedOrder.orderNumber}
                 </span>
@@ -548,7 +547,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => exportOrderToPDF(completedOrder, currentStore?.name || 'فروشگاه دوایی')}
+              onClick={() => exportOrderToPDF(completedOrder, currentStore?.name || 'فروشگاه ادویه')}
               className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <Printer className="w-4 h-4" />
@@ -592,10 +591,10 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
             <select
               value={dosageFilter}
               onChange={(e) => setDosageFilter(e.target.value)}
-              aria-label="فیلتر بر اساس شکل دوایی"
+              aria-label="فیلتر بر اساس شکل ادویه"
               className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-hidden"
             >
-              <option value="all">همه اشکال دوایی</option>
+              <option value="all">همه اشکال ادویه</option>
               {dosageForms.map((d) => (
                 <option key={d} value={d}>
                   شکل: {d}
@@ -607,7 +606,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              aria-label="فیلتر بر اساس دسته‌بندی دوایی"
+              aria-label="فیلتر بر اساس دسته‌بندی ادویه"
               className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-hidden"
             >
               <option value="all">همه دسته‌بندی‌ها</option>
@@ -672,7 +671,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
             <Pill className="w-8 h-8 rotate-45" />
           </div>
           <h3 className="font-black text-slate-800 dark:text-slate-100 text-sm">
-            دوایی با این مشخصات یافت نشد
+            ادویه با این مشخصات یافت نشد
           </h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
             عبارت جستجو یا فیلترهای انتخابی را تغییر دهید تا لیست دواها نمایش داده شود.
@@ -899,7 +898,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
                 </div>
                 <div>
                   <h3 className="font-black text-sm md:text-base text-white">
-                    ثبت نهایی فاکتور دوایی و دریافت وجه
+                    ثبت نهایی فاکتور ادویه و دریافت وجه
                   </h3>
                   <p className="text-[11px] text-slate-300 mt-0.5">
                     بررسی اقلام فاکتور، ورود اطلاعات دواخانه و ثبت بیعانه نقدی ویزیتور
@@ -929,7 +928,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                     <Package className="w-4 h-4 text-sky-600" />
-                    <span>اقلام دوایی فاکتور ({cartItemsCount} قلم)</span>
+                    <span>اقلام ادویه فاکتور ({cartItemsCount} قلم)</span>
                   </h4>
                   <span className="text-[11px] text-slate-400">
                     مجموع تعداد: {cartTotalQuantity} عدد
@@ -1365,7 +1364,7 @@ export const VisitorMedicineGallery: React.FC<Props> = ({
                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-600/25 transition flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>تایید و صدور نهایی فاکتور دوایی</span>
+                  <span>تایید و صدور نهایی فاکتور ادویه</span>
                 </button>
               </div>
             </form>

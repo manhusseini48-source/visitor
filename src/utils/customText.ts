@@ -164,7 +164,7 @@ export const APP_TEXT_DEFINITIONS: AppTextItem[] = [
     key: 'store_dashboard_title',
     category: 'dashboard',
     label: 'عنوان داشبورد فروشگاه',
-    defaultValue: 'داشبورد مدیریت فروشگاه دوایی',
+    defaultValue: 'داشبورد مدیریت فروشگاه ادویه',
   },
   {
     key: 'store_dashboard_subtitle',
@@ -214,7 +214,7 @@ export const APP_TEXT_DEFINITIONS: AppTextItem[] = [
     key: 'medicines_subtitle',
     category: 'medicines',
     label: 'زیرعنوان بخش دواها',
-    defaultValue: 'مدیریت و ثبت اقلام دوایی، قیمت فروش، بسته‌بندی و انقضا',
+    defaultValue: 'مدیریت و ثبت اقلام ادویه، قیمت فروش، بسته‌بندی و انقضا',
   },
   {
     key: 'visitor_medicines_title',

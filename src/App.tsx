@@ -71,7 +71,9 @@ import {
   Shield,
   Menu,
   X,
-  Sparkles,
+  Images,
+  Award,
+  ShieldAlert,
   User,
   ArrowRight,
   LogOut,
@@ -381,7 +383,7 @@ function AppContent() {
               {platformConfig.appName}
             </h1>
             <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-              {platformConfig.shortDescription} — سفارش‌گیری آنلاین، انبار دوایی، ردیابی وصول مطالبات و حسابداری پورسانت
+              {platformConfig.shortDescription} — سفارش‌گیری آنلاین، انبار ادویه، ردیابی وصول مطالبات و حسابداری پورسانت
             </p>
           </div>
 
@@ -413,7 +415,7 @@ function AppContent() {
         </div>
 
         <footer className="text-center p-6 text-xs text-slate-500 border-t border-slate-900">
-          سامانه اختصاصی ویزیتور دوا • طراحی شده برای بازار دوایی افغانستان
+          سامانه اختصاصی ویزیتور دوا • طراحی شده برای بازار ادویه افغانستان
         </footer>
 
         {isAuthOpen && (
@@ -462,7 +464,7 @@ function AppContent() {
   // Visitor Navigation items
   const visitorMenuItems = [
     { id: 'dashboard', label: 'داشبورد من', icon: LayoutDashboard },
-    { id: 'gallery', label: 'گالری دوا و صدور فاکتور', icon: Sparkles },
+    { id: 'gallery', label: 'گالری دوا و صدور فاکتور', icon: Images },
     { id: 'medicines', label: 'کاتالوگ و موجودی دواها', icon: Pill },
     { id: 'orders', label: 'سفارشات و پایپلاین تحویل', icon: ShoppingCart },
     { id: 'customers', label: 'دواخانه‌های من', icon: Users },
@@ -500,7 +502,7 @@ function AppContent() {
       <TrialBanner onNavigateSubscription={() => handleNavigateTab('subscription')} />
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-8 flex flex-col md:flex-row gap-4 sm:gap-6">
+      <div className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-28 flex flex-col md:flex-row gap-4 sm:gap-6">
         {currentUser?.role === 'maker_admin' ? (
           /* Maker Admin Super Panel View */
           <div className="flex-1 min-w-0">
@@ -576,7 +578,7 @@ function AppContent() {
                 <div className="mb-4 bg-gradient-to-l from-amber-500/10 via-sky-500/10 to-emerald-500/10 border border-amber-300/80 dark:border-amber-500/40 rounded-2xl p-3.5 sm:p-4 text-slate-800 dark:text-slate-100 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs animate-in fade-in">
                   <div className="flex items-center gap-3 text-right w-full md:w-auto">
                     <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-400/30 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-5 h-5 animate-pulse" />
+                      <ShieldAlert className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-xs sm:text-sm font-black flex items-center gap-2 flex-wrap">
@@ -831,6 +833,20 @@ function AppContent() {
 
             {/* Drawer Footer Actions */}
             <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 space-y-2">
+              {currentUser?.isGuest && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleOpenRegister();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition cursor-pointer"
+                >
+                  <Award className="w-4 h-4 text-amber-300" />
+                  <span>ثبت‌نام فروشگاه (۱۴ روز رایگان)</span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
@@ -841,8 +857,6 @@ function AppContent() {
                 <User className="w-4 h-4 text-sky-600 dark:text-sky-400 flex-shrink-0" />
                 <span>پروفایل و تنظیمات امنیت</span>
               </button>
-
-
 
               <button
                 onClick={() => {
@@ -859,74 +873,112 @@ function AppContent() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation Bar (نوار منوی سریع پایین صفحه در موبایل - راست دست و داشبورد در وسط) */}
-      {!isGuest && currentUser && currentUser.role !== 'maker_admin' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-lg px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
-          {/* 1. منوی پنل در سمت راست (نزدیک انگشت شست افراد راست‌دست در چیدمان راست به چپ) */}
+      {/* Universal Bottom Navigation Bar (نوار منوی درشت و همیشه نمایان پایین صفحه برای تمامی دستگاه‌ها و حالت مهمان) */}
+      {(currentUser || isGuest) && currentUser?.role !== 'maker_admin' && (
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t-2 border-slate-200/90 dark:border-slate-800 shadow-2xl px-2 sm:px-6 py-2.5 pb-[calc(0.6rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around"
+          aria-label="منوی اصلی ناوبری پایین صفحه"
+        >
+          {/* 1. منوی پنل در سمت راست (نزدیک انگشت شست راست) */}
           <button
             onClick={handleToggleMobileMenu}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition cursor-pointer ${
-              isMobileMenuOpen ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-700 dark:text-slate-300 font-bold'
+            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+              isMobileMenuOpen
+                ? 'text-sky-600 dark:text-sky-400 font-black'
+                : 'text-slate-700 dark:text-slate-300 font-bold hover:text-sky-600'
             }`}
+            title="باز کردن منوی کامل امکانات"
           >
-            <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
-              isMobileMenuOpen ? 'bg-sky-600 text-white' : 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300'
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition shadow-2xs ${
+              isMobileMenuOpen
+                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                : 'bg-sky-100/90 dark:bg-sky-950 text-sky-700 dark:text-sky-300'
             }`}>
-              <Menu className="w-3.5 h-3.5" />
+              <Menu className="w-5 h-5" />
             </div>
-            <span className="text-[10px]">منوی پنل</span>
+            <span className="text-xs sm:text-[13px] font-black">منو</span>
           </button>
 
           {/* 2. سفارش‌ها */}
           <button
             onClick={() => handleNavigateTab('orders')}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition cursor-pointer ${
-              activeTab === 'orders' ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-500 dark:text-slate-400 font-medium'
+            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+              activeTab === 'orders'
+                ? 'text-sky-600 dark:text-sky-400 font-black'
+                : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
+            title="مشاهده سفارشات و فاکتورها"
           >
-            <ShoppingCart className="w-5 h-5" />
-            <span className="text-[10px]">سفارش‌ها</span>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${
+              activeTab === 'orders'
+                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-2xs'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}>
+              <ShoppingCart className="w-6 h-6" />
+            </div>
+            <span className="text-xs sm:text-[13px] font-black">سفارش‌ها</span>
           </button>
 
-          {/* 3. آیکون داشبورد در وسط (مرکز نوار ناوبری) با استایل مشخص */}
+          {/* 3. آیکون داشبورد در وسط (مرکز نوار ناوبری) - درشت و برجسته */}
           <button
             onClick={() => handleNavigateTab('dashboard')}
-            className={`flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl transition cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'text-sky-600 dark:text-sky-400 font-black -translate-y-1'
-                : 'text-slate-600 dark:text-slate-300 font-bold'
-            }`}
+            className="flex flex-col items-center justify-center gap-1 -translate-y-4 px-2 cursor-pointer transition active:scale-90 group min-w-[68px]"
+            title="صفحه اصلی داشبورد"
           >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition shadow-2xs ${
+            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-200 border-4 border-slate-100 dark:border-slate-950 shadow-xl ${
               activeTab === 'dashboard'
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                ? 'bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-sky-600/40 ring-4 ring-sky-300/40 dark:ring-sky-700/40 scale-105'
+                : 'bg-slate-800 text-slate-100 hover:bg-sky-600 shadow-slate-900/30'
             }`}>
-              <LayoutDashboard className="w-4 h-4" />
+              <LayoutDashboard className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <span className="text-[10px]">داشبورد</span>
+            <span className={`text-xs sm:text-[13px] font-black transition ${
+              activeTab === 'dashboard' ? 'text-sky-600 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300'
+            }`}>
+              داشبورد
+            </span>
           </button>
 
-          {/* 4. برنامه ویزیت (جایگزین مشتریان) */}
+          {/* 4. دواها و موجودی انبار / برنامه ویزیت */}
           <button
-            onClick={() => handleNavigateTab('visits')}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition cursor-pointer ${
-              activeTab === 'visits' ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-500 dark:text-slate-400 font-medium'
+            onClick={() => handleNavigateTab(currentUser?.role === 'visitor' ? 'visits' : 'medicines')}
+            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+              (currentUser?.role === 'visitor' ? activeTab === 'visits' : activeTab === 'medicines')
+                ? 'text-sky-600 dark:text-sky-400 font-black'
+                : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
+            title={currentUser?.role === 'visitor' ? 'برنامه ویزیت و مراجعات' : 'کاتالوگ و موجودی دواها'}
           >
-            <Calendar className="w-5 h-5" />
-            <span className="text-[10px]">برنامه ویزیت</span>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${
+              (currentUser?.role === 'visitor' ? activeTab === 'visits' : activeTab === 'medicines')
+                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-2xs'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}>
+              {currentUser?.role === 'visitor' ? <Calendar className="w-6 h-6" /> : <Pill className="w-6 h-6" />}
+            </div>
+            <span className="text-xs sm:text-[13px] font-black">
+              {currentUser?.role === 'visitor' ? 'ویزیت' : 'دواها'}
+            </span>
           </button>
 
           {/* 5. پیام‌ها */}
           <button
             onClick={() => handleNavigateTab('messenger')}
-            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition cursor-pointer ${
-              activeTab === 'messenger' ? 'text-sky-600 dark:text-sky-400 font-black' : 'text-slate-500 dark:text-slate-400 font-medium'
+            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+              activeTab === 'messenger'
+                ? 'text-sky-600 dark:text-sky-400 font-black'
+                : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
+            title="پیام‌رسان کاری"
           >
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-[10px]">پیام‌ها</span>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${
+              activeTab === 'messenger'
+                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-2xs'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}>
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <span className="text-xs sm:text-[13px] font-black">پیام‌ها</span>
           </button>
         </nav>
       )}

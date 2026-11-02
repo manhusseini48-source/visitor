@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   RefreshCw,
   Send,
-  Sparkles,
+  Award, Star,
   Plus,
   Pill,
   TrendingUp,
@@ -1027,7 +1027,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
-          <Sparkles className="w-4 h-4 text-purple-500" />
+          <Award className="w-4 h-4 text-purple-500" />
           <span>ویرایشگر زنده متن‌های سامانه</span>
         </button>
 
@@ -1206,7 +1206,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             />
 
             <MetricCardWithSparkline
-              title="تنوع اقلام دوایی در انبارها"
+              title="تنوع اقلام ادویه در انبارها"
               value={medicines.length}
               unit="قلم دوا"
               icon={<Pill className="w-4 h-4" />}
@@ -1273,7 +1273,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex flex-col justify-between">
               <div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <BarChart3 className="w-4 h-4 text-purple-600" />
                   <span>دسترسی‌های سریع مدیریتی</span>
                 </h3>
                 <p className="text-xs text-slate-500 mb-4">
@@ -1607,7 +1607,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
-                  لیست و کنترل فروشگاه‌های دوایی ثبت‌شده ({stores.length})
+                  لیست و کنترل فروشگاه‌های ادویه ثبت‌شده ({stores.length})
                 </h3>
                 <p className="text-xs text-slate-500">
                   ویرایش مشخصات، افزایش مهلت تست، تغییر وضعیت اشتراک و صدور دسترسی
@@ -2483,7 +2483,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             {/* Quick Version Presets */}
             <div className="space-y-1.5">
               <div className="text-[11px] font-bold text-purple-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <Star className="w-3.5 h-3.5 text-yellow-400" />
                 <span>انتخاب سریع یا الگوی نگارش:</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -2833,7 +2833,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
           {/* 3 Steps Guide Card */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
             <h4 className="font-black text-slate-800 dark:text-slate-100 text-sm sm:text-base flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               <span>راهنمای ۳ مرحله‌ای وارد کردن کدها در Supabase</span>
             </h4>
 

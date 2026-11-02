@@ -8,9 +8,9 @@ import {
   Headphones,
   CheckCircle2,
   Clock,
-  Sparkles,
   Phone,
   MessageCircle,
+  HelpCircle,
   X,
 } from 'lucide-react';
 import { compressImage, uploadToCloudinary } from '../../utils/imageCompressor';
@@ -254,7 +254,7 @@ export const SupportView: React.FC = () => {
       {publishedFaqs.length > 0 && (
         <div className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-800 px-4 py-2 flex items-center gap-2 overflow-x-auto text-xs">
           <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1 flex-shrink-0 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
             <span>پرسش‌های پرکاربرد:</span>
           </span>
           {publishedFaqs.map((faq) => (
@@ -408,7 +408,7 @@ export const SupportView: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white">سوال و پاسخ متداول</h3>
               </div>

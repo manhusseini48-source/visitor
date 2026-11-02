@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useApp } from '../../context/AppContext';
 import { Storage } from '../../utils/storage';
 import { PersonalNote } from '../../types';
 import {
@@ -11,7 +12,6 @@ import {
   Tag,
   Check,
   X,
-  Sparkles,
   Calendar,
   Lock,
   ListTodo,
@@ -46,6 +46,7 @@ const COLOR_TAGS = [
 ];
 
 export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, userName }) => {
+  const { checkGuestAndPrompt } = useApp();
   const [notes, setNotes] = useState<PersonalNote[]>(() => Storage.getNotes(userId));
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -64,6 +65,7 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
   };
 
   const handleOpenNew = () => {
+    if (checkGuestAndPrompt('ثبت یادداشت جدید')) return;
     setEditingNote(null);
     setTitle('');
     setContent('');
@@ -74,6 +76,7 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
   };
 
   const handleOpenEdit = (n: PersonalNote) => {
+    if (checkGuestAndPrompt('ویرایش یادداشت')) return;
     setEditingNote(n);
     setTitle(n.title);
     setContent(n.content);
@@ -85,6 +88,7 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
 
   const handleSaveNote = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ذخیره یادداشت')) return;
     if (!title.trim() && !content.trim()) return;
 
     const all = Storage.getNotes();
@@ -127,11 +131,13 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
   };
 
   const handleDelete = (noteId: string) => {
+    if (checkGuestAndPrompt('حذف یادداشت')) return;
     Storage.deleteNote(noteId);
     reloadNotes();
   };
 
   const handleTogglePin = (note: PersonalNote) => {
+    if (checkGuestAndPrompt('سنجاق یادداشت')) return;
     const all = Storage.getNotes();
     const updated = all.map((n) => (n.id === note.id ? { ...n, isPinned: !n.isPinned } : n));
     Storage.saveNotes(updated);
@@ -415,7 +421,7 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
                   rows={6}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="جزییات مذاکره، نیازهای دوایی، تاریخ‌های مهم و نکات لازم..."
+                  placeholder="جزییات مذاکره، نیازهای ادویه، تاریخ‌های مهم و نکات لازم..."
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs leading-relaxed"
                 />
               </div>

@@ -16,8 +16,7 @@ import {
   Search,
   Filter,
   MessageCircle,
-  Sparkles,
-  Compass,
+    Compass,
 } from 'lucide-react';
 
 interface Props {
@@ -326,7 +325,7 @@ export const VisitorVisits: React.FC<Props> = ({ onNavigateTab }) => {
           }`}
         >
           <div className="text-[10px] font-black flex items-center gap-1 text-purple-200">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+            <Calendar className="w-3.5 h-3.5 text-amber-300" />
             <span>برنامه مراجعات امروز</span>
           </div>
           <div className="text-xl font-black mt-1 font-mono text-white">
@@ -487,7 +486,7 @@ export const VisitorVisits: React.FC<Props> = ({ onNavigateTab }) => {
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-300 dark:border-amber-700/60 p-2.5 rounded-xl text-xs space-y-1 mt-1.5">
                       <div className="flex items-center justify-between text-amber-900 dark:text-amber-200 font-bold text-[11px]">
                         <span className="flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                          <Clock className="w-3.5 h-3.5 text-amber-600" />
                           <span>توصیه فروشگاه برای ادامه مذاکره با این مشتری:</span>
                         </span>
                         <span className="text-[10px] text-amber-700/80 font-normal">

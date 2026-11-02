@@ -26,7 +26,8 @@ import {
   Copy,
   CheckCircle2,
   RotateCcw,
-  Sparkles,
+  Star,
+  Pin,
   Filter,
   Phone,
   Clock,
@@ -777,7 +778,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
               className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
               title="پیام‌های آماده و پاسخ‌های پرکاربرد"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <Pin className="w-3.5 h-3.5 text-amber-500" />
               <span className="hidden sm:inline">پیام آماده</span>
             </button>
           </div>
@@ -814,7 +815,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
           <div className="p-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-md animate-in slide-in-from-top-2 z-10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Star className="w-3.5 h-3.5 text-amber-500" />
                 <span>پیام‌های آماده کاری (با کلیک ارسال یا درج می‌شود):</span>
               </span>
               <button

@@ -196,7 +196,7 @@ export const MedicinesManager: React.FC = () => {
       (m) => m.name.trim().toLowerCase() === name.trim().toLowerCase() && m.id !== editingMed?.id
     );
     if (duplicateName) {
-      setFormError(`دوایی با نام «${name}» قبلاً در سیستم انبار ثبت شده است.`);
+      setFormError(`ادویه با نام «${name}» قبلاً در سیستم انبار ثبت شده است.`);
       return;
     }
 
@@ -314,7 +314,7 @@ export const MedicinesManager: React.FC = () => {
         <div>
           <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
             <Pill className="w-5 h-5 text-sky-600" />
-            <span>مدیریت انبار و اقلام دوایی ({medicines.length})</span>
+            <span>مدیریت انبار و اقلام ادویه ({medicines.length})</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             ثبت مشخصات تخصصی دوا، موجودی، تاریخ انقضا و سری ساخت
@@ -331,7 +331,7 @@ export const MedicinesManager: React.FC = () => {
           </button>
 
           <button
-            onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه دوایی')}
+            onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه ادویه')}
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileText className="w-4 h-4" />
@@ -398,7 +398,7 @@ export const MedicinesManager: React.FC = () => {
               {filteredMedicines.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">
-                    دوایی با این مشخصات یافت نشد.
+                    ادویه با این مشخصات یافت نشد.
                   </td>
                 </tr>
               ) : (
@@ -592,7 +592,7 @@ export const MedicinesManager: React.FC = () => {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    شکل دوایی
+                    شکل ادویه
                   </label>
                   <select
                     value={dosageForm}

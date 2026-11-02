@@ -14,7 +14,6 @@ import {
   Truck,
   Building,
   Calendar,
-  Sparkles,
   BarChart3,
   PieChart,
   ShieldCheck,
@@ -151,7 +150,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           revenue: 0,
           name: item.medicineName,
           unit: item.unit,
-          category: 'دوایی',
+          category: 'ادویه',
         };
         current.qty += item.quantity;
         current.revenue += item.totalAFN;
@@ -232,7 +231,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               <span>{currentStore?.name}</span>
             </h1>
             <p className="text-xs text-sky-200 mt-1 max-w-xl">
-              داشبورد پایش لحظه‌ای فروش دوایی، جریان وصولی نقدی، ارزیابی تحقق تارگت ویزیتورها و هشدارهای انبار
+              داشبورد پایش لحظه‌ای فروش ادویه، جریان وصولی نقدی، ارزیابی تحقق تارگت ویزیتورها و هشدارهای انبار
             </p>
           </div>
 
@@ -432,7 +431,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         />
 
         <MetricCardWithSparkline
-          title="کل سفارشات دوایی"
+          title="کل سفارشات ادویه"
           value={orders.length}
           unit="سفارش"
           icon={<ShoppingCart className="w-4 h-4" />}
@@ -446,7 +445,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
 
       {/* SECTION 1: Dynamic Sales & Cash Collection Trend Chart */}
       <InteractiveAreaTrendChart
-        title="نمودار تحلیل روند فروش دوایی و وصولی نقدی"
+        title="نمودار تحلیل روند فروش ادویه و وصولی نقدی"
         subtitle="بررسی جریان فروش کل در برابر دریافتی‌های قطعی جهت مدیریت هوشمند نقدینگی فروشگاه"
         data={salesTrendData}
         primaryLabel="فروش کل (AFN)"

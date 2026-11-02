@@ -57,7 +57,7 @@ export const ReportsManager: React.FC = () => {
     const catMap = new Map<string, number>();
 
     medicines.forEach((m) => {
-      const cat = m.category || 'سایر اقلام دوایی';
+      const cat = m.category || 'سایر اقلام ادویه';
       catMap.set(cat, (catMap.get(cat) || 0) + m.stock);
     });
 
@@ -155,7 +155,7 @@ export const ReportsManager: React.FC = () => {
             <span>مرکز گزارش‌های هوش تجاری (BI) و خروجی‌های رسمی</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            نمودارهای تحلیلی، ارزیابی سودآوری ویزیتورها، توزیع دسته‌های دوایی و دریافت فایل‌های اکسل
+            نمودارهای تحلیلی، ارزیابی سودآوری ویزیتورها، توزیع دسته‌های ادویه و دریافت فایل‌های اکسل
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export const ReportsManager: React.FC = () => {
             {/* Chart 2: Therapeutic Categories Share Donut */}
             <InteractiveDonutChart
               title="توزیع گروه‌های درمانی در انبار دوا"
-              subtitle="سهم دسته‌بندی‌های مختلف دوایی از کل حجم موجودی بسته‌های انبار"
+              subtitle="سهم دسته‌بندی‌های مختلف ادویه از کل حجم موجودی بسته‌های انبار"
               segments={categorySegments}
               centerTitle={`${medicines.reduce((s, m) => s + m.stock, 0)}`}
               centerSubtitle="کل موجودی انبار"
@@ -279,7 +279,7 @@ export const ReportsManager: React.FC = () => {
               اکسل (XLSX)
             </button>
             <button
-              onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه دوایی', 'Comprehensive_Orders_Report')}
+              onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه ادویه', 'Comprehensive_Orders_Report')}
               className="flex-1 py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition cursor-pointer text-center"
             >
               فایل PDF
@@ -300,7 +300,7 @@ export const ReportsManager: React.FC = () => {
               اکسل (XLSX)
             </button>
             <button
-              onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه دوایی')}
+              onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه ادویه')}
               className="flex-1 py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition cursor-pointer text-center"
             >
               فایل PDF
@@ -321,7 +321,7 @@ export const ReportsManager: React.FC = () => {
               اکسل (XLSX)
             </button>
             <button
-              onClick={() => exportCustomersToPDF(customers, currentStore?.name || 'فروشگاه دوایی')}
+              onClick={() => exportCustomersToPDF(customers, currentStore?.name || 'فروشگاه ادویه')}
               className="flex-1 py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition cursor-pointer text-center"
             >
               فایل PDF

@@ -73,7 +73,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
         id: medId,
         storeId,
         name: medName,
-        brand: 'فروشگاه دوایی',
+        brand: 'فروشگاه ادویه',
         dosageForm: 'دوا',
         strength: '',
         code: 'ORDER-ITEM',
@@ -243,7 +243,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
           </button>
 
           <button
-            onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه دوایی')}
+            onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه ادویه')}
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileText className="w-4 h-4" />
@@ -501,7 +501,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
                 <thead className="bg-slate-100 text-slate-700 font-bold">
                   <tr>
                     <th className="p-2.5">نام دوا</th>
-                    <th className="p-2.5">شکل دوایی</th>
+                    <th className="p-2.5">شکل ادویه</th>
                     <th className="p-2.5">واحد</th>
                     <th className="p-2.5">تعداد</th>
                     <th className="p-2.5">قیمت واحد</th>

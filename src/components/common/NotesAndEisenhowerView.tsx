@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { PersonalNotes } from './PersonalNotes';
 import { EisenhowerMatrix } from './EisenhowerMatrix';
-import { Grid, BookOpen, Sparkles } from 'lucide-react';
+import { Grid, BookOpen } from 'lucide-react';
 
 interface Props {
   initialTab?: 'eisenhower' | 'notes';
