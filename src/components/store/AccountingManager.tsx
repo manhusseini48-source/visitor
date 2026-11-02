@@ -706,7 +706,7 @@ export const AccountingManager: React.FC = () => {
             <span>حسابداری حرفه‌ای، تایید واریزی‌ها و صندوق ویزیتورها</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            تایید انتقال وجوه بیعانه ویزیتورها، مدیریت مطالبات داروخانه‌ها، حقوق و پورسانت کارکرد
+            تایید انتقال وجوه بیعانه ویزیتورها، مدیریت مطالبات دواخانه‌ها، حقوق و پورسانت کارکرد
           </p>
         </div>
 
@@ -857,7 +857,7 @@ export const AccountingManager: React.FC = () => {
             </div>
           </div>
           <p className="text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            {totalStockUnits.toLocaleString()} عدد دارو ({medicines.length} قلم)
+            {totalStockUnits.toLocaleString()} عدد دوا ({medicines.length} قلم)
           </p>
         </div>
       </div>
@@ -905,7 +905,7 @@ export const AccountingManager: React.FC = () => {
           }`}
         >
           <Building2 className="w-4 h-4" />
-          <span>دفتر حسابداری داروخانه‌ها و بدهکاران</span>
+          <span>دفتر حسابداری دواخانه‌ها و بدهکاران</span>
         </button>
 
         <button
@@ -1251,7 +1251,7 @@ export const AccountingManager: React.FC = () => {
       )}
 
       {/* ======================================================== */}
-      {/* TAB 3: PHARMACIES LEDGER & DEBTORS (بدهکاران داروخانه‌ها) */}
+      {/* TAB 3: PHARMACIES LEDGER & DEBTORS (بدهکاران دواخانه‌ها) */}
       {/* ======================================================== */}
       {activeTab === 'pharmacies_debts' && (
         <div className="space-y-6 animate-in fade-in">
@@ -1260,7 +1260,7 @@ export const AccountingManager: React.FC = () => {
               <div>
                 <h3 className="font-black text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-rose-600" />
-                  <span>دفتر حسابداری داروخانه‌ها و وصول مطالبات معوق</span>
+                  <span>دفتر حسابداری دواخانه‌ها و وصول مطالبات معوق</span>
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">
                   فهرست مشتریان، کل خریدها، مبالغ پرداختی (بیعانه + نقدی) و مانده بدهی هر دواخانه
@@ -1393,7 +1393,7 @@ export const AccountingManager: React.FC = () => {
                   exportLedgerToPDF(
                     visitorLedger,
                     selectedVisitor?.name || 'ویزیتور',
-                    currentStore?.name || 'فروشگاه دارویی'
+                    currentStore?.name || 'فروشگاه دوایی'
                   )
                 }
                 className="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
@@ -1629,7 +1629,7 @@ export const AccountingManager: React.FC = () => {
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
                 <span>مجموع دارایی فیزیکی:</span>
                 <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
-                  {totalStockUnits.toLocaleString()} عدد واحد در {medicines.length} قلم دارو
+                  {totalStockUnits.toLocaleString()} عدد واحد در {medicines.length} قلم دوا
                 </span>
               </div>
             </div>
@@ -1747,7 +1747,7 @@ export const AccountingManager: React.FC = () => {
                 <span>توزیع سرمایه انبار بر اساس دسته‌بندی درمانی</span>
               </h4>
               <p className="text-[11px] text-slate-500 mb-4">
-                سهم هر گروه دارویی از کل سرمایه مسدود در انبار به قیمت خرید
+                سهم هر گروه دوایی از کل سرمایه مسدود در انبار به قیمت خرید
               </p>
               {inventoryCategorySegments.length > 0 ? (
                 <InteractiveDonutChart
@@ -1759,7 +1759,7 @@ export const AccountingManager: React.FC = () => {
                 />
               ) : (
                 <div className="p-8 text-center text-xs text-slate-400">
-                  اطلاعات دارویی جهت ترسیم نمودار یافت نشد
+                  اطلاعات دوایی جهت ترسیم نمودار یافت نشد
                 </div>
               )}
             </div>
@@ -1789,7 +1789,7 @@ export const AccountingManager: React.FC = () => {
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-[11px] text-slate-500 block">میانگین ارزش هر ردیف دارویی:</span>
+                    <span className="text-[11px] text-slate-500 block">میانگین ارزش هر ردیف دوایی:</span>
                     <span className="text-xl font-black text-indigo-600 font-mono mt-1 block">
                       {Math.round(inventoryCostValuation / (medicines.length || 1)).toLocaleString()} <span className="text-xs font-normal">AFN</span>
                     </span>
@@ -1799,9 +1799,9 @@ export const AccountingManager: React.FC = () => {
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-[11px] text-slate-500 block">داروهای نیازمند سفارش مجدد:</span>
+                    <span className="text-[11px] text-slate-500 block">دواهای نیازمند سفارش مجدد:</span>
                     <span className="text-xl font-black text-amber-600 font-mono mt-1 block">
-                      {medicines.filter((m) => m.stock <= m.minStockAlert).length} قلم دارو
+                      {medicines.filter((m) => m.stock <= m.minStockAlert).length} قلم دوا
                     </span>
                     <span className="text-[10px] text-slate-400 mt-1 block">
                       موجودی کمتر یا مساوی با نقطه هشدار شارژ
@@ -1838,7 +1838,7 @@ export const AccountingManager: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-indigo-600" />
                 <h4 className="font-black text-sm text-slate-900 dark:text-slate-100">
-                  جدول ارزیابی ارزش سرمایه، بهای خرید و مارجین سود به تفکیک داروها ({filteredInventoryItems.length} قلم)
+                  جدول ارزیابی ارزش سرمایه، بهای خرید و مارجین سود به تفکیک دواها ({filteredInventoryItems.length} قلم)
                 </h4>
               </div>
 
@@ -1850,7 +1850,7 @@ export const AccountingManager: React.FC = () => {
                     type="text"
                     value={inventorySearch}
                     onChange={(e) => setInventorySearch(e.target.value)}
-                    placeholder="جستجو بر اساس نام، برند یا کد دارو..."
+                    placeholder="جستجو بر اساس نام، برند یا کد دوا..."
                     className="w-full pr-9 pl-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:border-indigo-500"
                   />
                 </div>
@@ -1879,7 +1879,7 @@ export const AccountingManager: React.FC = () => {
                   <option value="stock">بیشترین موجودی عددی</option>
                   <option value="margin">بیشترین حاشیه سود (٪)</option>
                   <option value="profit">بیشترین سود تجمیعی انبار</option>
-                  <option value="name">نام دارو (الفبا)</option>
+                  <option value="name">نام دوا (الفبا)</option>
                 </select>
               </div>
             </div>
@@ -1889,7 +1889,7 @@ export const AccountingManager: React.FC = () => {
               <table className="w-full text-right text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
                   <tr>
-                    <th className="py-3 px-4 font-black">کد و نام دارو</th>
+                    <th className="py-3 px-4 font-black">کد و نام دوا</th>
                     <th className="py-3 px-4 font-black">دسته و شکل</th>
                     <th className="py-3 px-4 font-black">موجودی</th>
                     <th className="py-3 px-4 font-black">قیمت خرید</th>
@@ -1904,7 +1904,7 @@ export const AccountingManager: React.FC = () => {
                   {filteredInventoryItems.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="py-10 text-center text-slate-400">
-                        دارویی با شرایط جستجوی مشخص‌شده یافت نشد.
+                        دوایی با شرایط جستجوی مشخص‌شده یافت نشد.
                       </td>
                     </tr>
                   ) : (
@@ -2013,7 +2013,7 @@ export const AccountingManager: React.FC = () => {
                         +{filteredInventoryItems.reduce((s, it) => s + it.totalProfit, 0).toLocaleString()} AFN
                       </td>
                       <td colSpan={2} className="py-3.5 px-4 text-left font-normal text-slate-500">
-                        {filteredInventoryItems.length} قلم دارو
+                        {filteredInventoryItems.length} قلم دوا
                       </td>
                     </tr>
                   </tfoot>

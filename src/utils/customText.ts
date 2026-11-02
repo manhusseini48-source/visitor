@@ -33,7 +33,7 @@ export const APP_TEXT_DEFINITIONS: AppTextItem[] = [
     key: 'app_subtitle',
     category: 'header',
     label: 'زیرعنوان یا شعار برند',
-    defaultValue: 'پنل ویزیتور دارو',
+    defaultValue: 'پنل ویزیتور دوا',
     description: 'توضیح کوتاه زیر نام سامانه در هدر',
   },
   {
@@ -63,8 +63,8 @@ export const APP_TEXT_DEFINITIONS: AppTextItem[] = [
   {
     key: 'nav_tab_medicines',
     category: 'navigation',
-    label: 'عنوان تب داروها و موجودی انبار',
-    defaultValue: 'کاتالوگ و موجودی داروها',
+    label: 'عنوان تب دواها و موجودی انبار',
+    defaultValue: 'کاتالوگ و موجودی دواها',
   },
   {
     key: 'nav_tab_orders',
@@ -164,7 +164,7 @@ export const APP_TEXT_DEFINITIONS: AppTextItem[] = [
     key: 'store_dashboard_title',
     category: 'dashboard',
     label: 'عنوان داشبورد فروشگاه',
-    defaultValue: 'داشبورد مدیریت فروشگاه دارویی',
+    defaultValue: 'داشبورد مدیریت فروشگاه دوایی',
   },
   {
     key: 'store_dashboard_subtitle',
@@ -207,38 +207,38 @@ export const APP_TEXT_DEFINITIONS: AppTextItem[] = [
   {
     key: 'medicines_title',
     category: 'medicines',
-    label: 'عنوان بخش داروها و انبار',
-    defaultValue: 'داروها و موجودی انبار',
+    label: 'عنوان بخش دواها و انبار',
+    defaultValue: 'دواها و موجودی انبار',
   },
   {
     key: 'medicines_subtitle',
     category: 'medicines',
-    label: 'زیرعنوان بخش داروها',
-    defaultValue: 'مدیریت و ثبت اقلام دارویی، قیمت فروش، بسته‌بندی و انقضا',
+    label: 'زیرعنوان بخش دواها',
+    defaultValue: 'مدیریت و ثبت اقلام دوایی، قیمت فروش، بسته‌بندی و انقضا',
   },
   {
     key: 'visitor_medicines_title',
     category: 'medicines',
-    label: 'عنوان کاتالوگ داروها در پنل ویزیتور',
-    defaultValue: 'کاتالوگ و موجودی زنده داروها',
+    label: 'عنوان کاتالوگ دواها در پنل ویزیتور',
+    defaultValue: 'کاتالوگ و موجودی زنده دواها',
   },
   {
     key: 'visitor_medicines_subtitle',
     category: 'medicines',
-    label: 'توضیحات کاتالوگ داروها در پنل ویزیتور',
+    label: 'توضیحات کاتالوگ دواها در پنل ویزیتور',
     defaultValue: 'مشاهده موجودی لحظه‌ای انبار فروشگاه، قیمت فروش، تاریخ انقضا و بسته‌بندی جهت معرفی به دواخانه‌ها',
   },
   {
     key: 'add_medicine_btn',
     category: 'medicines',
-    label: 'دکمه ثبت داروی جدید',
-    defaultValue: 'افزودن داروی جدید',
+    label: 'دکمه ثبت دوای جدید',
+    defaultValue: 'افزودن دوای جدید',
   },
   {
     key: 'medicines_search_placeholder',
     category: 'medicines',
-    label: 'متن جستجوی دارو',
-    defaultValue: 'جستجو در نام دارو، برند تجاری یا کد اختصاصی...',
+    label: 'متن جستجوی دوا',
+    defaultValue: 'جستجو در نام دوا، برند تجاری یا کد اختصاصی...',
   },
 
   // ==================== Customers & Pharmacies ====================

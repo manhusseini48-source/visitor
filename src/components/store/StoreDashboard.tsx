@@ -151,7 +151,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           revenue: 0,
           name: item.medicineName,
           unit: item.unit,
-          category: 'دارویی',
+          category: 'دوایی',
         };
         current.qty += item.quantity;
         current.revenue += item.totalAFN;
@@ -232,7 +232,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               <span>{currentStore?.name}</span>
             </h1>
             <p className="text-xs text-sky-200 mt-1 max-w-xl">
-              داشبورد پایش لحظه‌ای فروش دارویی، جریان وصولی نقدی، ارزیابی تحقق تارگت ویزیتورها و هشدارهای انبار
+              داشبورد پایش لحظه‌ای فروش دوایی، جریان وصولی نقدی، ارزیابی تحقق تارگت ویزیتورها و هشدارهای انبار
             </p>
           </div>
 
@@ -268,7 +268,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
-          {/* 1. داروها و موجودی انبار */}
+          {/* 1. دواها و موجودی انبار */}
           <button
             type="button"
             onClick={() => onNavigateTab('medicines')}
@@ -278,8 +278,8 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               <Package className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">داروها و موجودی</div>
-              <div className="text-[10px] text-sky-700 dark:text-sky-300 font-bold">{medicines.length} قلم دارو</div>
+              <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">دواها و موجودی</div>
+              <div className="text-[10px] text-sky-700 dark:text-sky-300 font-bold">{medicines.length} قلم دوا</div>
             </div>
           </button>
 
@@ -353,7 +353,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               <Building className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">داروخانه‌ها</div>
+              <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">دواخانه‌ها</div>
               <div className="text-[10px] text-teal-700 dark:text-teal-300 font-bold">{customers.length} مرکز فعال</div>
             </div>
           </button>
@@ -432,7 +432,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         />
 
         <MetricCardWithSparkline
-          title="کل سفارشات دارویی"
+          title="کل سفارشات دوایی"
           value={orders.length}
           unit="سفارش"
           icon={<ShoppingCart className="w-4 h-4" />}
@@ -446,7 +446,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
 
       {/* SECTION 1: Dynamic Sales & Cash Collection Trend Chart */}
       <InteractiveAreaTrendChart
-        title="نمودار تحلیل روند فروش دارویی و وصولی نقدی"
+        title="نمودار تحلیل روند فروش دوایی و وصولی نقدی"
         subtitle="بررسی جریان فروش کل در برابر دریافتی‌های قطعی جهت مدیریت هوشمند نقدینگی فروشگاه"
         data={salesTrendData}
         primaryLabel="فروش کل (AFN)"
@@ -471,7 +471,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
 
         {/* Right: Top 5 Best-Selling Medicines Rank Chart */}
         <InteractiveHorizontalRankChart
-          title="پرفروش‌ترین داروهای سبد انبار"
+          title="پرفروش‌ترین دواهای سبد انبار"
           subtitle="رتبه‌بندی اقلام پرتقاضا بر اساس تعداد بسته و مجموع ارزش ناخالص فروش"
           items={topSellingMedicines}
           valueLabel="تعداد بسته فروخته‌شده"
@@ -516,7 +516,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
             <Truck className="w-4 h-4 text-sky-600" />
-            <span>پایپ‌لاین عملیاتی پردازش و تحویل دارو:</span>
+            <span>پایپ‌لاین عملیاتی پردازش و تحویل دوا:</span>
           </h3>
           <button
             onClick={() => onNavigateTab('orders')}
@@ -569,13 +569,13 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
             <div className="flex items-center justify-between text-rose-800 font-bold text-xs mb-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-600" />
-                <span>هشدار کسری موجودی انبار ({lowStockMeds.length} قلم دارو)</span>
+                <span>هشدار کسری موجودی انبار ({lowStockMeds.length} قلم دوا)</span>
               </div>
               <button
                 onClick={() => onNavigateTab('medicines')}
                 className="text-rose-700 hover:underline text-[11px]"
               >
-                انبار داروها
+                انبار دواها
               </button>
             </div>
             <div className="space-y-2">
@@ -606,7 +606,7 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
             <div className="flex items-center justify-between text-amber-800 font-bold text-xs mb-3">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-amber-600" />
-                <span>داروهای نزدیک تاریخ انقضا ({nearExpiryMeds.length} قلم دارو)</span>
+                <span>دواهای نزدیک تاریخ انقضا ({nearExpiryMeds.length} قلم دوا)</span>
               </div>
               <button
                 onClick={() => onNavigateTab('medicines')}

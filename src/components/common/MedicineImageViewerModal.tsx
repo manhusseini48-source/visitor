@@ -35,7 +35,7 @@ export const MedicineImageViewerModal: React.FC<MedicineImageViewerModalProps> =
             </div>
             <div className="min-w-0">
               <h3 className="font-bold text-sm md:text-base text-white truncate">
-                {title || 'تصویر داروی انتخابی'}
+                {title || 'تصویر دوای انتخابی'}
               </h3>
               {code && (
                 <span className="text-xs text-slate-400 font-mono">
@@ -70,7 +70,7 @@ export const MedicineImageViewerModal: React.FC<MedicineImageViewerModalProps> =
         <div className="relative flex items-center justify-center p-4 md:p-8 bg-slate-950/80 min-h-[300px] max-h-[75vh] overflow-hidden">
           <img
             src={imageUrl}
-            alt={title || 'دارو'}
+            alt={title || 'دوا'}
             className="max-h-[65vh] max-w-full object-contain rounded-2xl shadow-lg transition-transform duration-300 hover:scale-[1.02]"
             loading="lazy"
           />

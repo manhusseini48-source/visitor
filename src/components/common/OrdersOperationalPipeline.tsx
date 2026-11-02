@@ -76,7 +76,7 @@ const PIPELINE_STAGES: PipelineStageConfig[] = [
   {
     id: 'preparing',
     title: 'انبار و بسته‌بندی',
-    subtitle: 'آماده‌سازی اقلام دارویی',
+    subtitle: 'آماده‌سازی اقلام دوایی',
     icon: Boxes,
     badgeBg: 'bg-blue-100 dark:bg-blue-950/80',
     badgeText: 'text-blue-800 dark:text-blue-300',
@@ -199,7 +199,7 @@ export const OrdersOperationalPipeline: React.FC<Props> = ({
               <Boxes className="w-4 h-4" />
             </div>
             <h3 className="font-black text-slate-800 dark:text-slate-100 text-sm md:text-base">
-              پایپلاین عملیاتی پردازش، بسته‌بندی و ارسال دارو
+              پایپلاین عملیاتی پردازش، بسته‌بندی و ارسال دوا
             </h3>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200">
               {orders.length} سفارش
@@ -314,7 +314,7 @@ export const OrdersOperationalPipeline: React.FC<Props> = ({
                         </h4>
                         <div className="text-[10px] text-slate-400 mt-0.5 flex items-center justify-between">
                           <span>ویزیتور: {ord.visitorName}</span>
-                          <span>{ord.items.length} قلم دارو</span>
+                          <span>{ord.items.length} قلم دوا</span>
                         </div>
                       </div>
 
@@ -372,7 +372,7 @@ export const OrdersOperationalPipeline: React.FC<Props> = ({
               <div>
                 <h3 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                   <Boxes className="w-4 h-4 text-purple-600" />
-                  <span>گردش کار فاکتور دارویی {selectedOrderDetails.orderNumber}</span>
+                  <span>گردش کار فاکتور دوایی {selectedOrderDetails.orderNumber}</span>
                 </h3>
                 <span className="text-[11px] text-slate-400">
                   مشتری: {selectedOrderDetails.customerName} | ویزیتور: {selectedOrderDetails.visitorName}

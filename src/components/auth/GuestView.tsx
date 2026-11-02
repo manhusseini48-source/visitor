@@ -41,7 +41,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
     : '93' + whatsappClean;
 
   const whatsappUrl = `https://wa.me/${whatsappInternational}?text=${encodeURIComponent(
-    'سلام، جهت مشاوره و خرید سامانه ویزیتور دارو پیام می‌دهم.'
+    'سلام، جهت مشاوره و خرید سامانه ویزیتور دوا پیام می‌دهم.'
   )}`;
 
   const handleRestrictedAction = () => {
@@ -56,7 +56,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <div className="inline-flex items-center gap-2 bg-sky-500/20 border border-sky-400/30 text-sky-300 px-3.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>پلتفرم تخصصی عمده‌فروشی و توزیع دارو</span>
+              <span>پلتفرم تخصصی عمده‌فروشی و توزیع دوا</span>
             </div>
             <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-sky-100 px-3.5 py-1 rounded-full text-xs font-bold backdrop-blur-md">
               <Calendar className="w-3.5 h-3.5 text-sky-300" />
@@ -69,11 +69,11 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight mb-4">
-            نرم‌افزار جامع <span className="text-sky-400">ویزیتور دارو</span>
+            نرم‌افزار جامع <span className="text-sky-400">ویزیتور دوا</span>
           </h1>
 
           <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8">
-            انتقال هوشمند فرایند سفارش‌گیری، مدیریت ویزیتورها، موجودی داروها، ردیابی وصول مطالبات و حسابداری کمیسیون از حالت کاغذی سنتی به سامانه‌ای مدرن، سریع، امن و آفلاین‌پذیر.
+            انتقال هوشمند فرایند سفارش‌گیری، مدیریت ویزیتورها، موجودی دواها، ردیابی وصول مطالبات و حسابداری کمیسیون از حالت کاغذی سنتی به سامانه‌ای مدرن، سریع، امن و آفلاین‌پذیر.
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -116,7 +116,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
               ✓
             </div>
             <div className="text-xs">
-              <div className="font-bold text-white">بارگذاری پرسرعت کاتالوگ دارو</div>
+              <div className="font-bold text-white">بارگذاری پرسرعت کاتالوگ دوا</div>
               <div className="text-slate-400 text-[10px]">بهینه‌سازی مصرف داده و اتصال پایدار</div>
             </div>
           </div>
@@ -126,7 +126,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
             </div>
             <div className="text-xs">
               <div className="font-bold text-white">واحد پول افغانی و تقویم محلی</div>
-              <div className="text-slate-400 text-[10px]">طراحی شده برای بازار دارویی افغانستان</div>
+              <div className="text-slate-400 text-[10px]">طراحی شده برای بازار دوایی افغانستان</div>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          امکانات پنل فروشگاه دارویی
+          امکانات پنل فروشگاه دوایی
         </button>
         <button
           onClick={() => setActiveTab('visitor_panel')}
@@ -176,7 +176,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
               </div>
               <h3 className="font-bold text-slate-800 mb-2">سفارش‌گیری سریع و بی‌اشتباه</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                ویزیتور در دواخانه تنها با چند لمس ساده، نام دارو، موجودی زنده، دوز و قیمت را مشاهده نموده و سفارش را همراه تخفیف‌های مجاز ثبت می‌کند.
+                ویزیتور در دواخانه تنها با چند لمس ساده، نام دوا، موجودی زنده، دوز و قیمت را مشاهده نموده و سفارش را همراه تخفیف‌های مجاز ثبت می‌کند.
               </p>
             </div>
 
@@ -186,7 +186,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
               </div>
               <h3 className="font-bold text-slate-800 mb-2">حسابداری دقیق پورسانت و وصول</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                تفکیک کامل وضعیت ارسال دارو از وضعیت وصول وجه، محاسبه شفاف پورسانت بر مبنای سفارش یا وصول، و دفتر مالی اختصاصی برای هر ویزیتور.
+                تفکیک کامل وضعیت ارسال دوا از وضعیت وصول وجه، محاسبه شفاف پورسانت بر مبنای سفارش یا وصول، و دفتر مالی اختصاصی برای هر ویزیتور.
               </p>
             </div>
 
@@ -204,7 +204,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
           {/* Interactive Mock Action to Demonstrate Guest Interception */}
           <div className="bg-slate-100/80 rounded-2xl p-6 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h4 className="font-bold text-slate-800 text-sm">آزمایش ثبت دارو یا سفارش به عنوان مهمان</h4>
+              <h4 className="font-bold text-slate-800 text-sm">آزمایش ثبت دوا یا سفارش به عنوان مهمان</h4>
               <p className="text-xs text-slate-500 mt-1">
                 در حالت مهمان می‌توانید ساختار سیستم را مشاهده فرمایید، اما برای تغییرات واقعی پایگاه داده نیاز به ثبت‌نام یا ورود است.
               </p>
@@ -214,7 +214,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
               className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             >
               <Pill className="w-4 h-4" />
-              <span>افزودن داروی جدید</span>
+              <span>افزودن دوای جدید</span>
             </button>
           </div>
         </div>
@@ -225,17 +225,17 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
           <div className="flex items-center gap-2 text-sky-700 font-bold text-base mb-2">
             <Laptop className="w-5 h-5" />
-            <span>بخش‌های ویژه صاحب فروشگاه و عمده‌فروش دارو:</span>
+            <span>بخش‌های ویژه صاحب فروشگاه و عمده‌فروش دوا:</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="font-bold text-slate-800 mb-1">۱. داشبورد آمار لحظه‌ای</div>
-              فروش امروز و ماه جاری، مبالغ وصول‌شده، مطالبات معوق، هشدارهای موجودی اندک و داروهای نزدیک انقضا.
+              فروش امروز و ماه جاری، مبالغ وصول‌شده، مطالبات معوق، هشدارهای موجودی اندک و دواهای نزدیک انقضا.
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="font-bold text-slate-800 mb-1">۲. مدیریت جامع داروها و انبار</div>
-              تعریف فرم دارویی، سری ساخت، تاریخ انقضا، واحد بسته‌بندی، قیمت خرید و فروش و بارگذاری تصاویر باکیفیت کاتالوگ.
+              <div className="font-bold text-slate-800 mb-1">۲. مدیریت جامع دواها و انبار</div>
+              تعریف فرم دوایی، سری ساخت، تاریخ انقضا، واحد بسته‌بندی، قیمت خرید و فروش و بارگذاری تصاویر باکیفیت کاتالوگ.
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="font-bold text-slate-800 mb-1">۳. ساخت حساب ویزیتور و قوانین پورسانت</div>
@@ -260,7 +260,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="font-bold text-slate-800 mb-1">ثبت سفارش با ۲ لمس</div>
-              جستجوی نام تجاری دارو، مشاهده موجودی انبار، اعمال تخفیف و ثبت آنی فاکتور.
+              جستجوی نام تجاری دوا، مشاهده موجودی انبار، اعمال تخفیف و ثبت آنی فاکتور.
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="font-bold text-slate-800 mb-1">برنامه ویزیت روزانه و ثبت نتیجه</div>
@@ -287,7 +287,7 @@ export const GuestView: React.FC<Props> = ({ onOpenLogin, onOpenRegister }) => {
             </div>
             <h3 className="font-black text-slate-800 text-base">دسترسی حالت مهمان</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              شما در حال مشاهده دموی معرفی سیستم هستید. برای ثبت دارو، ویرایش مشتریان یا ثبت سفارش واقعی، لطفاً ثبت‌نام کنید یا وارد حساب شوید.
+              شما در حال مشاهده دموی معرفی سیستم هستید. برای ثبت دوا، ویرایش مشتریان یا ثبت سفارش واقعی، لطفاً ثبت‌نام کنید یا وارد حساب شوید.
             </p>
             <div className="flex items-center gap-2 pt-2">
               <button

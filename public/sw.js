@@ -1,4 +1,4 @@
-// Service Worker for ویزیتور - پنل ویزیتور دارو
+// Service Worker for ویزیتور - پنل ویزیتور دوا
 // Version 2.5 - Auto Cache Buster
 const CACHE_NAME = 'visitor-pharma-v2.5';
 

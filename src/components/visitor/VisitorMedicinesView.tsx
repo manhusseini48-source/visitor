@@ -102,7 +102,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
         <div>
           <h2 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Pill className="w-5 h-5 text-sky-600 dark:text-sky-400 rotate-45" />
-            <span>کاتالوگ و موجودی زنده داروها ({medicines.length} قلم دارو)</span>
+            <span>کاتالوگ و موجودی زنده دواها ({medicines.length} قلم دوا)</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             مشاهده موجودی لحظه‌ای انبار فروشگاه، قیمت فروش، تاریخ انقضا و بسته‌بندی جهت معرفی به دواخانه‌ها
@@ -111,18 +111,18 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => exportMedicinesToExcel(filteredMedicines, currentStore?.name || 'فروشگاه دارویی')}
+            onClick={() => exportMedicinesToExcel(filteredMedicines, currentStore?.name || 'فروشگاه دوایی')}
             className="px-3 py-2 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            title="دانلود فایل اکسل فهرست داروها"
+            title="دانلود فایل اکسل فهرست دواها"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>اکسل لیست داروها</span>
+            <span>اکسل لیست دواها</span>
           </button>
 
           <button
-            onClick={() => exportMedicinesToPDF(filteredMedicines, currentStore?.name || 'فروشگاه دارویی')}
+            onClick={() => exportMedicinesToPDF(filteredMedicines, currentStore?.name || 'فروشگاه دوایی')}
             className="px-3 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            title="دانلود کاتالوگ PDF رسمی داروها"
+            title="دانلود کاتالوگ PDF رسمی دواها"
           >
             <FileText className="w-4 h-4" />
             <span>کاتالوگ PDF</span>
@@ -153,7 +153,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
       {/* Stock Summary Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">کل اقلام دارویی</div>
+          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">کل اقلام دوایی</div>
           <div className="text-xl font-black text-slate-800 dark:text-slate-100 mt-1 font-mono">
             {medicines.length} <span className="text-xs font-normal text-slate-400">قلم</span>
           </div>
@@ -198,7 +198,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجو در نام دارو، برند تجارتی، دوز یا کد اختصاصی..."
+              placeholder="جستجو در نام دوا، برند تجارتی، دوز یا کد اختصاصی..."
               className="w-full pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:border-sky-500 outline-none transition"
             />
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
@@ -222,7 +222,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
             <button
               onClick={reloadData}
               className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition cursor-pointer"
-              title="بروزرسانی مجدد فهرست داروها"
+              title="بروزرسانی مجدد فهرست دواها"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -238,12 +238,12 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
           </div>
           <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">
             {medicines.length === 0
-              ? 'هنوز دارویی در انبار فروشگاه ثبت نشده است'
-              : 'دارویی مطابق با فیلتر جستجو یافت نشد'}
+              ? 'هنوز دوایی در انبار فروشگاه ثبت نشده است'
+              : 'دوایی مطابق با فیلتر جستجو یافت نشد'}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             {medicines.length === 0
-              ? 'مدیر فروشگاه با ثبت دارو در بخش انبار و موجودی، اقلام دارویی را بلافاصله در این بخش برای ویزیتورها فعال می‌نماید.'
+              ? 'مدیر فروشگاه با ثبت دوا در بخش انبار و موجودی، اقلام دوایی را بلافاصله در این بخش برای ویزیتورها فعال می‌نماید.'
               : 'عبارت جستجو یا فیلتر دسته‌بندی را تغییر دهید.'}
           </p>
         </div>
@@ -272,7 +272,7 @@ export const VisitorMedicinesView: React.FC<Props> = ({ onNavigateTab }) => {
                         })
                       }
                       className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center text-slate-400 flex-shrink-0 cursor-pointer hover:border-sky-500 transition relative group"
-                      title="مشاهده تصویر بزرگ دارو"
+                      title="مشاهده تصویر بزرگ دوا"
                     >
                       {mainImg ? (
                         <img

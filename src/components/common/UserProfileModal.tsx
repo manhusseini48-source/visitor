@@ -35,8 +35,8 @@ interface Props {
 
 // Preset avatars for rapid selection
 const PRESET_AVATARS = [
-  { id: 'doc_male', label: 'دکتر داروساز (آقا)', icon: '👨‍⚕️' },
-  { id: 'doc_female', label: 'دکتر داروساز (خانم)', icon: '👩‍⚕️' },
+  { id: 'doc_male', label: 'دکتر دواساز (آقا)', icon: '👨‍⚕️' },
+  { id: 'doc_female', label: 'دکتر دواساز (خانم)', icon: '👩‍⚕️' },
   { id: 'visitor_male', label: 'ویزیتور رسمی', icon: '💼' },
   { id: 'manager', label: 'مدیر بازرگانی', icon: '🧑‍💼' },
   { id: 'pharmacist', label: 'مسئول فنی دواخانه', icon: '🧑‍🔬' },

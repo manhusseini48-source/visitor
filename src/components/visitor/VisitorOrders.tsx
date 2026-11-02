@@ -199,7 +199,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
     }
 
     if (cartItems.length === 0) {
-      setFormError('سبد سفارش خالی است. لطفاً حداقل یک دارو اضافه کنید.');
+      setFormError('سبد سفارش خالی است. لطفاً حداقل یک دوا اضافه کنید.');
       return;
     }
 
@@ -422,7 +422,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
         <div>
           <h2 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-emerald-600" />
-            <span>سفارشات من و ثبت فاکتور دارویی ({orders.length})</span>
+            <span>سفارشات من و ثبت فاکتور دوایی ({orders.length})</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             فهرست فاکتورهای ثبت‌شده، پیگیری وضعیت آماده‌سازی در انبار و صدور فاکتور جدید
@@ -440,7 +440,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
               }`}
             >
               <Boxes className="w-4 h-4" />
-              <span>پایپ‌لاین مراحل دارو</span>
+              <span>پایپ‌لاین مراحل دوا</span>
             </button>
             <button
               onClick={() => setViewMode('list')}
@@ -461,7 +461,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
               className="px-3.5 py-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>گالری داروها و صدور فاکتور</span>
+              <span>گالری دواها و صدور فاکتور</span>
             </button>
           )}
 
@@ -509,7 +509,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
         <div className="space-y-3">
         {orders.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 text-center text-slate-400 text-xs">
-            تاکنون سفارشی ثبت نکرده‌اید. با دکمه «گالری داروها و صدور فاکتور» یا «ثبت سریع فاکتور» شروع کنید.
+            تاکنون سفارشی ثبت نکرده‌اید. با دکمه «گالری دواها و صدور فاکتور» یا «ثبت سریع فاکتور» شروع کنید.
           </div>
         ) : (
           orders.map((o) => {
@@ -533,7 +533,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                       </h3>
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3">
-                      <span>{o.items.length} قلم دارو</span>
+                      <span>{o.items.length} قلم دوا</span>
                       <span>•</span>
                       <span>تاریخ: {new Date(o.createdAt).toLocaleDateString('fa-AF')}</span>
                       {o.paidAmountAFN > 0 && (
@@ -622,7 +622,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                   <div className="bg-slate-50 dark:bg-slate-850 p-4 border-t border-slate-100 dark:border-slate-800 animate-in fade-in">
                     <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 mb-2.5 flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-sky-600" />
-                      <span>ریز اقلام دارویی ثبت‌شده در فاکتور:</span>
+                      <span>ریز اقلام دوایی ثبت‌شده در فاکتور:</span>
                     </h4>
 
                     <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-2xl bg-white dark:bg-slate-900">
@@ -630,8 +630,8 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                         <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700">
                           <tr>
                             <th className="py-2.5 px-3">ردیف</th>
-                            <th className="py-2.5 px-3">شرح دارو</th>
-                            <th className="py-2.5 px-3">نوع / شکل دارو</th>
+                            <th className="py-2.5 px-3">شرح دوا</th>
+                            <th className="py-2.5 px-3">نوع / شکل دوا</th>
                             <th className="py-2.5 px-3">واحد</th>
                             <th className="py-2.5 px-3">تعداد</th>
                             <th className="py-2.5 px-3">قیمت واحد (AFN)</th>
@@ -698,7 +698,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-emerald-600" />
-                <span>ثبت فاکتور دارویی سریع</span>
+                <span>ثبت فاکتور دوایی سریع</span>
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -738,7 +738,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    افزودن اقلام دارویی از انبار
+                    افزودن اقلام دوایی از انبار
                   </label>
                 </div>
                 <div className="relative mb-2">
@@ -747,7 +747,7 @@ export const VisitorOrders: React.FC<Props> = ({ onNavigateTab }) => {
                     type="text"
                     value={medSearch}
                     onChange={(e) => setMedSearch(e.target.value)}
-                    placeholder="جستجو بر اساس نام دارو، کد یا شکل دارویی..."
+                    placeholder="جستجو بر اساس نام دوا، کد یا شکل دوایی..."
                     className="w-full pr-9 pl-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
                   />
                 </div>

@@ -71,7 +71,7 @@ const EMOJI_CATEGORIES = [
   },
   {
     id: 'medical',
-    name: 'دارو و سلامت',
+    name: 'دوا و سلامت',
     icon: '💊',
     emojis: [
       '💊', '💉', '🩺', '🩹', '🧬', '🔬', '🌡️', '🏥', '🚑', '🧑‍⚕️',
@@ -105,7 +105,7 @@ const EMOJI_CATEGORIES = [
 // Quick business response templates
 const QUICK_TEMPLATES = [
   'سلام، سفارش شما دریافت و بررسی شد ✅',
-  'داروهای درخواستی موجود در انبار است 💊',
+  'دواهای درخواستی موجود در انبار است 💊',
   'لطفاً مانده حساب فاکتور را تسویه فرمایید 🧾',
   'فاکتور جدید صادر و آماده تحویل است 📦',
   'ویزیتور محترم، لطفاً به دواخانه مراجعه فرمایید 📍',
@@ -113,7 +113,7 @@ const QUICK_TEMPLATES = [
 ];
 
 export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
-  const { currentStore, currentUser } = useApp();
+  const { currentStore, currentUser, checkGuestAndPrompt } = useApp();
   const storeId = getEffectiveStoreId(currentUser, currentStore);
 
   // Mobile view toggle (show list vs active chat on small screens)
@@ -379,6 +379,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (checkGuestAndPrompt('ارسال پیام در پیام‌رسان')) return;
     setErrorNotice(null);
 
     if (!inputText.trim() && !selectedImage) return;
@@ -447,6 +448,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
   // Soft Delete a message (shows "این پیام حذف شده است")
   const handleDeleteMessage = (msgId: string) => {
+    if (checkGuestAndPrompt('حذف پیام')) return;
     Storage.softDeleteMessage(msgId, storeId);
     setMessages((prev) =>
       prev.map((m) =>

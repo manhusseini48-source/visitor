@@ -17,6 +17,8 @@ import {
   PersonalNote,
   EisenhowerTask,
   AppAnalytics,
+  GuestSessionLog,
+  GuestAnalyticsSummary,
 } from '../types';
 import { SupabaseSync } from './supabaseSync';
 
@@ -41,26 +43,27 @@ const STORAGE_KEYS = {
   NOTES: 'visitor_app_notes',
   EISENHOWER: 'visitor_app_eisenhower',
   ANALYTICS: 'visitor_app_analytics',
+  GUEST_SESSIONS: 'visitor_app_guest_sessions',
 };
 
 export const INITIAL_SUPPORT_FAQS: SupportFaq[] = [
   {
     id: 'faq_01',
-    question: 'چگونه داروی جدید به انبار و کاتالوگ فروشگاه اضافه کنم؟',
-    answer: 'از منوی «داروها و انبار» روی دکمه «افزودن داروی جدید» کلیک کنید. نام، کد، دوز، تاریخ انقضا، موجودی انبار و قیمت فروش را وارد نموده و عکس دارو را بارگذاری نمایید تا فوراً با تمام ویزیتورها همگام‌سازی شود.',
+    question: 'چگونه دوای جدید به انبار و کاتالوگ فروشگاه اضافه کنم؟',
+    answer: 'از منوی «دواها و انبار» روی دکمه «افزودن دوای جدید» کلیک کنید. نام، کد، دوز، تاریخ انقضا، موجودی انبار و قیمت فروش را وارد نموده و عکس دوا را بارگذاری نمایید تا فوراً با تمام ویزیتورها همگام‌سازی شود.',
     isActive: true,
     order: 1,
   },
   {
     id: 'faq_02',
     question: 'ویزیتور چگونه سفارش، فاکتور و بیعانه ثبت می‌کند؟',
-    answer: 'ویزیتور از منوی «کاتالوگ و صدور فاکتور»، داروهای مورد نظر را جستجو و به سبد خرید اضافه می‌کند، داروخانه را انتخاب کرده و در صورت دریافت وجه، نوع تسویه (بیعانه، نقد یا حواله) را درج و فاکتور نهایی را صادر می‌نماید.',
+    answer: 'ویزیتور از منوی «کاتالوگ و صدور فاکتور»، دواهای مورد نظر را جستجو و به سبد خرید اضافه می‌کند، دواخانه را انتخاب کرده و در صورت دریافت وجه، نوع تسویه (بیعانه، نقد یا حواله) را درج و فاکتور نهایی را صادر می‌نماید.',
     isActive: true,
     order: 2,
   },
   {
     id: 'faq_03',
-    question: 'آیا ویزیتورها می‌توانند وجه یا بیعانه از داروخانه‌ها تحویل بگیرند؟',
+    question: 'آیا ویزیتورها می‌توانند وجه یا بیعانه از دواخانه‌ها تحویل بگیرند؟',
     answer: 'بله، در صورتی که مدیر فروشگاه گزینه «مجوز دریافت بیعانه» را فعال کرده باشد، ویزیتور می‌تواند وجه نقد، کارت‌به‌کارت یا فیش بانکی دریافت کرده و از بخش حسابداری با فروشگاه تسویه نماید.',
     isActive: true,
     order: 3,
@@ -84,7 +87,7 @@ export const INITIAL_SUPPORT_FAQS: SupportFaq[] = [
 // Initial Config
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   appName: 'ویزیتور',
-  shortDescription: 'پنل ویزیتور دارو',
+  shortDescription: 'پنل ویزیتور دوا',
   primaryColor: '#0284c7', // Sky-600
   accentColor: '#0d9488', // Teal-600
   subscriptionExpiredMessage:
@@ -102,13 +105,13 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   announcementDate: '',
   announcementDismissible: true,
   supportWelcomeMessage:
-    'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام، سؤال یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.',
+    'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دوا خوش آمدید. پیام، سؤال یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.',
   supportFaqs: INITIAL_SUPPORT_FAQS,
   notifications: [
     {
       id: 'notif_init_01',
-      title: 'خوش‌آمدید به سامانه ویزیتور دارو',
-      message: 'نسخه جدید ۲.۵ با موتور هماهنگ‌سازی ابری داروها، پیام‌ها و کاتالوگ آنلاین هم‌اکنون فعال است.',
+      title: 'خوش‌آمدید به سامانه ویزیتور دوا',
+      message: 'نسخه جدید ۲.۵ با موتور هماهنگ‌سازی ابری دواها، پیام‌ها و کاتالوگ آنلاین هم‌اکنون فعال است.',
       type: 'feature',
       createdAt: new Date().toISOString(),
       isImportant: true,
@@ -119,7 +122,7 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   version: 1,
   appReleaseVersion: '2.5.0',
   appVersionCode: 5,
-  appUpdateNotes: 'همگام‌سازی کامل داروها، پیام‌ها، مدیریت پیشرفته کاربران و پرسش‌های متداول',
+  appUpdateNotes: 'همگام‌سازی کامل دواها، پیام‌ها، مدیریت پیشرفته کاربران و پرسش‌های متداول',
   appUpdateRequired: false,
 };
 
@@ -1104,6 +1107,133 @@ export const Storage = {
       setItem('visitor_app_installs_count', count);
       this.recordAppVisit('pwa');
     } catch {}
+  },
+
+  getGuestSessions(): GuestSessionLog[] {
+    return getItem<GuestSessionLog[]>(STORAGE_KEYS.GUEST_SESSIONS, []);
+  },
+
+  recordGuestSession(info: Partial<GuestSessionLog>): GuestSessionLog {
+    try {
+      const all = this.getGuestSessions();
+      const now = new Date();
+      let shamsiDateFormatted = '';
+      try {
+        shamsiDateFormatted = `${now.toLocaleDateString('fa-AF')} ${now.toLocaleTimeString('fa-AF', { hour: '2-digit', minute: '2-digit' })}`;
+      } catch {
+        shamsiDateFormatted = now.toISOString();
+      }
+
+      const newSession: GuestSessionLog = {
+        id: `gs_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: now.toISOString(),
+        deviceType: info.deviceType || 'mobile',
+        os: info.os || 'نامشخص',
+        browser: info.browser || 'مرورگر وب',
+        screenWidth: info.screenWidth || 0,
+        screenHeight: info.screenHeight || 0,
+        viewportWidth: info.viewportWidth || 0,
+        viewportHeight: info.viewportHeight || 0,
+        pixelRatio: info.pixelRatio || 1,
+        userAgent: info.userAgent || '',
+        language: info.language || 'fa-AF',
+        isStandalonePWA: info.isStandalonePWA ?? false,
+        platform: info.platform || '',
+        shamsiDateFormatted,
+      };
+
+      const updated = [newSession, ...all.slice(0, 999)];
+      setItem(STORAGE_KEYS.GUEST_SESSIONS, updated);
+
+      this.recordAppVisit('guest');
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+      }
+
+      try {
+        (SupabaseSync as any).syncGuestSession?.(newSession);
+      } catch {}
+
+      return newSession;
+    } catch (e) {
+      console.warn('Error recording guest session:', e);
+      return {
+        id: `gs_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        deviceType: 'mobile',
+        os: 'نامشخص',
+        browser: 'مرورگر وب',
+        screenWidth: 0,
+        screenHeight: 0,
+        viewportWidth: 0,
+        viewportHeight: 0,
+        pixelRatio: 1,
+        userAgent: '',
+        language: 'fa',
+        isStandalonePWA: false,
+      };
+    }
+  },
+
+  deleteGuestSession(sessionId: string) {
+    try {
+      const all = this.getGuestSessions();
+      const filtered = all.filter((s) => s.id !== sessionId);
+      setItem(STORAGE_KEYS.GUEST_SESSIONS, filtered);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch {}
+  },
+
+  clearGuestSessions() {
+    try {
+      setItem(STORAGE_KEYS.GUEST_SESSIONS, []);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch {}
+  },
+
+  getGuestAnalyticsSummary(): GuestAnalyticsSummary {
+    const sessions = this.getGuestSessions();
+    const deviceCounts = { mobile: 0, tablet: 0, desktop: 0 };
+    const osCounts: Record<string, number> = {};
+    const browserCounts: Record<string, number> = {};
+    let pwaCount = 0;
+    let webCount = 0;
+
+    const uniqueDeviceKeys = new Set<string>();
+
+    sessions.forEach((s) => {
+      if (s.deviceType === 'mobile') deviceCounts.mobile++;
+      else if (s.deviceType === 'tablet') deviceCounts.tablet++;
+      else deviceCounts.desktop++;
+
+      const fingerprint = `${s.os}_${s.browser}_${s.screenWidth}x${s.screenHeight}_${s.isStandalonePWA}`;
+      uniqueDeviceKeys.add(fingerprint);
+
+      const osKey = s.os || 'سایر';
+      osCounts[osKey] = (osCounts[osKey] || 0) + 1;
+
+      const bKey = s.browser || 'سایر';
+      browserCounts[bKey] = (browserCounts[bKey] || 0) + 1;
+
+      if (s.isStandalonePWA) pwaCount++;
+      else webCount++;
+    });
+
+    return {
+      totalSessions: sessions.length,
+      uniqueDevices: uniqueDeviceKeys.size,
+      deviceCounts,
+      osCounts,
+      browserCounts,
+      pwaCount,
+      webCount,
+      lastSessionTime: sessions.length > 0 ? sessions[0].timestamp : undefined,
+    };
   },
 
   resetAllData() {

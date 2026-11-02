@@ -53,21 +53,25 @@ import {
   Download,
   ExternalLink,
   Code2,
+  Smartphone,
+  Laptop,
 } from 'lucide-react';
 import { InteractiveDonutChart, DonutSegment } from '../charts/InteractiveDonutChart';
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
 import { VisualAppEditor } from './VisualAppEditor';
 import { CreatorAnalyticsAndInventory } from './CreatorAnalyticsAndInventory';
+import { CreatorGuestAnalytics } from './CreatorGuestAnalytics';
 import { SupabaseSync } from '../../utils/supabaseSync';
 import { SUPABASE_SCHEMA_SQL } from '../../utils/supabaseSchemaCode';
 
 export const CreatorEmbeddedPanel: React.FC = () => {
   const { platformConfig, updatePlatformConfig, updateStoreSubscription, refreshState, shamsiDate } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'visual_editor' | 'announcement' | 'stores' | 'users' | 'analytics_inventory' | 'support' | 'platform' | 'supabase_sql' | 'danger'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'visual_editor' | 'announcement' | 'stores' | 'users' | 'guest_analytics' | 'analytics_inventory' | 'support' | 'platform' | 'supabase_sql' | 'danger'>('overview');
   const [sqlCopied, setSqlCopied] = useState(false);
   const [isTestingSupabase, setIsTestingSupabase] = useState(false);
   const [testSupabaseStatus, setTestSupabaseStatus] = useState<{ success: boolean; msg: string; latency?: number } | null>(null);
+  const [guestSessionsCount, setGuestSessionsCount] = useState<number>(() => Storage.getGuestSessions().length);
 
   const formatRelativeTime = (isoString?: string) => {
     if (!isoString) return 'بدون فعالیت اخیر';
@@ -259,6 +263,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       setMedicines(Storage.getAllMedicinesAcrossStores());
       setOrders(Storage.getAllOrdersAcrossStores());
       setCustomers(Storage.getCustomers());
+      setGuestSessionsCount(Storage.getGuestSessions().length);
     };
     window.addEventListener('storage', handleStorageChange);
     const interval = setInterval(() => {
@@ -283,6 +288,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     setMedicines(Storage.getAllMedicinesAcrossStores());
     setOrders(Storage.getAllOrdersAcrossStores());
     setCustomers(Storage.getCustomers());
+    setGuestSessionsCount(Storage.getGuestSessions().length);
   };
 
   // ==========================================
@@ -627,7 +633,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
   const [faqs, setFaqs] = useState<SupportFaq[]>(() => platformConfig.supportFaqs || []);
   const [welcomeMessage, setWelcomeMessage] = useState(
     platformConfig.supportWelcomeMessage ||
-      'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.'
+      'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دوا خوش آمدید. پیام یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.'
   );
   const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
   const [faqQuestion, setFaqQuestion] = useState('');
@@ -719,7 +725,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
   const [appReleaseVersion, setAppReleaseVersion] = useState(platformConfig.appReleaseVersion || '2.5.0');
   const [appVersionCode, setAppVersionCode] = useState<number>(platformConfig.appVersionCode || 5);
   const [appUpdateNotes, setAppUpdateNotes] = useState(
-    platformConfig.appUpdateNotes || 'بهبود سینک لحظه‌ای داروها، پیام‌ها، انبار و کاتالوگ'
+    platformConfig.appUpdateNotes || 'بهبود سینک لحظه‌ای دواها، پیام‌ها، انبار و کاتالوگ'
   );
 
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -728,7 +734,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
 
   // Sync state if platformConfig changes from cloud or storage
   useEffect(() => {
-    setAppName(platformConfig.appName || 'سامانه جامع ویزیتور و پخش دارو');
+    setAppName(platformConfig.appName || 'سامانه جامع ویزیتور و پخش دوا');
     setShortDesc(platformConfig.shortDescription || 'سفارش‌گیری آنلاین و مدیریت انبار');
     setExpiredMsg(platformConfig.subscriptionExpiredMessage || '');
     setSupportPhone(platformConfig.supportPhone || '0784524918');
@@ -1077,6 +1083,23 @@ export const CreatorEmbeddedPanel: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('guest_analytics')}
+          className={`pb-3 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            activeTab === 'guest_analytics'
+              ? 'border-purple-600 text-purple-700 dark:text-purple-400 font-black'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          <Smartphone className="w-4 h-4 text-sky-500" />
+          <span>ورود مهمان و دستگاه‌ها ({guestSessionsCount})</span>
+          {guestSessionsCount > 0 && (
+            <span className="text-[10px] bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 px-1.5 py-0.5 rounded-full font-mono font-bold">
+              {guestSessionsCount}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('support')}
           className={`pb-3 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeTab === 'support'
@@ -1139,7 +1162,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <MetricCardWithSparkline
-              title="کل داروخانه‌ها و عمده‌فروشی‌ها"
+              title="کل دواخانه‌ها و عمده‌فروشی‌ها"
               value={stores.length}
               unit="فروشگاه"
               icon={<StoreIcon className="w-4 h-4" />}
@@ -1172,7 +1195,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             />
 
             <MetricCardWithSparkline
-              title="مشتریان و داروخانه‌های طرف حساب"
+              title="مشتریان و دواخانه‌های طرف حساب"
               value={customers.length}
               unit="مشتری"
               icon={<UserCheck className="w-4 h-4" />}
@@ -1183,9 +1206,9 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             />
 
             <MetricCardWithSparkline
-              title="تنوع اقلام دارویی در انبارها"
+              title="تنوع اقلام دوایی در انبارها"
               value={medicines.length}
-              unit="قلم دارو"
+              unit="قلم دوا"
               icon={<Pill className="w-4 h-4" />}
               iconBg="bg-blue-100 text-blue-600"
               trend={medicines.length > 0 ? { percent: medicines.length, direction: 'up', label: `${totalInventoryUnitsCount} عدد موجود` } : undefined}
@@ -1224,6 +1247,17 @@ export const CreatorEmbeddedPanel: React.FC = () => {
               trend={tickets.length > 0 ? { percent: tickets.length, direction: 'neutral', label: 'مجموع تیکت‌ها' } : undefined}
               sparklineData={tickets.length > 0 ? [tickets.length * 0.5, tickets.length] : []}
               sparklineColor="#f43f5e"
+            />
+
+            <MetricCardWithSparkline
+              title="ورود با اکانت مهمان"
+              value={guestSessionsCount}
+              unit="نشست"
+              icon={<Smartphone className="w-4 h-4" />}
+              iconBg="bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400"
+              trend={guestSessionsCount > 0 ? { percent: guestSessionsCount, direction: 'up', label: 'رصد دستگاه‌ها' } : undefined}
+              sparklineData={guestSessionsCount > 0 ? [Math.round(guestSessionsCount * 0.5), guestSessionsCount] : []}
+              sparklineColor="#0284c7"
             />
           </div>
 
@@ -1477,7 +1511,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                     className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 outline-none"
                   >
                     <option value="all">👥 همه کاربران (صاحبان فروشگاه + ویزیتورها)</option>
-                    <option value="store_owner">🏬 فقط صاحبان و مدیران داروخانه‌ها</option>
+                    <option value="store_owner">🏬 فقط صاحبان و مدیران دواخانه‌ها</option>
                     <option value="visitor">🎒 فقط ویزیتورها و پرسنل فروش</option>
                   </select>
                 </div>
@@ -1573,7 +1607,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
-                  لیست و کنترل فروشگاه‌های دارویی ثبت‌شده ({stores.length})
+                  لیست و کنترل فروشگاه‌های دوایی ثبت‌شده ({stores.length})
                 </h3>
                 <p className="text-xs text-slate-500">
                   ویرایش مشخصات، افزایش مهلت تست، تغییر وضعیت اشتراک و صدور دسترسی
@@ -1585,7 +1619,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
               <table className="w-full text-right text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500">
-                    <th className="py-2 px-3 font-semibold">فروشگاه دارو</th>
+                    <th className="py-2 px-3 font-semibold">فروشگاه دوا</th>
                     <th className="py-2 px-3 font-semibold">مالک / تلفن</th>
                     <th className="py-2 px-3 font-semibold">وضعیت اشتراک</th>
                     <th className="py-2 px-3 font-semibold">پایان اعتبار</th>
@@ -1705,7 +1739,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                   <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                     <StoreIcon className="w-4 h-4 text-purple-600" />
-                    <span>ویرایش مشخصات فروشگاه دارو</span>
+                    <span>ویرایش مشخصات فروشگاه دوا</span>
                   </h3>
                   <button
                     onClick={() => setEditingStore(null)}
@@ -1718,7 +1752,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <form onSubmit={handleSaveStoreEdit} className="space-y-3.5 text-xs">
                   <div>
                     <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      نام فروشگاه / عمده‌فروشی دارو *
+                      نام فروشگاه / عمده‌فروشی دوا *
                     </label>
                     <input
                       type="text"
@@ -2151,6 +2185,13 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       )}
 
       {/* ========================================================= */}
+      {/* TAB: GUEST LOGINS & DEVICE OBSERVATORY */}
+      {/* ========================================================= */}
+      {activeTab === 'guest_analytics' && (
+        <CreatorGuestAnalytics />
+      )}
+
+      {/* ========================================================= */}
       {/* TAB 5: SUPPORT TICKETS & FAQ */}
       {/* ========================================================= */}
       {activeTab === 'support' && (
@@ -2183,7 +2224,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-bold text-slate-800 dark:text-slate-100">
-                          {t.storeName || 'فروشگاه دارو'}
+                          {t.storeName || 'فروشگاه دوا'}
                         </span>
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -2501,7 +2542,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 type="text"
                 value={appUpdateNotes}
                 onChange={(e) => setAppUpdateNotes(e.target.value)}
-                placeholder="مثال: بهبود کارایی، سیستم حسابداری، همگام‌سازی ابری سوپابیس و بهینه‌سازی کاتالوگ داروها"
+                placeholder="مثال: بهبود کارایی، سیستم حسابداری، همگام‌سازی ابری سوپابیس و بهینه‌سازی کاتالوگ دواها"
                 className="w-full px-3.5 py-2.5 bg-slate-900/90 border border-purple-500/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
@@ -2844,8 +2885,8 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 {[
                   { name: 'stores', fa: 'فروشگاه‌ها و اشتراک‌ها' },
                   { name: 'profiles', fa: 'کاربران و ویزیتورها' },
-                  { name: 'medicines', fa: 'کاتالوگ داروها و انبار' },
-                  { name: 'customers', fa: 'داروخانه‌ها و مشتریان' },
+                  { name: 'medicines', fa: 'کاتالوگ دواها و انبار' },
+                  { name: 'customers', fa: 'دواخانه‌ها و مشتریان' },
                   { name: 'orders', fa: 'سفارشات و فاکتورها' },
                   { name: 'visitor_cash_collections', fa: 'وصولی‌ها و بیعانه‌ها' },
                   { name: 'visitor_remittances', fa: 'واریزی‌ها به فروشگاه' },
@@ -2933,8 +2974,8 @@ export const CreatorEmbeddedPanel: React.FC = () => {
             </div>
             <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300 pr-1 text-[11px]">
               <li>حذف تمام فروشگاه‌های ثبت‌شده و اشتراک‌ها</li>
-              <li>حذف تمام کاتالوگ داروها و موجودی انبارها</li>
-              <li>حذف تمام مشتریان، داروخانه‌ها و مخاطبین</li>
+              <li>حذف تمام کاتالوگ دواها و موجودی انبارها</li>
+              <li>حذف تمام مشتریان، دواخانه‌ها و مخاطبین</li>
               <li>حذف تمام سفارشات، فاکتورها و تراکنش‌های حسابداری</li>
               <li>حذف برنامه‌های ویزیت و مسیرهای ثبت‌شده</li>
               <li>حذف چت‌ها و پیام‌های پشتیبانی</li>

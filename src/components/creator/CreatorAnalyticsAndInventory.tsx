@@ -501,7 +501,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
 
   // Export CSV
   const handleExportCSV = () => {
-    const headers = ['ردیف', 'فروشگاه', 'کد دارو', 'نام دارو', 'برند/شرکت', 'شکل دارویی', 'موجودی انبار', 'قیمت خرید (AFN)', 'قیمت فروش (AFN)', 'ارزش کل موجودی'];
+    const headers = ['ردیف', 'فروشگاه', 'کد دوا', 'نام دوا', 'برند/شرکت', 'شکل دوایی', 'موجودی انبار', 'قیمت خرید (AFN)', 'قیمت فروش (AFN)', 'ارزش کل موجودی'];
     const rows = filteredMedicines.map((m, idx) => {
       const st = stores.find((s) => s.id === m.storeId)?.name || m.storeId || 'نامشخص';
       const val = (m.stock || 0) * (m.salePrice || 0);
@@ -630,7 +630,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">تنوع اقلام دارویی</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">تنوع اقلام دوایی</span>
             <Pill className="w-4 h-4 text-sky-600" />
           </div>
           <div className="text-xl font-black text-slate-900 dark:text-white">
@@ -650,13 +650,13 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
             {globalPerformance.totalOrdersCount.toLocaleString()}
           </div>
           <div className="text-[10px] text-slate-400 mt-1">
-            {globalPerformance.totalSoldUnits.toLocaleString()} قلم داروی فروخته‌شده
+            {globalPerformance.totalSoldUnits.toLocaleString()} قلم دوای فروخته‌شده
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">مشتریان و داروخانه‌ها</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">مشتریان و دواخانه‌ها</span>
             <UserCheck className="w-4 h-4 text-indigo-600" />
           </div>
           <div className="text-xl font-black text-slate-900 dark:text-white">
@@ -877,14 +877,14 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
 
           <div className="bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/50 p-4 rounded-2xl">
             <div className="text-xs font-bold text-sky-700 dark:text-sky-300">
-              اقلام دارویی فروخته‌شده (خروجی)
+              اقلام دوایی فروخته‌شده (خروجی)
             </div>
             <div className="text-2xl font-black text-sky-900 dark:text-sky-100 mt-1">
               {globalPerformance.totalSoldUnits.toLocaleString()}{' '}
               <span className="text-xs font-normal">عدد / بسته</span>
             </div>
             <div className="text-[11px] text-sky-600/80 mt-1">
-              مجموع داروهای خارج شده از انبارها
+              مجموع دواهای خارج شده از انبارها
             </div>
           </div>
         </div>
@@ -897,7 +897,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
               <span>ماتریس عملکرد تفکیکی فروشگاه‌ها در بازه {timeFilterLabels[timeFilter]}</span>
             </span>
             <span className="text-[11px] text-slate-500 font-mono">
-              {storePerformance.length} شرکت/داروخانه
+              {storePerformance.length} شرکت/دواخانه
             </span>
           </div>
 
@@ -909,7 +909,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
                   <th className="py-2.5 px-3 font-semibold text-center">وضعیت اشتراک</th>
                   <th className="py-2.5 px-3 font-semibold text-center">ویزیتورها</th>
                   <th className="py-2.5 px-3 font-semibold text-center">سفارشات</th>
-                  <th className="py-2.5 px-3 font-semibold text-center">داروی فروخته‌شده</th>
+                  <th className="py-2.5 px-3 font-semibold text-center">دوای فروخته‌شده</th>
                   <th className="py-2.5 px-3 font-semibold text-center">مبلغ کل فروش (AFN)</th>
                   <th className="py-2.5 px-3 font-semibold text-center">موجودی انبار</th>
                   <th className="py-2.5 px-3 font-semibold text-center">ارزش موجودی انبار</th>
@@ -1014,11 +1014,11 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 flex items-center gap-1">
                 <Boxes className="w-3.5 h-3.5" />
-                <span>رصدخانه موجودی انبار و کاتالوگ داروها</span>
+                <span>رصدخانه موجودی انبار و کاتالوگ دواها</span>
               </span>
             </div>
             <h3 className="text-base font-black text-slate-800 dark:text-slate-100">
-              لیست تفصیلی داروها، موجودی واقعی، قیمت خرید و قیمت فروش
+              لیست تفصیلی دواها، موجودی واقعی، قیمت خرید و قیمت فروش
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               امکان مشاهده کاتالوگ تمام شرکت‌ها یا تفکیک بر اساس یک فروشگاه خاص
@@ -1032,7 +1032,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
               onChange={(e) => setSelectedStoreId(e.target.value)}
               className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 outline-none"
             >
-              <option value="all">مجموع کل داروها (همه فروشگاه‌ها)</option>
+              <option value="all">مجموع کل دواها (همه فروشگاه‌ها)</option>
               {stores.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -1045,7 +1045,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="جستجوی نام دارو، برند، کد..."
+                placeholder="جستجوی نام دوا، برند، کد..."
                 className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none"
               />
               <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5" />
@@ -1092,7 +1092,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
                 <tr>
                   <th className="py-2.5 px-3 font-semibold">ردیف</th>
                   <th className="py-2.5 px-3 font-semibold">فروشگاه مالک</th>
-                  <th className="py-2.5 px-3 font-semibold">نام دارو و مشخصات</th>
+                  <th className="py-2.5 px-3 font-semibold">نام دوا و مشخصات</th>
                   <th className="py-2.5 px-3 font-semibold">برند / شرکت</th>
                   <th className="py-2.5 px-3 font-semibold">شکل و دوز</th>
                   <th className="py-2.5 px-3 font-semibold text-center">موجودی انبار</th>
@@ -1106,7 +1106,7 @@ export const CreatorAnalyticsAndInventory: React.FC = () => {
                 {filteredMedicines.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="py-8 text-center text-slate-400">
-                      هیچ دارویی با مشخصات جستجو شده یافت نشد.
+                      هیچ دوایی با مشخصات جستجو شده یافت نشد.
                     </td>
                   </tr>
                 ) : (

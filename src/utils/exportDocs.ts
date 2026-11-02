@@ -202,7 +202,7 @@ function openPrintPdfWindow(title: string, contentHtml: string, orientation: 'po
     </head>
     <body>
       <div class="pdf-toolbar no-print">
-        <span style="font-size: 13px; font-weight: 700;">📄 سند رسمی دارویی آماده چاپ و دانلود PDF</span>
+        <span style="font-size: 13px; font-weight: 700;">📄 سند رسمی دوایی آماده چاپ و دانلود PDF</span>
         <div style="display: flex; gap: 8px;">
           <button onclick="window.print()">🖨️ چاپ / ذخیره PDF</button>
           <button onclick="window.close()" style="background: rgba(255,255,255,0.2); color: #fff;">بستن صفحه</button>
@@ -285,10 +285,10 @@ export function exportOrderToExcel(order: Order, storeName: string) {
   const wb = XLSX.utils.book_new();
 
   const infoRows = [
-    ['عنوان سند', 'فاکتور فروش دارویی'],
+    ['عنوان سند', 'فاکتور فروش دوایی'],
     ['فروشگاه', storeName],
     ['شماره سفارش', order.orderNumber],
-    ['نام داروخانه / مشتری', order.customerName],
+    ['نام دواخانه / مشتری', order.customerName],
     ['ویزیتور ثبت‌کننده', order.visitorName],
     ['تاریخ ثبت', new Date(order.createdAt).toLocaleDateString('fa-AF')],
     ['وضعیت سفارش', getOrderStatusTitle(order.status)],
@@ -301,7 +301,7 @@ export function exportOrderToExcel(order: Order, storeName: string) {
 
   const itemHeaders = [
     'ردیف',
-    'نام دارو',
+    'نام دوا',
     'واحد بسته‌بندی',
     'تعداد',
     'قیمت واحد (افغانی)',
@@ -357,8 +357,8 @@ export function exportOrderToPDF(order: Order, storeName: string) {
   const html = `
     <div class="header-box">
       <div>
-        <h1 class="header-title">فاکتور فروش دارویی رسمی</h1>
-        <p class="header-sub">${storeName || 'عمده‌فروشی توزیع دارو'}</p>
+        <h1 class="header-title">فاکتور فروش دوایی رسمی</h1>
+        <p class="header-sub">${storeName || 'عمده‌فروشی توزیع دوا'}</p>
       </div>
       <div style="text-align: left;">
         <div style="font-size: 13px; font-weight: bold; color: #0f172a;">شماره سفارش: ${order.orderNumber}</div>
@@ -385,7 +385,7 @@ export function exportOrderToPDF(order: Order, storeName: string) {
       </div>
       <div class="meta-item">
         <span class="meta-label">تعداد اقلام:</span>
-        <span class="meta-value">${(order.items || []).length} قلم دارو</span>
+        <span class="meta-value">${(order.items || []).length} قلم دوا</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">ارز مبادله:</span>
@@ -397,8 +397,8 @@ export function exportOrderToPDF(order: Order, storeName: string) {
       <thead>
         <tr>
           <th style="width: 35px;" class="number-col">ردیف</th>
-          <th>شرح داروی درخواستی</th>
-          <th style="width: 85px;" class="number-col">نوع / شکل دارو</th>
+          <th>شرح دوای درخواستی</th>
+          <th style="width: 85px;" class="number-col">نوع / شکل دوا</th>
           <th style="width: 65px;" class="number-col">واحد</th>
           <th style="width: 55px;" class="number-col">تعداد</th>
           <th style="width: 95px;" class="price-col">قیمت واحد (افغانی)</th>
@@ -466,7 +466,7 @@ export function exportOrderToPDF(order: Order, storeName: string) {
     </div>
 
     <div class="footer-note">
-      <span>صادر شده توسط سامانه یکپارچه مدیریت ویزیتور دارو</span>
+      <span>صادر شده توسط سامانه یکپارچه مدیریت ویزیتور دوا</span>
       <span>تاریخ چاپ: ${getShamsiDateDetails().fullLabel}</span>
     </div>
   `;
@@ -481,7 +481,7 @@ export function exportOrderToPDF(order: Order, storeName: string) {
  */
 export function exportOrdersListToPDF(
   orders: Order[],
-  storeName = 'فروشگاه دارویی',
+  storeName = 'فروشگاه دوایی',
   filename = 'Orders_Report'
 ) {
   const totalSales = orders.reduce((s, o) => s + (o.totalAFN || 0), 0);
@@ -509,7 +509,7 @@ export function exportOrdersListToPDF(
   const html = `
     <div class="header-box">
       <div>
-        <h1 class="header-title">گزارش جامع سفارشات و فروش دارویی</h1>
+        <h1 class="header-title">گزارش جامع سفارشات و فروش دوایی</h1>
         <p class="header-sub">${storeName}</p>
       </div>
       <div style="text-align: left; font-size: 11px; color: #64748b;">
@@ -553,7 +553,7 @@ export function exportOrdersListToPDF(
     </table>
 
     <div class="footer-note">
-      <span>سامانه هوشمند ویزیتور دارو - گزارش مالی و سفارشات</span>
+      <span>سامانه هوشمند ویزیتور دوا - گزارش مالی و سفارشات</span>
       <span>صفحه رسمی چاپی</span>
     </div>
   `;
@@ -567,7 +567,7 @@ export function exportOrdersListToPDF(
  */
 export function exportMedicinesToPDF(
   medicines: Medicine[],
-  storeName = 'فروشگاه دارویی'
+  storeName = 'فروشگاه دوایی'
 ) {
   const totalStock = medicines.reduce((s, m) => s + (m.stock || 0), 0);
 
@@ -597,11 +597,11 @@ export function exportMedicinesToPDF(
   const html = `
     <div class="header-box" style="border-bottom-color: #10b981;">
       <div>
-        <h1 class="header-title" style="color: #10b981;">فهرست موجودی انبار و کاتالوگ دارویی</h1>
+        <h1 class="header-title" style="color: #10b981;">فهرست موجودی انبار و کاتالوگ دوایی</h1>
         <p class="header-sub">${storeName}</p>
       </div>
       <div style="text-align: left; font-size: 11px; color: #64748b;">
-        <div>تعداد اقلام دارو: <strong>${medicines.length}</strong></div>
+        <div>تعداد اقلام دوا: <strong>${medicines.length}</strong></div>
         <div>مجموع موجودی کل: <strong>${totalStock.toLocaleString()}</strong> واحد</div>
       </div>
     </div>
@@ -610,8 +610,8 @@ export function exportMedicinesToPDF(
       <thead>
         <tr>
           <th style="width: 35px;" class="number-col">#</th>
-          <th style="width: 95px;" class="number-col">کد دارو</th>
-          <th>نام دارو و مشخصات</th>
+          <th style="width: 95px;" class="number-col">کد دوا</th>
+          <th>نام دوا و مشخصات</th>
           <th>دسته‌بندی درمانی</th>
           <th style="width: 70px;" class="number-col">واحد</th>
           <th style="width: 95px;" class="price-col">قیمت فروش (افغانی)</th>
@@ -626,13 +626,13 @@ export function exportMedicinesToPDF(
     </table>
 
     <div class="footer-note">
-      <span>گزارش رسمی انبار دارویی - خروجی با فونت استاندارد وزیرمتن</span>
+      <span>گزارش رسمی انبار دوایی - خروجی با فونت استاندارد وزیرمتن</span>
       <span>تاریخ: ${getShamsiDateDetails().fullLabel}</span>
     </div>
   `;
 
   const tsMedicines = getExportTimestamp();
-  openPrintPdfWindow(`کاتالوگ_داروها_${tsMedicines}`, html, 'landscape');
+  openPrintPdfWindow(`کاتالوگ_دواها_${tsMedicines}`, html, 'landscape');
 }
 
 /**
@@ -640,7 +640,7 @@ export function exportMedicinesToPDF(
  */
 export function exportCustomersToPDF(
   customers: Customer[],
-  storeName = 'فروشگاه دارویی'
+  storeName = 'فروشگاه دوایی'
 ) {
   const rowsHtml = customers
     .map(
@@ -675,8 +675,8 @@ export function exportCustomersToPDF(
       <thead>
         <tr>
           <th style="width: 35px;" class="number-col">#</th>
-          <th>نام داروخانه / کلینیک</th>
-          <th>نام مسئول داروخانه</th>
+          <th>نام دواخانه / کلینیک</th>
+          <th>نام مسئول دواخانه</th>
           <th style="width: 105px;" class="number-col">شماره تماس</th>
           <th style="width: 110px;">شهر / منطقه</th>
           <th>آدرس دقیق</th>
@@ -690,8 +690,8 @@ export function exportCustomersToPDF(
     </table>
 
     <div class="footer-note">
-      <span>دفترچه مخاطبان و شبکه توزیع دارو</span>
-      <span>ویزیتور دارو</span>
+      <span>دفترچه مخاطبان و شبکه توزیع دوا</span>
+      <span>ویزیتور دوا</span>
     </div>
   `;
 
@@ -790,7 +790,7 @@ export function exportLedgerToPDF(
     </div>
 
     <div class="footer-note">
-      <span>سامانه مالی ویزیتور دارو</span>
+      <span>سامانه مالی ویزیتور دوا</span>
       <span>گزارش رسمی پورسانت و تسویه حساب</span>
     </div>
   `;
@@ -807,10 +807,10 @@ export function exportMedicinesToExcel(medicines: Medicine[], storeName?: string
   const wb = XLSX.utils.book_new();
   const rows = medicines.map((m, idx) => ({
     'ردیف': idx + 1,
-    'کد دارو': m.code,
-    'نام دارو': m.name,
+    'کد دوا': m.code,
+    'نام دوا': m.name,
     'شرکت/برند': m.brand,
-    'شکل دارویی': m.dosageForm,
+    'شکل دوایی': m.dosageForm,
     'دوز': m.strength,
     'واحد': m.unit,
     'قیمت خرید (افغانی)': m.purchasePrice,
@@ -823,7 +823,7 @@ export function exportMedicinesToExcel(medicines: Medicine[], storeName?: string
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, 'فهرست داروها');
+  XLSX.utils.book_append_sheet(wb, ws, 'فهرست دواها');
   const ts = getExportTimestamp();
   XLSX.writeFile(wb, `Medicines_Inventory_${ts}.xlsx`);
 }
@@ -882,7 +882,7 @@ export function getOrderStatusTitle(status: string): string {
     case 'submitted': return 'ثبت‌شده';
     case 'pending_review': return 'در انتظار بررسی';
     case 'approved': return 'تأییدشده';
-    case 'preparing': return 'در حال آماده‌سازی دارو';
+    case 'preparing': return 'در حال آماده‌سازی دوا';
     case 'ready_to_ship': return 'آماده ارسال';
     case 'shipped': return 'ارسال شده';
     case 'delivered': return 'تحویل داده شده';

@@ -38,7 +38,7 @@ interface Props {
 }
 
 export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
-  const { currentStore, currentUser } = useApp();
+  const { currentStore, currentUser, checkGuestAndPrompt } = useApp();
   const storeId = currentStore?.id || '';
 
   const [orders, setOrders] = useState<Order[]>(() => Storage.getOrders(storeId));
@@ -73,8 +73,8 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
         id: medId,
         storeId,
         name: medName,
-        brand: 'فروشگاه دارویی',
-        dosageForm: 'دارو',
+        brand: 'فروشگاه دوایی',
+        dosageForm: 'دوا',
         strength: '',
         code: 'ORDER-ITEM',
         unit: 'بسته',
@@ -118,6 +118,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
 
   // Update order status (with history logging)
   const handleUpdateStatus = (newStatus: OrderStatus, note?: string) => {
+    if (checkGuestAndPrompt('تغییر وضعیت سفارش')) return;
     if (!selectedOrder) return;
 
     const all = Storage.getOrders(storeId);
@@ -152,6 +153,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
   // Record received payment
   const handleRecordPayment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('ثبت پرداخت یا تسویه سفارش')) return;
     if (!paymentModalOrder || paymentAmount <= 0) return;
 
     const all = Storage.getOrders(storeId);
@@ -199,7 +201,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
         <div>
           <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-sky-600" />
-            <span>مدیریت سفارشات و ارسال دارو ({orders.length})</span>
+            <span>مدیریت سفارشات و ارسال دوا ({orders.length})</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             گردش کار سفارش: تأیید، انبار، ارسال، تحویل، وصول مبالغ و صدور فاکتور رسمی
@@ -217,7 +219,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
               }`}
             >
               <Boxes className="w-4 h-4" />
-              <span>پایپ‌لاین مراحل دارو</span>
+              <span>پایپ‌لاین مراحل دوا</span>
             </button>
             <button
               onClick={() => setViewMode('table')}
@@ -241,7 +243,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
           </button>
 
           <button
-            onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه دارویی')}
+            onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه دوایی')}
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileText className="w-4 h-4" />
@@ -326,7 +328,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
 
                     <td className="p-3.5">
                       <div className="font-bold text-slate-800">{o.customerName}</div>
-                      <div className="text-[10px] text-slate-400">{o.items.length} قلم دارو</div>
+                      <div className="text-[10px] text-slate-400">{o.items.length} قلم دوا</div>
                     </td>
 
                     <td className="p-3.5 text-slate-700 font-medium">{o.visitorName}</td>
@@ -399,14 +401,14 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => exportOrderToPDF(o, currentStore?.name || 'فروشگاه دارو')}
+                          onClick={() => exportOrderToPDF(o, currentStore?.name || 'فروشگاه دوا')}
                           className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="دانلود PDF فاکتور"
                         >
                           <FileText className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => exportOrderToExcel(o, currentStore?.name || 'فروشگاه دارو')}
+                          onClick={() => exportOrderToExcel(o, currentStore?.name || 'فروشگاه دوا')}
                           className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
                           title="دانلود اکسل فاکتور"
                         >
@@ -498,8 +500,8 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
               <table className="w-full text-right text-xs">
                 <thead className="bg-slate-100 text-slate-700 font-bold">
                   <tr>
-                    <th className="p-2.5">نام دارو</th>
-                    <th className="p-2.5">شکل دارویی</th>
+                    <th className="p-2.5">نام دوا</th>
+                    <th className="p-2.5">شکل دوایی</th>
                     <th className="p-2.5">واحد</th>
                     <th className="p-2.5">تعداد</th>
                     <th className="p-2.5">قیمت واحد</th>
@@ -514,7 +516,7 @@ export const OrdersManager: React.FC<Props> = ({ onShareInChat }) => {
                           type="button"
                           onClick={() => handleOpenMedicineDetails(it.medicineId, it.medicineName)}
                           className="font-bold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer text-right block"
-                          title="کلیک برای مشاهده مشخصات کامل دارو"
+                          title="کلیک برای مشاهده مشخصات کامل دوا"
                         >
                           {it.medicineName}
                         </button>

@@ -520,7 +520,7 @@ export const VisitsScheduleManager: React.FC = () => {
                   maxLength={300}
                   value={adviceText}
                   onChange={(e) => setAdviceText(e.target.value)}
-                  placeholder="مثلاً: آقای دکتر در خرید اول تخفیف ۳ درصدی طلب می‌کند، روی تحویل فوری داروهای آلمانی تأکید کن و چک صیادی را تأیید کن..."
+                  placeholder="مثلاً: آقای دکتر در خرید اول تخفیف ۳ درصدی طلب می‌کند، روی تحویل فوری دواهای آلمانی تأکید کن و چک صیادی را تأیید کن..."
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs leading-relaxed focus:bg-white focus:ring-2 focus:ring-amber-500"
                 />
               </div>

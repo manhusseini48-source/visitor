@@ -171,7 +171,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
           </div>
 
           <h2 className="text-xl font-black">
-            {step === 'form' && 'ثبت‌نام فروشگاه و عمده‌فروشی دارو'}
+            {step === 'form' && 'ثبت‌نام فروشگاه و عمده‌فروشی دوا'}
             {step === 'success' && 'تبریک! حساب شما با موفقیت فعال گردید'}
           </h2>
           <p className="text-xs text-sky-100 mt-1 font-medium">
@@ -213,7 +213,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    نام فروشگاه / عمده‌فروشی دارو *
+                    نام فروشگاه / عمده‌فروشی دوا *
                   </label>
                   <div className="relative">
                     <input
@@ -221,7 +221,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
                       maxLength={60}
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      placeholder="مثال: شرکت دارویی امید کابل"
+                      placeholder="مثال: شرکت دوایی امید کابل"
                       className="w-full pr-9 pl-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-xs text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"
                       required
                     />
@@ -368,7 +368,7 @@ export const RegisterStoreModal: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   className="rounded text-sky-600 focus:ring-sky-500 h-4 w-4"
                 />
                 <span className="text-xs text-slate-600 dark:text-slate-400">
-                  شرایط استفاده از خدمات و حفظ حریم خصوصی داده‌های دارویی را می‌پذیرم.
+                  شرایط استفاده از خدمات و حفظ حریم خصوصی داده‌های دوایی را می‌پذیرم.
                 </span>
               </label>
 

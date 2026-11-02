@@ -68,76 +68,87 @@ export const InteractiveDonutChart: React.FC<Props> = ({
       </div>
 
       {/* Donut graphic & interactive center */}
-      <div className="my-4 flex items-center justify-center relative">
-        <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          className="transform -rotate-90"
-        >
-          {/* Base background ring */}
-          <circle
-            cx={radius}
-            cy={radius}
-            r={radius - strokeWidth / 2}
-            fill="transparent"
-            stroke="#f1f5f9"
-            strokeWidth={strokeWidth}
-          />
-
-          {/* Slices */}
-          {segmentData.map((seg) => {
-            const isHovered = hoveredId === seg.id;
-            return (
-              <circle
-                key={seg.id}
-                cx={radius}
-                cy={radius}
-                r={radius - strokeWidth / 2}
-                fill="transparent"
-                stroke={seg.color}
-                strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
-                strokeDasharray={seg.strokeDasharray}
-                strokeDashoffset={seg.strokeDashoffset}
-                strokeLinecap="round"
-                className="cursor-pointer transition-all duration-300"
-                style={{
-                  opacity: hoveredId && !isHovered ? 0.45 : 1,
-                  filter: isHovered ? `drop-shadow(0 0 6px ${seg.color}80)` : 'none',
-                }}
-                onMouseEnter={() => setHoveredId(seg.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              />
-            );
-          })}
-        </svg>
-
-        {/* Center Metric Display */}
+      <div className="my-4 flex items-center justify-center w-full">
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4"
+          className="relative flex items-center justify-center shrink-0"
           style={{ width: size, height: size }}
         >
-          {activeSegment ? (
-            <div className="animate-in fade-in zoom-in duration-200">
-              <span className="text-[11px] font-bold text-slate-500 block truncate max-w-[120px]">
-                {activeSegment.label}
-              </span>
-              <span className="text-xl font-black text-slate-800 font-mono block">
-                {activeSegment.value.toLocaleString()}
-              </span>
-              <span className="text-[10px] font-bold text-emerald-600 block">
-                {total > 0 ? Math.round((activeSegment.value / total) * 100) : 0}٪
-              </span>
+          <svg
+            width={size}
+            height={size}
+            viewBox={`0 0 ${size} ${size}`}
+            className="transform -rotate-90 block"
+          >
+            {/* Base background ring */}
+            <circle
+              cx={radius}
+              cy={radius}
+              r={radius - strokeWidth / 2}
+              fill="transparent"
+              stroke="#f1f5f9"
+              strokeWidth={strokeWidth}
+            />
+
+            {/* Slices */}
+            {segmentData.map((seg) => {
+              const isHovered = hoveredId === seg.id;
+              return (
+                <circle
+                  key={seg.id}
+                  cx={radius}
+                  cy={radius}
+                  r={radius - strokeWidth / 2}
+                  fill="transparent"
+                  stroke={seg.color}
+                  strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
+                  strokeDasharray={seg.strokeDasharray}
+                  strokeDashoffset={seg.strokeDashoffset}
+                  strokeLinecap="round"
+                  className="cursor-pointer transition-all duration-300"
+                  style={{
+                    opacity: hoveredId && !isHovered ? 0.45 : 1,
+                    filter: isHovered ? `drop-shadow(0 0 6px ${seg.color}80)` : 'none',
+                  }}
+                  onMouseEnter={() => setHoveredId(seg.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                />
+              );
+            })}
+          </svg>
+
+          {/* Center Metric Display - Pinpoint at center of the circle */}
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center select-none"
+            style={{ width: size, height: size }}
+          >
+            <div className="flex flex-col items-center justify-center max-w-[80%] mx-auto text-center">
+              {activeSegment ? (
+                <div className="animate-in fade-in zoom-in duration-200 flex flex-col items-center justify-center">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block truncate max-w-[120px] leading-tight text-center">
+                    {activeSegment.label}
+                  </span>
+                  <span className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono block my-0.5 text-center">
+                    {activeSegment.value.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block text-center">
+                    {total > 0 ? Math.round((activeSegment.value / total) * 100) : 0}٪
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block leading-tight text-center">
+                    {centerSubtitle}
+                  </span>
+                  <span className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono block my-0.5 text-center">
+                    {centerTitle || total.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 block text-center">
+                    مورد ثبت‌شده
+                  </span>
+                </div>
+              )}
             </div>
-          ) : (
-            <div>
-              <span className="text-[11px] text-slate-400 block">{centerSubtitle}</span>
-              <span className="text-xl font-black text-slate-800 font-mono block">
-                {centerTitle || total.toLocaleString()}
-              </span>
-              <span className="text-[10px] text-slate-400 block">مورد ثبت‌شده</span>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 

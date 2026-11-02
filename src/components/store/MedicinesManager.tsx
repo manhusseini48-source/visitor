@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 export const MedicinesManager: React.FC = () => {
-  const { currentStore, currentUser, isSubscriptionExpired } = useApp();
+  const { currentStore, currentUser, isSubscriptionExpired, checkGuestAndPrompt } = useApp();
   const storeId = currentStore?.id || currentUser?.storeId || '';
 
   const [medicines, setMedicines] = useState<Medicine[]>(() =>
@@ -86,6 +86,7 @@ export const MedicinesManager: React.FC = () => {
 
   // Open Add/Edit Modal
   const openModal = (med?: Medicine) => {
+    if (checkGuestAndPrompt(med ? 'ویرایش دوای انبار' : 'افزودن دوای جدید')) return;
     setFormError(null);
     if (med) {
       setEditingMed(med);
@@ -151,7 +152,7 @@ export const MedicinesManager: React.FC = () => {
 
       setImages([...images, cloudUrl]);
     } catch (err: any) {
-      setFormError(err.message || 'خطا در بارگذاری تصویر دارو.');
+      setFormError(err.message || 'خطا در بارگذاری تصویر دوا.');
     } finally {
       setUploadingImage(false);
     }
@@ -170,7 +171,7 @@ export const MedicinesManager: React.FC = () => {
     }
 
     if (name.length > 40) {
-      setFormError('نام دارو حداکثر ۴۰ کاراکتر مجاز است.');
+      setFormError('نام دوا حداکثر ۴۰ کاراکتر مجاز است.');
       return;
     }
 
@@ -186,7 +187,7 @@ export const MedicinesManager: React.FC = () => {
       (m) => m.code.trim().toLowerCase() === code.trim().toLowerCase() && m.id !== editingMed?.id
     );
     if (duplicateCode) {
-      setFormError(`کد داروی «${code}» تکراری است. هر دارو باید دارای کد یکتای اختصاصی باشد.`);
+      setFormError(`کد دوای «${code}» تکراری است. هر دوا باید دارای کد یکتای اختصاصی باشد.`);
       return;
     }
 
@@ -195,7 +196,7 @@ export const MedicinesManager: React.FC = () => {
       (m) => m.name.trim().toLowerCase() === name.trim().toLowerCase() && m.id !== editingMed?.id
     );
     if (duplicateName) {
-      setFormError(`دارویی با نام «${name}» قبلاً در سیستم انبار ثبت شده است.`);
+      setFormError(`دوایی با نام «${name}» قبلاً در سیستم انبار ثبت شده است.`);
       return;
     }
 
@@ -260,7 +261,8 @@ export const MedicinesManager: React.FC = () => {
   };
 
   const handleDeleteMedicine = (id: string) => {
-    if (confirm('آیا از حذف این قلم دارو از فهرست اطمینان دارید؟')) {
+    if (checkGuestAndPrompt('حذف دوای انبار')) return;
+    if (confirm('آیا از حذف این قلم دوا از فهرست اطمینان دارید؟')) {
       Storage.deleteMedicine(id, storeId);
       reloadData();
     }
@@ -268,6 +270,7 @@ export const MedicinesManager: React.FC = () => {
 
   const handleApplyStockAdjustment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkGuestAndPrompt('اصلاح موجودی انبار')) return;
     if (!adjustModalMed) return;
 
     const all = Storage.getMedicines(storeId);
@@ -311,10 +314,10 @@ export const MedicinesManager: React.FC = () => {
         <div>
           <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
             <Pill className="w-5 h-5 text-sky-600" />
-            <span>مدیریت انبار و اقلام دارویی ({medicines.length})</span>
+            <span>مدیریت انبار و اقلام دوایی ({medicines.length})</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            ثبت مشخصات تخصصی دارو، موجودی، تاریخ انقضا و سری ساخت
+            ثبت مشخصات تخصصی دوا، موجودی، تاریخ انقضا و سری ساخت
           </p>
         </div>
 
@@ -328,7 +331,7 @@ export const MedicinesManager: React.FC = () => {
           </button>
 
           <button
-            onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه دارویی')}
+            onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه دوایی')}
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileText className="w-4 h-4" />
@@ -341,7 +344,7 @@ export const MedicinesManager: React.FC = () => {
             className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            <span>افزودن داروی جدید</span>
+            <span>افزودن دوای جدید</span>
           </button>
         </div>
       </div>
@@ -353,7 +356,7 @@ export const MedicinesManager: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="جستجوی نام دارو، کد، برند یا سری ساخت..."
+            placeholder="جستجوی نام دوا، کد، برند یا سری ساخت..."
             className="w-full pl-3 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:bg-white"
           />
           <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
@@ -382,7 +385,7 @@ export const MedicinesManager: React.FC = () => {
             <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
               <tr>
                 <th className="p-3.5">کد / تصویر</th>
-                <th className="p-3.5">نام دارو و شرکت سازنده</th>
+                <th className="p-3.5">نام دوا و شرکت سازنده</th>
                 <th className="p-3.5">فرم / دوز</th>
                 <th className="p-3.5">واحد بسته‌بندی</th>
                 <th className="p-3.5">قیمت خرید / فروش</th>
@@ -395,7 +398,7 @@ export const MedicinesManager: React.FC = () => {
               {filteredMedicines.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">
-                    دارویی با این مشخصات یافت نشد.
+                    دوایی با این مشخصات یافت نشد.
                   </td>
                 </tr>
               ) : (
@@ -417,13 +420,13 @@ export const MedicinesManager: React.FC = () => {
                                 })
                               }
                               className="w-10 h-10 rounded-xl object-cover border border-slate-200 cursor-pointer hover:scale-105 hover:ring-2 hover:ring-sky-400 transition"
-                              title="کلیک برای مشاهده تصویر بزرگ دارو"
+                              title="کلیک برای مشاهده تصویر بزرگ دوا"
                             />
                           ) : (
                             <div
                               onClick={() => setSelectedDetailMed(m)}
                               className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold cursor-pointer hover:bg-sky-100 transition"
-                              title="مشاهده مشخصات کامل دارو"
+                              title="مشاهده مشخصات کامل دوا"
                             >
                               <Pill className="w-5 h-5 rotate-45" />
                             </div>
@@ -432,7 +435,7 @@ export const MedicinesManager: React.FC = () => {
                             type="button"
                             onClick={() => setSelectedDetailMed(m)}
                             className="font-mono font-bold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer text-right text-xs"
-                            title="مشاهده مشخصات کامل دارو"
+                            title="مشاهده مشخصات کامل دوا"
                           >
                             {m.code}
                           </button>
@@ -444,7 +447,7 @@ export const MedicinesManager: React.FC = () => {
                           type="button"
                           onClick={() => setSelectedDetailMed(m)}
                           className="font-bold text-slate-800 hover:text-sky-600 hover:underline text-[13px] text-right cursor-pointer block"
-                          title="مشاهده مشخصات کامل دارو"
+                          title="مشاهده مشخصات کامل دوا"
                         >
                           {m.name}
                         </button>
@@ -506,14 +509,14 @@ export const MedicinesManager: React.FC = () => {
                           <button
                             onClick={() => openModal(m)}
                             className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition"
-                            title="ویرایش دارو"
+                            title="ویرایش دوا"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteMedicine(m.id)}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title="حذف دارو"
+                            title="حذف دوا"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -535,7 +538,7 @@ export const MedicinesManager: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                 <Pill className="w-5 h-5 text-sky-600" />
-                <span>{editingMed ? 'ویرایش داروی موجود' : 'افزودن داروی جدید به انبار'}</span>
+                <span>{editingMed ? 'ویرایش دوای موجود' : 'افزودن دوای جدید به انبار'}</span>
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -557,7 +560,7 @@ export const MedicinesManager: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1">
-                    <span>نام دارو *</span>
+                    <span>نام دوا *</span>
                     <span className="text-[10px] text-slate-400">{name.length}/40</span>
                   </div>
                   <input
@@ -589,7 +592,7 @@ export const MedicinesManager: React.FC = () => {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    شکل دارویی
+                    شکل دوایی
                   </label>
                   <select
                     value={dosageForm}
@@ -683,7 +686,7 @@ export const MedicinesManager: React.FC = () => {
               <div className="bg-purple-50/70 p-3 rounded-xl border border-purple-200/80">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
                   <label className="text-xs font-black text-purple-900 flex items-center gap-1.5">
-                    <span>تنظیم پورسانت هوشمند این دارو (٪)</span>
+                    <span>تنظیم پورسانت هوشمند این دوا (٪)</span>
                   </label>
                   <span className="text-[10px] text-purple-700">
                     مثلاً ۵٪ یا ۸٪ (در صورت تعیین، این درصد جایگزین پورسانت ویزیتور می‌شود)
@@ -761,7 +764,7 @@ export const MedicinesManager: React.FC = () => {
                   maxLength={200}
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="معرفی اجمالی دارو و موارد مصرف..."
+                  placeholder="معرفی اجمالی دوا و موارد مصرف..."
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                 />
               </div>
@@ -769,7 +772,7 @@ export const MedicinesManager: React.FC = () => {
               {/* Image Upload with <300KB compression and Cloudinary storage */}
               <div>
                 <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-1.5">
-                  <span>تصاویر دارو (حداکثر ۵ تصویر)</span>
+                  <span>تصاویر دوا (حداکثر ۵ تصویر)</span>
                   <span className="text-[10px] text-sky-700 font-bold">{images.length} از ۵</span>
                 </div>
 
@@ -817,7 +820,7 @@ export const MedicinesManager: React.FC = () => {
                   type="submit"
                   className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20"
                 >
-                  ذخیره دارو
+                  ذخیره دوا
                 </button>
               </div>
             </form>

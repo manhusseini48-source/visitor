@@ -174,7 +174,7 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            ثبت یادداشت‌های روزانه، نکات مذاکره با داروخانه‌ها، هماهنگی‌های شخصی و چک‌لیست کاری
+            ثبت یادداشت‌های روزانه، نکات مذاکره با دواخانه‌ها، هماهنگی‌های شخصی و چک‌لیست کاری
           </p>
         </div>
 
@@ -415,7 +415,7 @@ export const PersonalNotes: React.FC<Props> = ({ userId, userRole, storeId, user
                   rows={6}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="جزییات مذاکره، نیازهای دارویی، تاریخ‌های مهم و نکات لازم..."
+                  placeholder="جزییات مذاکره، نیازهای دوایی، تاریخ‌های مهم و نکات لازم..."
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs leading-relaxed"
                 />
               </div>

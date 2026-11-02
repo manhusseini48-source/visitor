@@ -49,7 +49,7 @@ export const VisualAppEditor: React.FC = () => {
     { id: 'navigation', label: 'تب‌های ناوبری و منو', icon: Layout },
     { id: 'auth', label: 'ورود و احراز هویت', icon: Shield },
     { id: 'dashboard', label: 'داشبوردها', icon: Layout },
-    { id: 'medicines', label: 'داروها و کاتالوگ', icon: Pill },
+    { id: 'medicines', label: 'دواها و کاتالوگ', icon: Pill },
     { id: 'customers', label: 'دواخانه‌ها و مشتریان', icon: Users },
     { id: 'visits', label: 'برنامه ویزیت و پیگیری', icon: Calendar },
     { id: 'accounting', label: 'حسابداری و پورسانت', icon: DollarSign },
@@ -464,13 +464,13 @@ export const VisualAppEditor: React.FC = () => {
                 <div className="space-y-2">
                   <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-2.5">
                     <div className="text-[11px] font-bold text-white mb-0.5">
-                      {previewVal('medicines_title', 'داروها و موجودی انبار')}
+                      {previewVal('medicines_title', 'دواها و موجودی انبار')}
                     </div>
                     <div className="text-[10px] text-slate-400 mb-2">
-                      {previewVal('medicines_subtitle', 'مدیریت اقلام دارویی')}
+                      {previewVal('medicines_subtitle', 'مدیریت اقلام دوایی')}
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-slate-300 bg-slate-900/60 p-1.5 rounded-lg">
-                      <span>{previewVal('medicines_search_placeholder', 'جستجو در داروها...')}</span>
+                      <span>{previewVal('medicines_search_placeholder', 'جستجو در دواها...')}</span>
                       <Search className="w-3 h-3 text-slate-400" />
                     </div>
                   </div>

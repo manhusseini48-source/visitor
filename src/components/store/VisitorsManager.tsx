@@ -27,7 +27,7 @@ import {
 import { VisitorLeaderboard } from '../common/VisitorLeaderboard';
 
 export const VisitorsManager: React.FC = () => {
-  const { currentStore, createVisitor, updateVisitor, toggleVisitorActive } = useApp();
+  const { currentStore, createVisitor, updateVisitor, toggleVisitorActive, checkGuestAndPrompt } = useApp();
   const storeId = currentStore?.id || '';
 
   const [profiles, setProfiles] = useState<UserProfile[]>(() =>
@@ -69,6 +69,7 @@ export const VisitorsManager: React.FC = () => {
   };
 
   const openAddModal = () => {
+    if (checkGuestAndPrompt('افزودن ویزیتور جدید')) return;
     setFormError(null);
     setEditingVisitor(null);
     setName('');
@@ -88,6 +89,7 @@ export const VisitorsManager: React.FC = () => {
   };
 
   const openEditModal = (v: UserProfile) => {
+    if (checkGuestAndPrompt('ویرایش مشخصات ویزیتور')) return;
     setFormError(null);
     setEditingVisitor(v);
     setName(v.name);
@@ -205,12 +207,14 @@ export const VisitorsManager: React.FC = () => {
 
   // Toggle active / soft disable
   const handleToggleActive = (id: string) => {
+    if (checkGuestAndPrompt('تغییر وضعیت فعال‌بودن ویزیتور')) return;
     toggleVisitorActive(id);
     reloadData();
   };
 
   // Permanent Purge handler (with safety inspection)
   const handlePermanentPurge = async () => {
+    if (checkGuestAndPrompt('حذف دائم ویزیتور')) return;
     if (!purgeTarget) return;
 
     // Remove user profile permanently locally and from Supabase cloud database

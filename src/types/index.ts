@@ -23,6 +23,7 @@ export interface UserProfile {
   weeklyTarget?: number;
   employmentNotes?: string;
   allowCashCollection?: boolean; // Whether this visitor is authorized to collect deposits/cash
+  isGuest?: boolean; // Flag indicating if user is browsing as guest
 }
 
 export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'suspended';
@@ -79,7 +80,7 @@ export interface Medicine {
   fullDescription: string;
   images: string[];
   status: 'active' | 'inactive';
-  customCommissionRate?: number; // درصد پورسانت اختصاصی این دارو برای ویزیتور (مثلاً ۵٪ یا ۸٪)
+  customCommissionRate?: number; // درصد پورسانت اختصاصی این دوا برای ویزیتور (مثلاً ۵٪ یا ۸٪)
   createdAt: string;
   updatedAt: string;
 }
@@ -99,7 +100,7 @@ export interface InventoryMovement {
 export interface Customer {
   id: string;
   storeId: string;
-  name: string; // نام داروخانه / دواخانه
+  name: string; // نام دواخانه / دواخانه
   managerName: string; // نام مسئول
   phone: string;
   altPhone?: string;
@@ -434,4 +435,38 @@ export interface AppAnalytics {
   visitsWebBrowser: number;
   visitsGuestMode: number;
 }
+
+export interface GuestSessionLog {
+  id: string;
+  timestamp: string;
+  deviceType: 'mobile' | 'tablet' | 'desktop';
+  os: string;
+  browser: string;
+  screenWidth: number;
+  screenHeight: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  pixelRatio: number;
+  userAgent: string;
+  language: string;
+  isStandalonePWA: boolean;
+  platform?: string;
+  shamsiDateFormatted?: string;
+}
+
+export interface GuestAnalyticsSummary {
+  totalSessions: number;
+  uniqueDevices: number;
+  deviceCounts: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
+  };
+  osCounts: Record<string, number>;
+  browserCounts: Record<string, number>;
+  pwaCount: number;
+  webCount: number;
+  lastSessionTime?: string;
+}
+
 

@@ -154,7 +154,7 @@ export const MedicineDetailsModal: React.FC<MedicineDetailsModalProps> = ({
                   {/* Medicine Code with copy button */}
                   <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] text-slate-400 block font-medium">کد اختصاصی دارو</span>
+                      <span className="text-[11px] text-slate-400 block font-medium">کد اختصاصی دوا</span>
                       <span className="font-mono font-bold text-sm text-slate-800 tracking-wider">
                         {medicine.code}
                       </span>
@@ -162,7 +162,7 @@ export const MedicineDetailsModal: React.FC<MedicineDetailsModalProps> = ({
                     <button
                       onClick={handleCopyCode}
                       className="p-2 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition cursor-pointer flex items-center gap-1 text-xs"
-                      title="کپی کد دارو"
+                      title="کپی کد دوا"
                     >
                       {copiedCode ? (
                         <>
@@ -265,7 +265,7 @@ export const MedicineDetailsModal: React.FC<MedicineDetailsModalProps> = ({
                   <span className="font-bold text-slate-800">{medicine.category || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">شکل دارویی:</span>
+                  <span className="text-slate-400 block text-[11px]">شکل دوایی:</span>
                   <span className="font-bold text-slate-800">{medicine.dosageForm || '-'}</span>
                 </div>
                 <div>
@@ -292,7 +292,7 @@ export const MedicineDetailsModal: React.FC<MedicineDetailsModalProps> = ({
                   <span className="font-bold text-slate-800">{medicine.brand || '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">وضعیت دارویی:</span>
+                  <span className="text-slate-400 block text-[11px]">وضعیت دوایی:</span>
                   <span className="font-bold text-emerald-700">مجاز و فعال</span>
                 </div>
               </div>

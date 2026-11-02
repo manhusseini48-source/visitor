@@ -1,6 +1,6 @@
 {
   "name": "ویزیتور",
-  "description": "پنل ویزیتور دارو - پلتفرم مدیریت فروش، ویزیتورها و سفارشات دارویی",
+  "description": "پنل ویزیتور دوا - پلتفرم مدیریت فروش، ویزیتورها و سفارشات دوایی",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

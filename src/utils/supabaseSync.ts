@@ -136,7 +136,7 @@ export const SupabaseSync = {
         await supabase.from('stores').upsert(
           {
             id: effStoreId,
-            name: 'فروشگاه دارو',
+            name: 'فروشگاه دوا',
             created_at: new Date().toISOString(),
           },
           { onConflict: 'id', ignoreDuplicates: true }
@@ -335,7 +335,7 @@ export const SupabaseSync = {
         await supabase.from('stores').upsert(
           {
             id: effStoreId,
-            name: 'فروشگاه دارو',
+            name: 'فروشگاه دوا',
             created_at: new Date().toISOString(),
           },
           { onConflict: 'id', ignoreDuplicates: true }
@@ -373,32 +373,19 @@ export const SupabaseSync = {
     if (!supabase || !isSupabaseConfigured) return {};
 
     try {
-      // 1. Fetch medicines: first try matching store_id, fallback to all medicines if empty
+      // 1. Fetch medicines strictly for this store (No data leaking across stores)
       let medsQuery = supabase.from('medicines').select('*');
       if (storeId) {
         medsQuery = medsQuery.eq('store_id', storeId);
       }
-      let { data: medsData } = await medsQuery;
-      if ((!medsData || medsData.length === 0) && storeId) {
-        // Fallback: If no medicines match this exact store_id, fetch any available medicines in database
-        const { data: allMeds } = await supabase.from('medicines').select('*').limit(200);
-        if (allMeds && allMeds.length > 0) {
-          medsData = allMeds;
-        }
-      }
+      const { data: medsData } = await medsQuery;
 
-      // 2. Fetch customers
+      // 2. Fetch customers strictly for this store (No data leaking across stores)
       let custsQuery = supabase.from('customers').select('*');
       if (storeId) {
         custsQuery = custsQuery.eq('store_id', storeId);
       }
-      let { data: custsData } = await custsQuery;
-      if ((!custsData || custsData.length === 0) && storeId) {
-        const { data: allCusts } = await supabase.from('customers').select('*').limit(200);
-        if (allCusts && allCusts.length > 0) {
-          custsData = allCusts;
-        }
-      }
+      const { data: custsData } = await custsQuery;
 
       // 3. Fetch orders
       let ordersQuery = supabase.from('orders').select('*');
@@ -565,7 +552,7 @@ export const SupabaseSync = {
     try {
       let query = supabase.from('messages').select('*').order('created_at', { ascending: true });
       if (storeId) {
-        query = query.or(`store_id.eq.${storeId},store_id.is.null,store_id.eq.store_main`);
+        query = query.eq('store_id', storeId);
       }
       const { data, error } = await query;
       if (error || !data) return [];
@@ -782,6 +769,31 @@ export const SupabaseSync = {
     } catch (err: any) {
       console.warn('Supabase syncAllData error:', err);
       return { success: false, medicinesCount: 0, customersCount: 0, ordersCount: 0, messagesCount: 0, error: err?.message };
+    }
+  },
+
+  /**
+   * Sync Guest Session Log to Supabase
+   */
+  async syncGuestSession(log: any): Promise<void> {
+    if (!supabase || !isSupabaseConfigured) return;
+    try {
+      await supabase.from('guest_sessions').upsert({
+        id: log.id,
+        device_type: log.deviceType,
+        os: log.os,
+        browser: log.browser,
+        screen_width: log.screenWidth,
+        screen_height: log.screenHeight,
+        viewport_width: log.viewportWidth,
+        viewport_height: log.viewportHeight,
+        user_agent: log.userAgent,
+        language: log.language,
+        is_standalone_pwa: log.isStandalonePWA,
+        created_at: log.timestamp,
+      }, { onConflict: 'id' });
+    } catch {
+      // Harmless if table not created yet in user's Supabase
     }
   },
 };

@@ -31,7 +31,7 @@ export const SupportView: React.FC = () => {
     : '93' + whatsappClean;
 
   const whatsappUrl = `https://wa.me/${whatsappInternational}?text=${encodeURIComponent(
-    `سلام، جهت دریافت پشتیبانی تخصصی در سامانه ویزیتور دارو پیام می‌دهم.`
+    `سلام، جهت دریافت پشتیبانی تخصصی در سامانه ویزیتور دوا پیام می‌دهم.`
   )}`;
 
   // Find or create primary ticket for current store
@@ -46,7 +46,7 @@ export const SupportView: React.FC = () => {
       customWelcome ||
       `سلام و وقت بخیر ${
         currentUser?.name ? `جناب ${currentUser.name}` : ''
-      }! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. کارشناسان ما آماده پاسخگویی به هرگونه سؤال، راهنمایی در بارگذاری روی سرور، تنظیمات انبار و فاکتورها هستند. پیام یا تصویر مشکل خود را ارسال نمایید.`;
+      }! به واحد پشتیبانی آنلاین سامانه ویزیتور دوا خوش آمدید. کارشناسان ما آماده پاسخگویی به هرگونه سؤال، راهنمایی در بارگذاری روی سرور، تنظیمات انبار و فاکتورها هستند. پیام یا تصویر مشکل خود را ارسال نمایید.`;
 
     const initial: SupportTicket = {
       id: `support_chat_${storeId}`,

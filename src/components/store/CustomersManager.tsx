@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export const CustomersManager: React.FC = () => {
-  const { currentStore, currentUser } = useApp();
+  const { currentStore, currentUser, checkGuestAndPrompt } = useApp();
   const storeId = currentStore?.id || '';
 
   const [customers, setCustomers] = useState<Customer[]>(() =>
@@ -68,6 +68,7 @@ export const CustomersManager: React.FC = () => {
   };
 
   const openModal = (cust?: Customer) => {
+    if (checkGuestAndPrompt(cust ? 'ویرایش مشخصات مشتری' : 'افزودن مشتری جدید')) return;
     setFormError(null);
     setDuplicateWarning(null);
     if (cust) {
@@ -233,6 +234,7 @@ export const CustomersManager: React.FC = () => {
   };
 
   const handleDeleteCustomer = (id: string) => {
+    if (checkGuestAndPrompt('حذف مشتری')) return;
     if (confirm('آیا از حذف این مشتری اطمینان دارید؟')) {
       Storage.deleteCustomer(id, storeId);
       reloadData();
@@ -280,7 +282,7 @@ export const CustomersManager: React.FC = () => {
           </button>
 
           <button
-            onClick={() => exportCustomersToPDF(customers, currentStore?.name || 'فروشگاه دارویی')}
+            onClick={() => exportCustomersToPDF(customers, currentStore?.name || 'فروشگاه دوایی')}
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <FileText className="w-4 h-4" />

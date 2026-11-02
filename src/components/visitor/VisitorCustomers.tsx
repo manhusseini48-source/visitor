@@ -300,7 +300,7 @@ export const VisitorCustomers: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  نام مسئول / داروساز *
+                  نام مسئول / دواساز *
                 </label>
                 <input
                   type="text"

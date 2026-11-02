@@ -240,11 +240,22 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {currentUser ? (
-            <div className="relative" ref={userMenuRef}>
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 p-1.5 pl-2 sm:pl-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
-              >
+            <div className="flex items-center gap-2">
+              {currentUser.isGuest && onOpenRegister && (
+                <button
+                  type="button"
+                  onClick={onOpenRegister}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition cursor-pointer active:scale-95"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>ثبت‌نام (۱۴ روز رایگان)</span>
+                </button>
+              )}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 p-1.5 pl-2 sm:pl-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
+                >
                 <div className="w-8 h-8 rounded-lg bg-sky-600 text-white font-bold flex items-center justify-center text-sm overflow-hidden border border-sky-400/30">
                   {currentUser.avatarUrl ? (
                     currentUser.avatarUrl.length < 10 ? (
@@ -263,7 +274,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="hidden sm:block text-right">
                   <div className="text-xs font-bold leading-tight">{currentUser.name}</div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {currentUser.role === 'store_owner'
+                    {currentUser.isGuest
+                      ? 'کاربر مهمان (مشاهده امکانات)'
+                      : currentUser.role === 'store_owner'
                       ? 'مدیر فروشگاه'
                       : currentUser.role === 'visitor'
                       ? 'ویزیتور رسمی'
@@ -297,6 +310,19 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   </div>
 
+                  {currentUser.isGuest && onOpenRegister && (
+                    <button
+                      onClick={() => {
+                        onOpenRegister();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-right px-3 py-2 bg-gradient-to-l from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-teal-950/60 text-emerald-800 dark:text-emerald-300 hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/60 dark:hover:to-teal-900/60 rounded-xl flex items-center gap-2 cursor-pointer font-black transition mb-1 border border-emerald-200 dark:border-emerald-800"
+                    >
+                      <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>ثبت‌نام فروشگاه (۱۴ روز رایگان)</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       if (onOpenProfile) {
@@ -325,6 +351,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 </div>
               )}
+            </div>
             </div>
           ) : isGuest ? (
             <div className="flex items-center gap-1.5 sm:gap-2">

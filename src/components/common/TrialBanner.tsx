@@ -32,7 +32,7 @@ export const TrialBanner: React.FC<Props> = ({ onNavigateSubscription }) => {
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 text-amber-300 animate-pulse flex-shrink-0" />
           <span>
-            مهلت استفاده فروشگاه پایان یافته است. دسترسی عملیاتی جهت ثبت سفارشات و داروها محدود شده است.
+            مهلت استفاده فروشگاه پایان یافته است. دسترسی عملیاتی جهت ثبت سفارشات و دواها محدود شده است.
           </span>
         </div>
         <div className="flex items-center gap-2">

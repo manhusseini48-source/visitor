@@ -303,7 +303,7 @@ export const VisitorCommission: React.FC = () => {
               exportLedgerToPDF(
                 ledger,
                 currentUser?.name || 'ویزیتور',
-                currentStore?.name || 'فروشگاه دارویی'
+                currentStore?.name || 'فروشگاه دوایی'
               )
             }
             className="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
@@ -597,7 +597,7 @@ export const VisitorCommission: React.FC = () => {
 
             {collections.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs">
-                تاکنون بیعانه‌ای از مشتریان دریافت نشده است. هنگام صدور فاکتور در گالری داروها می‌توانید بیعانه یا کل مبلغ را ثبت نمایید.
+                تاکنون بیعانه‌ای از مشتریان دریافت نشده است. هنگام صدور فاکتور در گالری دواها می‌توانید بیعانه یا کل مبلغ را ثبت نمایید.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -971,7 +971,7 @@ export const VisitorCommission: React.FC = () => {
                     rows={2}
                     value={transferNotes}
                     onChange={(e) => setTransferNotes(e.target.value)}
-                    placeholder="مثلاً: واریز بیعانه‌های مربوط به داروخانه‌های غرب شهر..."
+                    placeholder="مثلاً: واریز بیعانه‌های مربوط به دواخانه‌های غرب شهر..."
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100"
                   />
                 </div>

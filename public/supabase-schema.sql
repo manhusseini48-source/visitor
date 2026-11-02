@@ -1,25 +1,12 @@
 -- ========================================================
--- Schema for Visitor Pharma Management App (پلتفرم مدیریت ویزیتوری دارو)
--- Run this script in the Supabase SQL Editor
+-- Schema for Visitor Pharma Management App (پلتفرم مدیریت ویزیتوری دوا)
+-- کاملاً امن و ضد خطا (Idempotent): بدون حذف داده‌های قبلی با قابلیت اجرای مکرر
 -- ========================================================
 
--- Enable UUID extension
+-- فعال‌سازی افزونه UUID
 create extension if not exists "uuid-ossp";
 
--- ۱. پاکسازی ساختارهای قدیمی (در صورت راه‌اندازی اولیه و تمیز)
-drop table if exists public.visitor_remittances cascade;
-drop table if exists public.visitor_cash_collections cascade;
-drop table if exists public.visits cascade;
-drop table if exists public.messages cascade;
-drop table if exists public.orders cascade;
-drop table if exists public.customers cascade;
-drop table if exists public.medicines cascade;
-drop table if exists public.profiles cascade;
-drop table if exists public.stores cascade;
-drop table if exists public.support_tickets cascade;
-drop table if exists public.platform_config cascade;
-
--- ۲. جدول شرکت‌های پخش و فروشگاه‌ها (STORES)
+-- ۱. جدول شرکت‌های پخش و فروشگاه‌ها (STORES)
 create table if not exists public.stores (
     id text primary key,
     name text not null,
@@ -31,11 +18,11 @@ create table if not exists public.stores (
     subscription_plan text default 'trial',
     subscription_expires_at timestamptz,
     is_active boolean default true,
-    allow_visitor_cash_collection boolean default true, -- مجوز دریافت بیعانه توسط ویزیتورها
+    allow_visitor_cash_collection boolean default true,
     created_at timestamptz default now()
 );
 
--- ۳. جدول کاربران، مدیران، مالکین و ویزیتورها (PROFILES)
+-- ۲. جدول کاربران، مدیران، مالکین و ویزیتورها (PROFILES)
 create table if not exists public.profiles (
     id text primary key,
     store_id text references public.stores(id) on delete cascade,
@@ -46,12 +33,12 @@ create table if not exists public.profiles (
     role text not null check (role in ('maker_admin', 'store_admin', 'store_owner', 'visitor', 'guest')),
     avatar_url text,
     city text default '',
-    allow_cash_collection boolean default true, -- مجوز دریافت بیعانه به صورت اختصاصی برای ویزیتور
+    allow_cash_collection boolean default true,
     is_active boolean default true,
     created_at timestamptz default now()
 );
 
--- ۴. جدول کاتالوگ و انبار داروها همراه با عکس Cloudinary (MEDICINES)
+-- ۳. جدول کاتالوگ و انبار دواها همراه با عکس (MEDICINES)
 create table if not exists public.medicines (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
@@ -61,20 +48,20 @@ create table if not exists public.medicines (
     company text,
     country text,
     category text,
-    form text, -- شکل دارویی: قرص، شربت، آمپول، کپسول، پماد و...
-    strength text, -- دوز و قدرت دارو: 500mg, 100ml...
+    form text,
+    strength text,
     batch_number text,
     expire_date text,
     stock_quantity integer default 0,
     buy_price numeric(12, 2) default 0,
     sale_price numeric(12, 2) default 0,
     currency text default 'AFN',
-    image_url text, -- لینک مستقیم عکس آپلود شده در Cloudinary
+    image_url text,
     description text,
     created_at timestamptz default now()
 );
 
--- ۵. جدول داروخانه‌ها، مطب‌ها و کلینیک‌ها (CUSTOMERS)
+-- ۴. جدول دواخانه‌ها، کلینیک‌ها و مشتریان (CUSTOMERS)
 create table if not exists public.customers (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
@@ -89,7 +76,7 @@ create table if not exists public.customers (
     created_at timestamptz default now()
 );
 
--- ۶. جدول سفارشات ثبت شده ویزیتورها همراه با وضعیت مالی (ORDERS)
+-- ۵. جدول سفارشات ثبت شده ویزیتورها (ORDERS)
 create table if not exists public.orders (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
@@ -98,37 +85,34 @@ create table if not exists public.orders (
     customer_name text not null,
     items jsonb not null default '[]'::jsonb,
     total_amount numeric(12, 2) default 0,
-    paid_amount numeric(12, 2) default 0, -- مبلغ بیعانه یا پرداخت نقدی
-    remaining_amount numeric(12, 2) default 0, -- مانده بدهی فاکتور
-    payment_status text default 'unpaid', -- 'unpaid' | 'partial' | 'paid'
-    payments jsonb default '[]'::jsonb, -- تاریخچه دریافت بیعانه‌ها و پرداخت‌ها
+    payment_type text default 'cash',
     status text default 'pending',
+    is_delivered boolean default false,
     notes text,
     created_at timestamptz default now()
 );
 
--- ۷. جدول صندوق وصولی‌های و بیعانه‌های ویزیتورها (VISITOR_CASH_COLLECTIONS)
+-- ۶. جدول وصولی‌ها و بیعانه‌های نقدی ویزیتورها (VISITOR_CASH_COLLECTIONS)
 create table if not exists public.visitor_cash_collections (
     id text primary key,
+    collection_number text not null,
     store_id text references public.stores(id) on delete cascade not null,
     visitor_id text not null,
     visitor_name text not null,
-    order_id text references public.orders(id) on delete cascade,
-    order_number text,
-    customer_id text,
-    customer_name text,
+    customer_id text references public.customers(id) on delete cascade not null,
+    customer_name text not null,
+    order_id text references public.orders(id) on delete set null,
     amount_afn numeric(12, 2) not null default 0,
-    collection_type text default 'deposit', -- 'deposit' | 'full_payment' | 'installment'
-    payment_method text default 'cash', -- 'cash' | 'card_to_card' | 'bank_receipt'
+    payment_method text default 'cash',
     receipt_number text,
     notes text,
     date timestamptz default now(),
-    status text default 'in_hand', -- 'in_hand' (نزد ویزیتور) | 'remitted' (تسویه با فروشگاه)
+    status text default 'in_hand',
     remittance_id text,
     created_at timestamptz default now()
 );
 
--- ۸. جدول واریزی‌ها و انتقالات ویزیتور به فروشگاه (VISITOR_REMITTANCES)
+-- ۷. جدول حواله‌ها و تسویه‌حساب ویزیتورها با فروشگاه (VISITOR_REMITTANCES)
 create table if not exists public.visitor_remittances (
     id text primary key,
     remittance_number text not null,
@@ -136,14 +120,14 @@ create table if not exists public.visitor_remittances (
     visitor_id text not null,
     visitor_name text not null,
     amount_afn numeric(12, 2) not null default 0,
-    payment_method text default 'bank_transfer', -- 'bank_transfer' | 'cash_in_person' | 'exchange_remittance' | 'check'
+    payment_method text default 'cash',
     bank_name text,
     destination_account text,
-    tracking_number text not null, -- شماره فیش یا پیگیری
+    tracking_number text,
     receipt_image_url text,
     notes text,
     submitted_at timestamptz default now(),
-    status text default 'pending', -- 'pending' (در انتظار تایید فروشگاه) | 'approved' | 'rejected'
+    status text default 'pending',
     reviewed_at timestamptz,
     reviewed_by text,
     reviewed_by_name text,
@@ -151,7 +135,7 @@ create table if not exists public.visitor_remittances (
     created_at timestamptz default now()
 );
 
--- ۹. جدول پیام‌رسان و چت داخلی (MESSAGES)
+-- ۸. جدول پیام‌رسان و چت داخلی (MESSAGES)
 create table if not exists public.messages (
     id text primary key,
     store_id text references public.stores(id) on delete cascade,
@@ -161,12 +145,12 @@ create table if not exists public.messages (
     sender_role text not null,
     recipient_id text,
     text text,
-    image_url text, -- پیوست عکس آپلود شده در Cloudinary
+    image_url text,
     is_read boolean default false,
     created_at timestamptz default now()
 );
 
--- ۱۰. جدول گزارش ویزیت حضوری و مراجعات (VISITS)
+-- ۹. جدول گزارش ویزیت حضوری و مراجعات (VISITS)
 create table if not exists public.visits (
     id text primary key,
     store_id text references public.stores(id) on delete cascade not null,
@@ -179,7 +163,7 @@ create table if not exists public.visits (
     created_at timestamptz default now()
 );
 
--- ۱۱. جدول تیکت‌ها و پیام‌های پشتیبانی آنلاین (SUPPORT_TICKETS)
+-- ۱۰. جدول تیکت‌ها و پیام‌های پشتیبانی آنلاین (SUPPORT_TICKETS)
 create table if not exists public.support_tickets (
     id text primary key,
     store_id text not null,
@@ -192,11 +176,11 @@ create table if not exists public.support_tickets (
     updated_at timestamptz default now()
 );
 
--- ۱۲. جدول تنظیمات سراسری پلتفرم، نسخه و سوالات متداول (PLATFORM_CONFIG)
+-- ۱۱. جدول تنظیمات سراسری پلتفرم، نسخه و سوالات متداول (PLATFORM_CONFIG)
 create table if not exists public.platform_config (
     id text primary key default 'global_config',
     app_name text default 'ویزیتور',
-    short_description text default 'پنل ویزیتور دارو',
+    short_description text default 'پنل ویزیتور دوا',
     app_release_version text default '2.5.0',
     app_version_code integer default 5,
     app_update_notes text default '',
@@ -214,7 +198,31 @@ create table if not exists public.platform_config (
     updated_at timestamptz default now()
 );
 
--- Enable Row Level Security (RLS)
+-- ۱۲. جدول ثبت آمار ورود کاربران مهمان و دستگاه‌ها (GUEST_SESSIONS)
+create table if not exists public.guest_sessions (
+    id text primary key,
+    device_type text default 'mobile',
+    os text default '',
+    browser text default '',
+    screen_width integer default 0,
+    screen_height integer default 0,
+    viewport_width integer default 0,
+    viewport_height integer default 0,
+    user_agent text default '',
+    language text default '',
+    is_standalone_pwa boolean default false,
+    created_at timestamptz default now()
+);
+
+-- ۱۳. اطمینان از وجود ستون‌های تکمیلی در صورت وجود قبلی جداول (Safe Column Migrations)
+alter table public.stores add column if not exists allow_visitor_cash_collection boolean default true;
+alter table public.profiles add column if not exists allow_cash_collection boolean default true;
+alter table public.profiles add column if not exists avatar_url text;
+alter table public.medicines add column if not exists image_url text;
+alter table public.messages add column if not exists image_url text;
+alter table public.guest_sessions add column if not exists is_standalone_pwa boolean default false;
+
+-- ۱۴. فعال‌سازی امنیت سطح ردیف (Row Level Security)
 alter table public.stores enable row level security;
 alter table public.profiles enable row level security;
 alter table public.medicines enable row level security;
@@ -226,8 +234,9 @@ alter table public.messages enable row level security;
 alter table public.visits enable row level security;
 alter table public.support_tickets enable row level security;
 alter table public.platform_config enable row level security;
+alter table public.guest_sessions enable row level security;
 
--- Drop previous policies to avoid duplication
+-- حذف سیاست‌های قدیمی جهت جلوگیری از خطای duplicate policy
 drop policy if exists "Allow all operations for anon" on public.stores;
 drop policy if exists "Allow all operations for anon" on public.profiles;
 drop policy if exists "Allow all operations for anon" on public.medicines;
@@ -239,8 +248,9 @@ drop policy if exists "Allow all operations for anon" on public.messages;
 drop policy if exists "Allow all operations for anon" on public.visits;
 drop policy if exists "Allow all operations for anon" on public.support_tickets;
 drop policy if exists "Allow all operations for anon" on public.platform_config;
+drop policy if exists "Allow all operations for anon" on public.guest_sessions;
 
--- Public Anon access policies (دسترسی استاندارد کلاینت با کلید Anon برای خواندن، درج، ویرایش و حذف)
+-- تعریف سیاست‌های دسترسی Anon با RLS
 create policy "Allow all operations for anon" on public.stores for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.profiles for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.medicines for all using (true) with check (true);
@@ -252,25 +262,26 @@ create policy "Allow all operations for anon" on public.messages for all using (
 create policy "Allow all operations for anon" on public.visits for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.support_tickets for all using (true) with check (true);
 create policy "Allow all operations for anon" on public.platform_config for all using (true) with check (true);
+create policy "Allow all operations for anon" on public.guest_sessions for all using (true) with check (true);
 
--- Enable Realtime for all shared business tables
+-- ۱۵. فعال‌سازی ایمن Realtime بدون خطا برای جداول زنده
 do $$
 begin
-  alter publication supabase_realtime add table public.stores;
-  alter publication supabase_realtime add table public.profiles;
-  alter publication supabase_realtime add table public.medicines;
-  alter publication supabase_realtime add table public.customers;
-  alter publication supabase_realtime add table public.orders;
-  alter publication supabase_realtime add table public.visitor_cash_collections;
-  alter publication supabase_realtime add table public.visitor_remittances;
-  alter publication supabase_realtime add table public.messages;
-  alter publication supabase_realtime add table public.support_tickets;
-  alter publication supabase_realtime add table public.platform_config;
-exception
-  when others then null;
+  begin alter publication supabase_realtime add table public.stores; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.profiles; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.medicines; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.customers; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.orders; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.visitor_cash_collections; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.visitor_remittances; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.messages; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.visits; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.support_tickets; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.platform_config; exception when others then null; end;
+  begin alter publication supabase_realtime add table public.guest_sessions; exception when others then null; end;
 end $$;
 
--- ۱۳. ایندکس‌های کلیدی جهت افزایش سرعت کوئری‌ها
+-- ۱۶. ایندکس‌های کلیدی جهت تفکیک صددرصدی داده‌ها بر اساس store_id و افزایش شتاب
 create index if not exists idx_medicines_store_id on public.medicines(store_id);
 create index if not exists idx_customers_store_id on public.customers(store_id);
 create index if not exists idx_orders_store_id on public.orders(store_id);
@@ -278,20 +289,24 @@ create index if not exists idx_orders_customer_id on public.orders(customer_id);
 create index if not exists idx_messages_conversation on public.messages(conversation_id);
 create index if not exists idx_cash_collections_store on public.visitor_cash_collections(store_id);
 create index if not exists idx_remittances_store on public.visitor_remittances(store_id);
+create index if not exists idx_visits_store_id on public.visits(store_id);
+create index if not exists idx_support_tickets_store on public.support_tickets(store_id);
+create index if not exists idx_guest_sessions_created on public.guest_sessions(created_at desc);
 
--- ۱۴. رکوردهای پیش‌فرض اولیه (Seed Data)
+-- ۱۷. رکوردهای اولیه و پیش‌فرض (Seed Data)
 insert into public.platform_config (
     id, app_name, short_description, app_release_version, app_version_code,
     app_update_notes, plan_6month_price_afn, plan_1year_price_afn,
     support_phone, support_whatsapp, support_welcome_message, updated_at
 ) values (
-    'global_config', 'ویزیتور', 'پنل ویزیتور دارو', '2.5.0', 5,
-    'همگام‌سازی کامل داروها، پیام‌ها، مدیریت پیشرفته کاربران و نسخه آنلاین',
+    'global_config', 'ویزیتور', 'پنل ویزیتور دوا', '2.5.0', 5,
+    'همگام‌سازی کامل دواها، پیام‌ها، مدیریت پیشرفته کاربران و نسخه آنلاین',
     1700, 3000, '0784524918', '0784524918',
-    'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دارو خوش آمدید. پیام، سؤال یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.',
+    'سلام و وقت بخیر! به واحد پشتیبانی آنلاین سامانه ویزیتور دوا خوش آمدید. پیام، سؤال یا تصویر مشکل خود را ارسال نمایید تا در اسرع وقت رسیدگی شود.',
     now()
 ) on conflict (id) do update set
     app_name = excluded.app_name,
+    short_description = excluded.short_description,
     updated_at = now();
 
 insert into public.profiles (

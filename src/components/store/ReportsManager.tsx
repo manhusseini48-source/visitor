@@ -57,7 +57,7 @@ export const ReportsManager: React.FC = () => {
     const catMap = new Map<string, number>();
 
     medicines.forEach((m) => {
-      const cat = m.category || 'سایر اقلام دارویی';
+      const cat = m.category || 'سایر اقلام دوایی';
       catMap.set(cat, (catMap.get(cat) || 0) + m.stock);
     });
 
@@ -155,7 +155,7 @@ export const ReportsManager: React.FC = () => {
             <span>مرکز گزارش‌های هوش تجاری (BI) و خروجی‌های رسمی</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            نمودارهای تحلیلی، ارزیابی سودآوری ویزیتورها، توزیع دسته‌های دارویی و دریافت فایل‌های اکسل
+            نمودارهای تحلیلی، ارزیابی سودآوری ویزیتورها، توزیع دسته‌های دوایی و دریافت فایل‌های اکسل
           </p>
         </div>
 
@@ -204,7 +204,7 @@ export const ReportsManager: React.FC = () => {
             {/* Chart 1: Financial Health Bar Chart */}
             <InteractiveBarChart
               title="تراز مالی جامع: فروش در مقابل وصولی و مانده طلب"
-              subtitle="تفکیک کل نقدینگی وصول‌شده نسبت به فاکتورهای تسویه‌نشده داروخانه‌ها"
+              subtitle="تفکیک کل نقدینگی وصول‌شده نسبت به فاکتورهای تسویه‌نشده دواخانه‌ها"
               data={financialBars}
               valueLabel="مبلغ به افغانی"
               unit="AFN"
@@ -213,8 +213,8 @@ export const ReportsManager: React.FC = () => {
 
             {/* Chart 2: Therapeutic Categories Share Donut */}
             <InteractiveDonutChart
-              title="توزیع گروه‌های درمانی در انبار دارو"
-              subtitle="سهم دسته‌بندی‌های مختلف دارویی از کل حجم موجودی بسته‌های انبار"
+              title="توزیع گروه‌های درمانی در انبار دوا"
+              subtitle="سهم دسته‌بندی‌های مختلف دوایی از کل حجم موجودی بسته‌های انبار"
               segments={categorySegments}
               centerTitle={`${medicines.reduce((s, m) => s + m.stock, 0)}`}
               centerSubtitle="کل موجودی انبار"
@@ -227,7 +227,7 @@ export const ReportsManager: React.FC = () => {
             {/* Chart 3: Top Pharmacies Ranking */}
             <InteractiveHorizontalRankChart
               title="دواخانه‌ها و مشتریان برتر بر اساس سفارشات"
-              subtitle="۵ داروخانه پرتقاضا با بیشترین حجم ثبت سفارش و همکاری مستمر با ویزیتورها"
+              subtitle="۵ دواخانه پرتقاضا با بیشترین حجم ثبت سفارش و همکاری مستمر با ویزیتورها"
               items={topPharmacies}
               valueLabel="تعداد سفارشات"
               secondaryValueLabel="گردش مالی فاکتورها"
@@ -279,7 +279,7 @@ export const ReportsManager: React.FC = () => {
               اکسل (XLSX)
             </button>
             <button
-              onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه دارویی', 'Comprehensive_Orders_Report')}
+              onClick={() => exportOrdersListToPDF(orders, currentStore?.name || 'فروشگاه دوایی', 'Comprehensive_Orders_Report')}
               className="flex-1 py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition cursor-pointer text-center"
             >
               فایل PDF
@@ -289,7 +289,7 @@ export const ReportsManager: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between gap-3">
           <div>
-            <h4 className="font-bold text-slate-800 text-xs mb-1">فهرست انبار داروها</h4>
+            <h4 className="font-bold text-slate-800 text-xs mb-1">فهرست انبار دواها</h4>
             <p className="text-[11px] text-slate-500">موجودی، سری ساخت و انقضا</p>
           </div>
           <div className="flex items-center gap-2">
@@ -300,7 +300,7 @@ export const ReportsManager: React.FC = () => {
               اکسل (XLSX)
             </button>
             <button
-              onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه دارویی')}
+              onClick={() => exportMedicinesToPDF(medicines, currentStore?.name || 'فروشگاه دوایی')}
               className="flex-1 py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition cursor-pointer text-center"
             >
               فایل PDF
@@ -321,7 +321,7 @@ export const ReportsManager: React.FC = () => {
               اکسل (XLSX)
             </button>
             <button
-              onClick={() => exportCustomersToPDF(customers, currentStore?.name || 'فروشگاه دارویی')}
+              onClick={() => exportCustomersToPDF(customers, currentStore?.name || 'فروشگاه دوایی')}
               className="flex-1 py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition cursor-pointer text-center"
             >
               فایل PDF

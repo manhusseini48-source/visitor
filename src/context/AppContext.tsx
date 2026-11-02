@@ -15,12 +15,17 @@ import {
 import { toEnglishDigits } from '../utils/numberUtils';
 import { supabase, isSupabaseConfigured } from '../utils/supabaseClient';
 import { SupabaseSync } from '../utils/supabaseSync';
+import { detectCurrentDevice } from '../utils/deviceDetector';
 
 interface AppContextType {
   currentUser: UserProfile | null;
   currentStore: Store | null;
   platformConfig: PlatformConfig;
   isGuest: boolean;
+  guestRestrictionModal: { isOpen: boolean; actionName?: string };
+  openGuestRestrictionModal: (actionName?: string) => void;
+  closeGuestRestrictionModal: () => void;
+  checkGuestAndPrompt: (actionName?: string) => boolean;
   isSubscriptionExpired: boolean;
   trialDaysRemaining: number;
   shamsiDate: ShamsiDateInfo;
@@ -104,12 +109,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isGuest, setIsGuest] = useState(() => {
     try {
       const u = Storage.getCurrentUser();
+      if (u?.isGuest) return true;
       if (u) return false;
       return localStorage.getItem('visitor_app_is_guest') === 'true';
     } catch {
       return false;
     }
   });
+
+  const [guestRestrictionModal, setGuestRestrictionModal] = useState<{
+    isOpen: boolean;
+    actionName?: string;
+  }>({ isOpen: false });
+
+  const openGuestRestrictionModal = (actionName?: string) => {
+    setGuestRestrictionModal({ isOpen: true, actionName });
+  };
+
+  const closeGuestRestrictionModal = () => {
+    setGuestRestrictionModal({ isOpen: false, actionName: undefined });
+  };
+
+  const checkGuestAndPrompt = (actionName?: string): boolean => {
+    if (isGuest || currentUser?.isGuest || currentUser?.id === 'guest_user_demo') {
+      openGuestRestrictionModal(actionName);
+      return true;
+    }
+    return false;
+  };
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [shamsiDate, setShamsiDate] = useState<ShamsiDateInfo>(() => getShamsiDateDetails());
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -308,12 +336,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (u) {
       setCurrentUser(u);
+      setIsGuest(Boolean(u.isGuest || isGuestMode));
       if (u.storeId) {
         const s = Storage.getStore(u.storeId);
         if (s) setCurrentStore(s);
       }
-    } else if (isLoggedOut || isGuestMode) {
+    } else if (isGuestMode) {
+      setIsGuest(true);
       setCurrentUser(null);
+    } else {
+      setCurrentUser(null);
+      setIsGuest(false);
     }
     setPlatformConfig(Storage.getConfig());
   };
@@ -534,16 +567,73 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       localStorage.removeItem('visitor_app_is_guest');
       localStorage.setItem('visitor_app_logged_out', 'true');
     } catch {}
+    refreshState();
   };
 
   const setGuestMode = () => {
-    Storage.setCurrentUser(null);
-    setCurrentUser(null);
-    setIsGuest(true);
     try {
+      // 1. Detect hardware and device details
+      const devInfo = detectCurrentDevice();
+      Storage.recordGuestSession(devInfo);
+
+      // 2. Ensure an active store is available so the guest has full data to explore
+      const existingStores = Storage.getStores();
+      let targetStore = existingStores.find((s) => s.subscription.status === 'active' || s.subscription.status === 'trial') || existingStores[0];
+
+      if (!targetStore) {
+        targetStore = {
+          id: 'store_demo_guest',
+          name: 'فروشگاه دوایی نمونه سلامت',
+          ownerId: 'guest_user_demo',
+          phone: '0780000000',
+          email: 'guest@modesk.org',
+          address: 'کابل، دهن نال، مارکت دوافروشان، پلاک ۱۲',
+          createdAt: new Date().toISOString(),
+          groupChatEnabled: true,
+          allowVisitorCashCollection: true,
+          subscription: {
+            id: 'sub_demo_guest',
+            storeId: 'store_demo_guest',
+            planName: '14-Day Trial',
+            status: 'trial',
+            startDate: new Date().toISOString(),
+            endDate: getTwoWeeksTrialEnd(),
+            trialDaysRemaining: 14,
+            priceAFN: 0,
+            renewalHistory: [],
+          },
+        };
+        Storage.saveStores([targetStore]);
+      }
+
+      // 3. Create real-like UserProfile with role 'store_owner' and isGuest flag
+      const guestProfile: UserProfile = {
+        id: 'guest_user_demo',
+        name: 'کاربر مهمان',
+        phone: '0700000000',
+        username: 'guest_user',
+        role: 'store_owner',
+        storeId: targetStore.id,
+        avatarUrl: 'م',
+        city: 'کابل',
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        isGuest: true,
+      };
+
+      Storage.setCurrentUser(guestProfile);
+      setCurrentUser(guestProfile);
+      setCurrentStore(targetStore);
+      setIsGuest(true);
+
       localStorage.setItem('visitor_app_is_guest', 'true');
       localStorage.removeItem('visitor_app_logged_out');
-    } catch {}
+      localStorage.setItem('visitor_app_active_tab', 'dashboard');
+
+      refreshState();
+    } catch (err) {
+      console.error('Error entering guest mode:', err);
+    }
   };
 
   // Register New Store - with strictly 2 weeks (14 days) trial period
@@ -686,6 +776,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     weeklyTarget: number;
     employmentNotes?: string;
   }) => {
+    if (checkGuestAndPrompt('افزودن ویزیتور جدید')) {
+      return { success: false, message: 'جهت افزودن ویزیتور، لطفاً در برنامه ثبت‌نام نمایید.' };
+    }
     if (!currentStore) return { success: false, message: 'فروشگاهی یافت نشد.' };
 
     const profiles = Storage.getProfiles();
@@ -741,6 +834,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateVisitor = (visitorId: string, updates: Partial<UserProfile>) => {
+    if (checkGuestAndPrompt('ویرایش مشخصات ویزیتور')) return;
     const profiles = Storage.getProfiles().map((p) =>
       p.id === visitorId ? { ...p, ...updates } : p
     );
@@ -749,6 +843,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const toggleVisitorActive = (visitorId: string) => {
+    if (checkGuestAndPrompt('تغییر وضعیت ویزیتور')) return;
     const profiles = Storage.getProfiles().map((p) =>
       p.id === visitorId ? { ...p, isActive: !p.isActive } : p
     );
@@ -757,6 +852,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; message?: string }> => {
+    if (checkGuestAndPrompt('ویرایش اطلاعات حساب')) {
+      return { success: false, message: 'جهت ویرایش اطلاعات، لطفاً ثبت‌نام نمایید.' };
+    }
     if (!currentUser) return { success: false, message: 'کاربری وارد نشده است.' };
 
     const updated = Storage.updateUserProfile(currentUser.id, updates);
@@ -832,6 +930,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateStoreSettings = (settings: Partial<Store>) => {
+    if (checkGuestAndPrompt('تغییر تنظیمات فروشگاه')) return;
     if (!currentStore) return;
     const all = Storage.getStores();
     const updated = { ...currentStore, ...settings };
@@ -881,6 +980,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         currentStore,
         platformConfig,
         isGuest,
+        guestRestrictionModal,
+        openGuestRestrictionModal,
+        closeGuestRestrictionModal,
+        checkGuestAndPrompt,
         isSubscriptionExpired,
         trialDaysRemaining,
         shamsiDate,

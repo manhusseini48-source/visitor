@@ -171,7 +171,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         id,
         rank: i + 1,
         title: val.name,
-        category: 'داروی محبوب در منطقه',
+        category: 'دوای محبوب در منطقه',
         value: val.qty,
         secondaryValue: val.revenue,
         unit: val.unit,
@@ -188,7 +188,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-xs bg-white/20 text-white px-3 py-0.5 rounded-full font-bold backdrop-blur-xs">
-                پنل همراه ویزیتور دارویی کابل
+                پنل همراه ویزیتور دوایی کابل
               </span>
               <div className="flex items-center gap-1.5 bg-white/15 border border-white/20 text-white px-3 py-0.5 rounded-full text-xs font-bold backdrop-blur-xs">
                 <Calendar className="w-3.5 h-3.5 text-teal-200" />
@@ -216,7 +216,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-amber-900" />
-              <span>گالری و پرزنتیشن دارو به مشتری</span>
+              <span>گالری و پرزنتیشن دوا به مشتری</span>
             </button>
             <button
               onClick={() => onNavigateTab('orders')}
@@ -375,7 +375,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         {/* Right: Top Selling Medicines in this visitor's portfolio */}
         <InteractiveHorizontalRankChart
           title="پرفروش‌ترین اقلام در سفارشات شما"
-          subtitle="داروهایی که بیشترین استقبال را در دواخانه‌های تحت پوشش شما داشته‌اند"
+          subtitle="دواهایی که بیشترین استقبال را در دواخانه‌های تحت پوشش شما داشته‌اند"
           items={visitorTopMedicines}
           valueLabel="تعداد بسته سفارش"
           secondaryValueLabel="مجموع ارزش ناخالص"
@@ -470,7 +470,7 @@ export const VisitorDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               <span className="text-xs font-black text-indigo-600 font-mono">{customers.length} مرکز</span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-              شما مسئول تامین دارویی {customers.length} دواخانه در منطقه کاری خود هستید.
+              شما مسئول تامین دوایی {customers.length} دواخانه در منطقه کاری خود هستید.
             </p>
             <button
               onClick={() => onNavigateTab('customers')}

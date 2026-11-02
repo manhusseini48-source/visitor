@@ -606,7 +606,7 @@ export const VisitorVisits: React.FC<Props> = ({ onNavigateTab }) => {
                   rows={2}
                   value={newVisitNotes}
                   onChange={(e) => setNewVisitNotes(e.target.value)}
-                  placeholder="مثال: معرفی داروی جدید، دریافت چک یا پیگیری سفارش قبلی..."
+                  placeholder="مثال: معرفی دوای جدید، دریافت چک یا پیگیری سفارش قبلی..."
                   className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 outline-none"
                 />
               </div>
