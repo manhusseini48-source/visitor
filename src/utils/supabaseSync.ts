@@ -655,7 +655,7 @@ export const SupabaseSync = {
       return { success: true, message: 'تغییرات با موفقیت در پایگاه داده Supabase ذخیره شد.' };
     } catch (err: any) {
       console.warn('Supabase platform_config sync warning:', err);
-      return { success: false, message: err?.message || 'خطا در برقراری ارتباط با سرور ابری.' };
+      return { success: false, message: err?.message || 'خطا در برقراری ارتباط آنلاین.' };
     }
   },
 

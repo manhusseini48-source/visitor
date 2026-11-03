@@ -35,6 +35,7 @@ import {
   Heart,
   ThumbsUp,
   Flame,
+  Paperclip,
 } from 'lucide-react';
 import { MedicineImageViewerModal } from '../common/MedicineImageViewerModal';
 
@@ -197,6 +198,8 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
   const [allConversations, setAllConversations] = useState<Conversation[]>(initConversations);
 
+  const [conversationFilter, setConversationFilter] = useState<'all' | 'unread' | 'groups' | 'private'>('all');
+
   // Business Rule:
   // - Public group: All visitors & store owner can chat together.
   // - Private chat: Visitor <-> Store only! Visitors CANNOT chat privately with other visitors.
@@ -210,6 +213,15 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
       );
     }
 
+    // Apply WhatsApp filter tab
+    if (conversationFilter === 'unread') {
+      list = list.filter((c) => c.unreadCount > 0);
+    } else if (conversationFilter === 'groups') {
+      list = list.filter((c) => c.type === 'store_group');
+    } else if (conversationFilter === 'private') {
+      list = list.filter((c) => c.type === 'private');
+    }
+
     if (conversationSearch.trim()) {
       const q = conversationSearch.toLowerCase().trim();
       list = list.filter((c) => {
@@ -220,7 +232,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
     }
 
     return list;
-  }, [allConversations, currentUser, conversationSearch]);
+  }, [allConversations, currentUser, conversationFilter, conversationSearch]);
 
   const [activeConvId, setActiveConvId] = useState<string>(() => {
     const list = visibleConversations;
@@ -506,27 +518,28 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
   }, [activeEmojiTab, emojiSearch]);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-md overflow-hidden h-[740px] max-h-[88dvh] flex flex-col md:flex-row transition-colors">
+    <div className="bg-[#ffffff] dark:bg-[#111b21] rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden h-[760px] max-h-[88dvh] flex flex-col md:flex-row transition-colors">
       {/* ========================================================= */}
-      {/* 1. CONVERSATIONS SIDEBAR / LIST */}
+      {/* 1. WHATSAPP CONVERSATIONS SIDEBAR */}
       {/* ========================================================= */}
       <div
-        className={`w-full md:w-84 lg:w-96 border-b md:border-b-0 md:border-l border-slate-200 dark:border-slate-800 flex flex-col bg-slate-50/90 dark:bg-slate-950/70 ${
+        className={`w-full md:w-84 lg:w-96 border-b md:border-b-0 md:border-l border-slate-200 dark:border-slate-800 flex flex-col bg-[#f0f2f5] dark:bg-[#111b21] ${
           mobileChatOpen ? 'hidden md:flex' : 'flex'
         }`}
       >
-        {/* Sidebar Header */}
-        <div className="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 bg-white dark:bg-slate-900">
+        {/* WhatsApp Sidebar Header */}
+        <div className="p-3 px-4 bg-[#008069] dark:bg-[#202c33] text-white flex items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-sky-600/20 flex-shrink-0">
-              <MessageSquare className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center font-black text-sm shadow-inner flex-shrink-0">
+              {currentUser?.name ? currentUser.name.slice(0, 2) : <MessageSquare className="w-5 h-5" />}
             </div>
             <div className="min-w-0">
-              <h3 className="font-black text-slate-800 dark:text-white text-sm sm:text-base truncate">
-                پیام‌رسان کاری
+              <h3 className="font-black text-white text-sm sm:text-base truncate flex items-center gap-1.5">
+                <span>پیام‌رسان کاری</span>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">واتساپ</span>
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                {currentUser?.role === 'visitor' ? 'گفتگوی عمومی و اختصاصی' : 'ارتباط مستقیم با ویزیتورها'}
+              <p className="text-[11px] text-emerald-100 dark:text-slate-300 truncate">
+                {currentUser?.role === 'visitor' ? 'ارتباط مستقیم با انبار و مدیریت' : 'گفتگو با ویزیتورها و مشتریان'}
               </p>
             </div>
           </div>
@@ -534,47 +547,70 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
           {currentUser?.role === 'store_owner' && (
             <button
               onClick={handleToggleGroupChat}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs ${
+              className={`px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs ${
                 groupEnabled
-                  ? 'text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300'
-                  : 'text-slate-600 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-400'
+                  ? 'text-[#008069] bg-white hover:bg-slate-100'
+                  : 'text-white/80 bg-black/20 hover:bg-black/30'
               }`}
               title="فعال یا معلق‌سازی گروه عمومی"
             >
-              <span className={`w-2 h-2 rounded-full ${groupEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${groupEnabled ? 'bg-[#25d366] animate-pulse' : 'bg-slate-400'}`} />
               <span>گروه: {groupEnabled ? 'فعال' : 'بسته'}</span>
             </button>
           )}
         </div>
 
-        {/* Search Conversations Input */}
-        <div className="p-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60">
+        {/* WhatsApp Search & Filter Tabs */}
+        <div className="p-2.5 bg-white dark:bg-[#111b21] border-b border-slate-200/60 dark:border-slate-800 space-y-2">
+          {/* Search bar */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+            <Search className="w-4 h-4 text-[#54656f] dark:text-[#8696a0] absolute right-3 top-2.5" />
             <input
               type="text"
               value={conversationSearch}
               onChange={(e) => setConversationSearch(e.target.value)}
-              placeholder="جستجو در نام گفتگوها یا پیام‌ها..."
-              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-9 pl-8 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-sky-500 transition shadow-2xs"
+              placeholder="جستجو در گفتگوها یا پیام‌ها..."
+              className="w-full bg-[#f0f2f5] dark:bg-[#202c33] border-none rounded-xl pr-9 pl-8 py-2 text-xs text-[#111b21] dark:text-[#e9edef] placeholder-[#8696a0] outline-none focus:ring-2 focus:ring-[#00a884] transition"
             />
             {conversationSearch && (
               <button
                 onClick={() => setConversationSearch('')}
-                className="absolute left-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="absolute left-2.5 top-2 text-[#54656f] hover:text-[#111b21] dark:hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
+
+          {/* WhatsApp Filter Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+            {[
+              { id: 'all', label: 'همه' },
+              { id: 'unread', label: 'خوانده نشده' },
+              { id: 'groups', label: 'گروه‌ها' },
+              { id: 'private', label: 'خصوصی' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setConversationFilter(tab.id as any)}
+                className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+                  conversationFilter === tab.id
+                    ? 'bg-[#008069] text-white dark:bg-[#00a884] shadow-xs'
+                    : 'bg-[#f0f2f5] dark:bg-[#202c33] text-[#54656f] dark:text-[#8696a0] hover:bg-slate-200 dark:hover:bg-[#2a3942]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Conversation Items List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1.5 space-y-0.5">
+        {/* WhatsApp Conversations List */}
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-[#111b21]">
           {visibleConversations.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 dark:text-slate-500 space-y-2">
-              <MessageSquare className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" />
-              <p>گفتگویی مطابق جستجو یافت نشد</p>
+            <div className="p-8 text-center text-xs text-[#54656f] dark:text-[#8696a0] space-y-2">
+              <MessageSquare className="w-9 h-9 mx-auto text-slate-300 dark:text-slate-600" />
+              <p className="font-bold">گفتگویی مطابق فیلتر یافت نشد</p>
             </div>
           ) : (
             visibleConversations.map((c) => {
@@ -587,7 +623,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                 title = 'گروه عمومی فروشگاه';
                 subtitle = 'تبادل نظر همه ویزیتورها و مدیریت';
               } else if (currentUser?.role === 'visitor') {
-                title = 'گفتگوی خصوصی با مدیریت فروشگاه';
+                title = 'گفتگوی خصوصی با مدیریت';
                 subtitle = 'پیام مستقیم با صاحب فروشگاه / انبار';
               } else {
                 title = c.visitorName ? `ویزیتور: ${c.visitorName}` : 'گفتگوی اختصاصی';
@@ -598,42 +634,48 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                 <button
                   key={c.id}
                   onClick={() => handleSelectConversation(c.id)}
-                  className={`w-full p-3 rounded-2xl text-right flex items-center gap-3 transition cursor-pointer relative ${
+                  className={`w-full p-3 px-3.5 text-right flex items-center gap-3 transition cursor-pointer relative ${
                     isActive
-                      ? 'bg-sky-500/10 text-sky-900 dark:text-sky-300 border border-sky-400/40 shadow-xs'
-                      : 'hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                      ? 'bg-[#f0f2f5] dark:bg-[#2a3942] border-r-4 border-[#008069] dark:border-[#00a884]'
+                      : 'hover:bg-[#f5f6f6] dark:hover:bg-[#182229] border-r-4 border-transparent'
                   }`}
                 >
-                  {/* Avatar Icon */}
-                  <div
-                    className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-white flex-shrink-0 shadow-xs relative ${
-                      isGroup
-                        ? 'bg-gradient-to-tr from-indigo-600 to-sky-600'
-                        : currentUser?.role === 'visitor'
-                        ? 'bg-gradient-to-tr from-teal-600 to-emerald-600'
-                        : 'bg-gradient-to-tr from-sky-600 to-blue-700'
-                    }`}
-                  >
-                    {isGroup ? (
-                      <Users className="w-5 h-5" />
-                    ) : currentUser?.role === 'visitor' ? (
-                      <StoreIcon className="w-5 h-5" />
-                    ) : (
-                      <User className="w-5 h-5" />
-                    )}
+                  {/* WhatsApp Circular 48px Avatar */}
+                  <div className="relative flex-shrink-0">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shadow-xs ${
+                        isGroup
+                          ? 'bg-gradient-to-tr from-[#008069] to-[#00a884]'
+                          : currentUser?.role === 'visitor'
+                          ? 'bg-gradient-to-tr from-teal-600 to-emerald-600'
+                          : 'bg-gradient-to-tr from-sky-600 to-indigo-600'
+                      }`}
+                    >
+                      {isGroup ? (
+                        <Users className="w-6 h-6" />
+                      ) : currentUser?.role === 'visitor' ? (
+                        <StoreIcon className="w-5 h-5" />
+                      ) : (
+                        <User className="w-5 h-5" />
+                      )}
+                    </div>
 
-                    {/* Online indicator */}
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 absolute -bottom-0.5 -right-0.5" />
+                    {/* WhatsApp Online Green Dot Badge */}
+                    <span className="w-3.5 h-3.5 rounded-full bg-[#25d366] border-2 border-white dark:border-[#111b21] absolute bottom-0 right-0 shadow-xs" />
                   </div>
 
                   {/* Title & Preview */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`font-bold text-xs truncate ${isActive ? 'text-sky-700 dark:text-sky-400 font-black' : 'text-slate-800 dark:text-slate-100'}`}>
+                      <span className={`text-xs sm:text-sm truncate font-bold ${
+                        isActive
+                          ? 'text-[#008069] dark:text-[#00a884] font-black'
+                          : 'text-[#111b21] dark:text-[#e9edef]'
+                      }`}>
                         {title}
                       </span>
                       {c.lastMessageTime && (
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0 mr-1 font-mono">
+                        <span className="text-[11px] text-[#667781] dark:text-[#8696a0] font-mono flex-shrink-0 mr-1">
                           {new Date(c.lastMessageTime).toLocaleTimeString('fa-AF', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -642,46 +684,44 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[190px]">
-                        {c.lastMessageText || subtitle}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[12px] text-[#667781] dark:text-[#8696a0] truncate flex items-center gap-1 max-w-[200px]">
+                        <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb] flex-shrink-0" />
+                        <span>{c.lastMessageText || subtitle}</span>
                       </p>
+
+                      {/* WhatsApp Green Unread Badge */}
                       {c.unreadCount > 0 && (
-                        <span className="w-5 h-5 rounded-full bg-sky-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 shadow-xs">
+                        <span className="min-w-[20px] h-5 rounded-full bg-[#25d366] text-white font-bold text-[10px] px-1.5 flex items-center justify-center flex-shrink-0 shadow-xs">
                           {c.unreadCount}
                         </span>
                       )}
                     </div>
                   </div>
-
-                  {/* Active highlight bar */}
-                  {isActive && (
-                    <span className="absolute left-2 w-1.5 h-6 rounded-full bg-sky-600" />
-                  )}
                 </button>
               );
             })
           )}
         </div>
 
-        {/* Security Rule Note */}
-        <div className="p-3 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 flex-shrink-0" />
-          <span>امنیت کامل: ارتباط خصوصی فقط بین ویزیتور و مدیریت انجام می‌شود.</span>
+        {/* WhatsApp Privacy & Security Footer */}
+        <div className="p-2.5 px-3 bg-[#f0f2f5] dark:bg-[#111b21] border-t border-slate-200 dark:border-slate-800 text-[11px] text-[#54656f] dark:text-[#8696a0] flex items-center gap-1.5 justify-center">
+          <Lock className="w-3.5 h-3.5 text-[#008069] dark:text-[#00a884] flex-shrink-0" />
+          <span>پیام‌ها سرتاسر رمزنگاری شده و محفوظ هستند.</span>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 2. MAIN CHAT AREA */}
+      {/* 2. WHATSAPP MAIN CHAT AREA */}
       {/* ========================================================= */}
       <div
-        className={`flex-1 flex flex-col bg-slate-100/60 dark:bg-slate-950/40 relative min-w-0 ${
+        className={`flex-1 flex flex-col relative min-w-0 bg-[#efeae2] dark:bg-[#0b141a] ${
           !mobileChatOpen ? 'hidden md:flex' : 'flex'
         }`}
       >
-        {/* Top Fast Conversation Switcher Ribbon (جابجایی سریع بین گفتگوها با ۱ کلیک) */}
-        <div className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-2 px-3 overflow-x-auto flex items-center gap-2 scrollbar-none flex-shrink-0">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap pl-1">
+        {/* WhatsApp Fast Switcher Ribbon (جابجایی سریع بین گفتگوها با ۱ لمس) */}
+        <div className="bg-[#f0f2f5] dark:bg-[#202c33] border-b border-slate-200 dark:border-slate-800 p-2 px-3 overflow-x-auto flex items-center gap-2 scrollbar-none flex-shrink-0">
+          <span className="text-[10px] font-bold text-[#54656f] dark:text-[#8696a0] whitespace-nowrap pl-1">
             جابجایی سریع:
           </span>
           {visibleConversations.map((c) => {
@@ -692,42 +732,42 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
               <button
                 key={c.id}
                 onClick={() => handleSelectConversation(c.id)}
-                className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs ${
+                className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs ${
                   isActive
-                    ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
-                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700'
+                    ? 'bg-[#008069] text-white shadow-sm ring-2 ring-emerald-300 dark:ring-emerald-700'
+                    : 'bg-white dark:bg-[#111b21] text-[#111b21] dark:text-[#e9edef] hover:bg-slate-200/80 dark:hover:bg-[#2a3942] border border-slate-200/80 dark:border-slate-700'
                 }`}
               >
                 {isGroup ? (
-                  <Users className="w-3 h-3" />
+                  <Users className="w-3.5 h-3.5" />
                 ) : (
-                  <User className="w-3 h-3" />
+                  <User className="w-3.5 h-3.5" />
                 )}
                 <span>{shortName}</span>
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#25d366] animate-pulse" />}
               </button>
             );
           })}
         </div>
 
-        {/* Chat Active Header */}
-        <div className="p-3 px-4 sm:px-5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-3 min-w-0">
+        {/* WhatsApp Active Chat Header */}
+        <div className="p-2.5 px-3.5 sm:px-4 bg-[#008069] dark:bg-[#202c33] text-white flex items-center justify-between gap-3 shadow-sm z-10">
+          <div className="flex items-center gap-2.5 min-w-0">
             {/* Mobile back to conversations list button */}
             <button
               onClick={() => setMobileChatOpen(false)}
-              className="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 flex items-center gap-1 text-xs font-bold cursor-pointer"
+              className="md:hidden p-2 rounded-full hover:bg-white/10 text-white flex items-center justify-center cursor-pointer transition"
               title="بازگشت به لیست گفتگوها"
             >
-              <ArrowRight className="w-4 h-4 text-sky-600" />
-              <span>لیست</span>
+              <ArrowRight className="w-5 h-5 text-white" />
             </button>
 
+            {/* WhatsApp Avatar */}
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-xs flex-shrink-0 ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-xs flex-shrink-0 ${
                 activeConversation?.type === 'store_group'
-                  ? 'bg-gradient-to-tr from-indigo-600 to-sky-600'
-                  : 'bg-gradient-to-tr from-sky-600 to-blue-700'
+                  ? 'bg-gradient-to-tr from-emerald-600 to-teal-500'
+                  : 'bg-gradient-to-tr from-sky-600 to-indigo-600'
               }`}
             >
               {activeConversation?.type === 'store_group' ? (
@@ -741,59 +781,57 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-black text-xs sm:text-sm text-slate-800 dark:text-slate-100 truncate">
+                <span className="font-bold text-sm text-white truncate">
                   {activeConversation?.type === 'store_group'
                     ? 'گروه عمومی فروشگاه و همکاران'
                     : currentUser?.role === 'visitor'
-                    ? 'گفتگوی خصوصی با مدیریت فروشگاه'
-                    : `گفتگوی اختصاصی: ${activeConversation?.visitorName || 'ویزیتور'}`}
+                    ? 'گفتگوی اختصاصی با مدیریت فروشگاه'
+                    : `گفتگوی کاری: ${activeConversation?.visitorName || 'ویزیتور'}`}
                 </span>
-                <span className="bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                  {activeConversation?.type === 'store_group' ? 'گروه عمومی' : 'خصوصی و محرمانه'}
+                <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+                  {activeConversation?.type === 'store_group' ? 'گروه' : 'شخصی'}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>آنلاین و فعال در شبکه</span>
+              <p className="text-[11px] text-emerald-100 dark:text-slate-300 mt-0.5 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#25d366] animate-pulse" />
+                <span>آنلاین</span>
               </p>
             </div>
           </div>
 
-          {/* Right Header Actions (Search in messages & Templates) */}
+          {/* WhatsApp Header Actions */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={() => setShowMessageSearch(!showMessageSearch)}
-              className={`p-2 rounded-xl transition cursor-pointer border ${
-                showMessageSearch
-                  ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-300'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+              className={`p-2 rounded-full transition cursor-pointer hover:bg-white/10 text-white ${
+                showMessageSearch ? 'bg-white/20' : ''
               }`}
-              title="جستجو در پیام‌های این گفتگو"
+              title="جستجو در پیام‌ها"
             >
               <Search className="w-4 h-4" />
             </button>
 
             <button
               onClick={() => setShowQuickTemplates(!showQuickTemplates)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
-              title="پیام‌های آماده و پاسخ‌های پرکاربرد"
+              className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              title="پاسخ‌های آماده کاری"
             >
-              <Pin className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden sm:inline">پیام آماده</span>
+              <Pin className="w-3.5 h-3.5 text-amber-300" />
+              <span className="hidden sm:inline">پاسخ آماده</span>
             </button>
           </div>
         </div>
 
         {/* Message Search Bar dropdown */}
         {showMessageSearch && (
-          <div className="p-2.5 px-4 bg-sky-50 dark:bg-slate-900 border-b border-sky-200 dark:border-slate-800 flex items-center gap-2 animate-in slide-in-from-top-2">
-            <Search className="w-4 h-4 text-sky-600 flex-shrink-0" />
+          <div className="p-2.5 px-4 bg-white dark:bg-[#202c33] border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 animate-in slide-in-from-top-2">
+            <Search className="w-4 h-4 text-[#008069] dark:text-[#00a884] flex-shrink-0" />
             <input
               type="text"
               value={messageSearchQuery}
               onChange={(e) => setMessageSearchQuery(e.target.value)}
               placeholder="جستجوی کلمه در این مکالمه..."
-              className="flex-1 bg-white dark:bg-slate-800 border border-sky-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 outline-none"
+              className="flex-1 bg-[#f0f2f5] dark:bg-[#111b21] border-none rounded-xl px-3 py-1.5 text-xs text-[#111b21] dark:text-[#e9edef] outline-none"
               autoFocus
             />
             {messageSearchQuery && (
@@ -804,7 +842,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                 <X className="w-4 h-4" />
               </button>
             )}
-            <span className="text-[11px] text-sky-700 dark:text-sky-300 font-bold">
+            <span className="text-[11px] text-[#008069] dark:text-[#00a884] font-bold">
               {filteredMessages.length} مورد
             </span>
           </div>
@@ -812,15 +850,15 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
         {/* Quick Response Templates Dropdown */}
         {showQuickTemplates && (
-          <div className="p-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-md animate-in slide-in-from-top-2 z-10">
+          <div className="p-3 bg-white dark:bg-[#202c33] border-b border-slate-200 dark:border-slate-800 shadow-md animate-in slide-in-from-top-2 z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
                 <Star className="w-3.5 h-3.5 text-amber-500" />
-                <span>پیام‌های آماده کاری (با کلیک ارسال یا درج می‌شود):</span>
+                <span>پاسخ‌های آماده کاری واتساپ:</span>
               </span>
               <button
                 onClick={() => setShowQuickTemplates(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -834,7 +872,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                     setShowQuickTemplates(false);
                     inputRef.current?.focus();
                   }}
-                  className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/50 text-right text-xs text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:border-sky-300 transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#111b21] hover:bg-emerald-50 dark:hover:bg-[#2a3942] text-right text-xs text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 transition cursor-pointer"
                 >
                   {tmpl}
                 </button>
@@ -843,18 +881,18 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
           </div>
         )}
 
-        {/* Chat Messages Body */}
+        {/* WhatsApp Chat Messages Canvas */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3">
           {filteredMessages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs space-y-3">
-              <div className="w-16 h-16 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-xs">
-                <MessageSquare className="w-8 h-8 text-sky-500" />
+            <div className="h-full flex flex-col items-center justify-center text-[#54656f] dark:text-[#8696a0] text-xs space-y-3">
+              <div className="w-16 h-16 rounded-full bg-white dark:bg-[#202c33] border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-xs">
+                <MessageSquare className="w-8 h-8 text-[#008069] dark:text-[#00a884]" />
               </div>
-              <p className="font-bold text-slate-600 dark:text-slate-300 text-sm">
-                هنوز پیامی در این گفتگو ثبت نشده است.
+              <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
+                هنوز پیامی در این گفتگو ارسال نشده است.
               </p>
-              <p className="text-slate-400 text-xs">
-                پیام متنی بنویسید، تصویر پیوست نمایید یا از ایموجی‌ها استفاده فرمایید.
+              <p className="text-[#54656f] dark:text-[#8696a0] text-xs">
+                پیام بنویسید، تصویر پیوست نمایید یا از ایموجی‌های واتساپ استفاده فرمایید.
               </p>
             </div>
           ) : (
@@ -868,32 +906,15 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                   key={m.id}
                   className={`flex flex-col group ${isMine ? 'items-end' : 'items-start'}`}
                 >
-                  {/* Sender Info & Time */}
-                  <div className="flex items-center gap-1.5 mb-1 px-1.5 text-[11px] text-slate-400 dark:text-slate-500">
-                    <span className="font-bold text-slate-700 dark:text-slate-300">
-                      {isMine ? 'شما' : m.senderName}
-                    </span>
-                    <span>•</span>
-                    <span className="font-mono">
-                      {new Date(m.createdAt).toLocaleTimeString('fa-AF', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                    {isDeleted && (
-                      <span className="text-rose-500 font-bold mr-1">(حذف شده)</span>
-                    )}
-                  </div>
-
-                  {/* Message Bubble Box */}
-                  <div className="relative flex items-center gap-1.5 max-w-[90%] sm:max-w-[75%] md:max-w-[70%]">
-                    {/* Actions Menu for My Message (Hover / Always on Mobile) */}
+                  {/* WhatsApp Message Bubble Box */}
+                  <div className="relative flex items-center gap-1.5 max-w-[90%] sm:max-w-[78%] md:max-w-[72%]">
+                    {/* Hover actions for My Message */}
                     {isMine && !isDeleted && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xs p-1 rounded-xl shadow-2xs border border-slate-200/60 dark:border-slate-700">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 dark:bg-[#202c33] p-1 rounded-xl shadow-xs border border-slate-200/60 dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => handleCopyMessage(m.text, m.id)}
-                          className="p-1 text-slate-500 hover:text-sky-600 transition"
+                          className="p-1 text-[#54656f] hover:text-[#008069] transition"
                           title="کپی متن"
                         >
                           {copiedMsgId === m.id ? (
@@ -915,16 +936,23 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                       </div>
                     )}
 
-                    {/* Main Bubble Content */}
+                    {/* WhatsApp Bubble Design */}
                     <div
-                      className={`rounded-3xl p-3.5 shadow-2xs text-xs sm:text-sm leading-relaxed transition ${
+                      className={`rounded-2xl p-3 px-3.5 shadow-2xs text-xs sm:text-sm leading-relaxed transition ${
                         isDeleted
-                          ? 'bg-slate-100 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 italic flex items-center gap-2 rounded-2xl'
+                          ? 'bg-slate-100/90 dark:bg-[#182229] border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 italic flex items-center gap-2 rounded-xl'
                           : isMine
-                          ? 'bg-gradient-to-r from-sky-600 to-sky-700 text-white rounded-tl-xs shadow-md shadow-sky-600/10'
-                          : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700/80 rounded-tr-xs shadow-xs'
+                          ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tl-xs shadow-xs'
+                          : 'bg-[#ffffff] dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] border border-slate-200/50 dark:border-transparent rounded-tr-xs shadow-xs'
                       }`}
                     >
+                      {/* Sender name for received messages in group chats */}
+                      {!isMine && !isDeleted && activeConversation?.type === 'store_group' && (
+                        <div className="text-[11px] font-bold text-[#008069] dark:text-[#00a884] mb-1">
+                          {m.senderName}
+                        </div>
+                      )}
+
                       {isDeleted ? (
                         <div className="flex items-center gap-2">
                           <Ban className="w-4 h-4 text-slate-400" />
@@ -932,18 +960,18 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                         </div>
                       ) : (
                         <>
-                          {m.text && <p className="whitespace-pre-line select-text font-medium">{m.text}</p>}
+                          {m.text && <p className="whitespace-pre-line select-text font-normal">{m.text}</p>}
 
                           {/* Order Attachment Card */}
                           {m.orderDocAttachment && (
-                            <div className="mt-2.5 p-3 rounded-2xl bg-black/15 dark:bg-black/30 border border-white/20 text-xs space-y-1">
-                              <div className="flex items-center gap-1.5 font-black text-amber-300">
+                            <div className="mt-2.5 p-3 rounded-xl bg-black/10 dark:bg-black/30 border border-black/10 dark:border-white/10 text-xs space-y-1">
+                              <div className="flex items-center gap-1.5 font-bold text-[#008069] dark:text-[#25d366]">
                                 <FileText className="w-4 h-4" />
                                 <span>سند فاکتور رسمی #{m.orderDocAttachment.orderNumber}</span>
                               </div>
-                              <div className="text-white/90">دواخانه: {m.orderDocAttachment.customerName}</div>
-                              <div className="font-bold text-white">
-                                مبلغ کل: {m.orderDocAttachment.totalAFN.toLocaleString()} افغانی (AFN)
+                              <div className="text-slate-700 dark:text-slate-300">دواخانه: {m.orderDocAttachment.customerName}</div>
+                              <div className="font-bold text-[#111b21] dark:text-white">
+                                مبلغ کل: {m.orderDocAttachment.totalAFN.toLocaleString()} افغانی
                               </div>
                             </div>
                           )}
@@ -952,7 +980,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                           {m.imageUrl && (
                             <div
                               onClick={() => setPreviewImage(m.imageUrl || null)}
-                              className="mt-2.5 rounded-2xl overflow-hidden cursor-pointer max-w-xs border border-white/20 shadow-sm group-hover:scale-[1.01] transition"
+                              className="mt-2.5 rounded-xl overflow-hidden cursor-pointer max-w-xs border border-black/10 dark:border-white/10 shadow-xs group-hover:scale-[1.01] transition"
                             >
                               <img
                                 src={m.imageUrl}
@@ -962,10 +990,10 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                             </div>
                           )}
 
-                          {/* Message Ticks / Timestamp footer */}
+                          {/* WhatsApp Bubble Footer: Time + Blue Double Ticks */}
                           <div
-                            className={`flex items-center justify-end gap-1 mt-1.5 text-[10px] ${
-                              isMine ? 'text-sky-200' : 'text-slate-400'
+                            className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${
+                              isMine ? 'text-[#667781] dark:text-[#8696a0]' : 'text-[#667781] dark:text-[#8696a0]'
                             }`}
                           >
                             <span className="font-mono">
@@ -974,19 +1002,19 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                                 minute: '2-digit',
                               })}
                             </span>
-                            {isMine && <CheckCheck className="w-3.5 h-3.5 text-sky-200" />}
+                            {isMine && <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />}
                           </div>
                         </>
                       )}
                     </div>
 
-                    {/* Actions Menu for Received Message */}
+                    {/* Hover actions for Received Message */}
                     {!isMine && !isDeleted && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xs p-1 rounded-xl shadow-2xs border border-slate-200/60 dark:border-slate-700">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 dark:bg-[#202c33] p-1 rounded-xl shadow-xs border border-slate-200/60 dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => handleCopyMessage(m.text, m.id)}
-                          className="p-1 text-slate-500 hover:text-sky-600 transition"
+                          className="p-1 text-[#54656f] hover:text-[#008069] transition"
                           title="کپی متن"
                         >
                           {copiedMsgId === m.id ? (
@@ -1017,7 +1045,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
 
         {/* Selected image preview before send */}
         {selectedImage && (
-          <div className="bg-slate-100 dark:bg-slate-800 p-2.5 px-4 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
+          <div className="bg-[#f0f2f5] dark:bg-[#202c33] p-2.5 px-4 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-3">
               <img
                 src={selectedImage}
@@ -1025,8 +1053,8 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                 className="w-12 h-12 rounded-xl object-cover border border-slate-300 dark:border-slate-600"
               />
               <div>
-                <span className="text-xs text-slate-800 dark:text-slate-100 font-bold block">تصویر ضمیمه شد</span>
-                <span className="text-[10px] text-slate-400">آماده ارسال با پیام بعدی</span>
+                <span className="text-xs text-[#111b21] dark:text-[#e9edef] font-bold block">تصویر ضمیمه شد</span>
+                <span className="text-[10px] text-[#667781]">آماده ارسال در چت واتساپ</span>
               </div>
             </div>
             <button
@@ -1046,11 +1074,11 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
           </div>
         )}
 
-        {/* Categorized Emoji Picker Modal / Popover */}
+        {/* WhatsApp Categorized Emoji Picker Popover */}
         {showEmojiPicker && (
           <div
             ref={emojiPickerRef}
-            className="absolute bottom-20 right-4 z-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-3 w-80 sm:w-96 max-w-[92vw] animate-in slide-in-from-bottom-2 flex flex-col"
+            className="absolute bottom-20 right-4 z-40 bg-white dark:bg-[#202c33] border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl p-3 w-80 sm:w-96 max-w-[92vw] animate-in slide-in-from-bottom-2 flex flex-col"
           >
             {/* Emoji Header & Search */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 gap-2">
@@ -1060,8 +1088,8 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                   type="text"
                   value={emojiSearch}
                   onChange={(e) => setEmojiSearch(e.target.value)}
-                  placeholder="جستجوی ایموجی..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-8 pl-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 outline-none"
+                  placeholder="جستجوی ایموجی واتساپ..."
+                  className="w-full bg-[#f0f2f5] dark:bg-[#111b21] border-none rounded-xl pr-8 pl-3 py-1.5 text-xs text-[#111b21] dark:text-[#e9edef] outline-none"
                 />
               </div>
               <button
@@ -1083,8 +1111,8 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                   }}
                   className={`px-2.5 py-1 rounded-xl text-xs flex items-center gap-1 transition cursor-pointer whitespace-nowrap ${
                     activeEmojiTab === cat.id
-                      ? 'bg-sky-600 text-white font-bold'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      ? 'bg-[#008069] text-white font-bold'
+                      : 'bg-[#f0f2f5] dark:bg-[#111b21] text-[#54656f] dark:text-[#8696a0] hover:bg-slate-200'
                   }`}
                 >
                   <span>{cat.icon}</span>
@@ -1100,7 +1128,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
                   key={index}
                   type="button"
                   onClick={() => handleInsertEmoji(emoji)}
-                  className="w-9 h-9 rounded-xl hover:bg-sky-100 dark:hover:bg-slate-800 flex items-center justify-center text-xl transition transform active:scale-125 cursor-pointer"
+                  className="w-9 h-9 rounded-xl hover:bg-emerald-100 dark:hover:bg-slate-800 flex items-center justify-center text-xl transition transform active:scale-125 cursor-pointer"
                 >
                   {emoji}
                 </button>
@@ -1112,7 +1140,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
         {/* Delete Message Confirmation Modal */}
         {deleteConfirmMsgId && (
           <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 space-y-4">
+            <div className="bg-white dark:bg-[#202c33] rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 space-y-4">
               <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
                 <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center flex-shrink-0">
                   <Trash2 className="w-5 h-5" />
@@ -1124,7 +1152,7 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                آیا از حذف این پیام اطمینان دارید؟ به جای پیام شما، نشانگر «حذف شده» برای سایر افراد نمایش داده خواهد شد.
+                آیا از حذف این پیام اطمینان دارید؟ به جای پیام شما، نشانگر «این پیام حذف شده است» برای سایرین نمایش داده خواهد شد.
               </p>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -1145,17 +1173,29 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
           </div>
         )}
 
-        {/* Professional Chat Input Bar */}
+        {/* WhatsApp Chat Input Dock */}
         <form
           onSubmit={handleSendMessage}
-          className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 relative shadow-2xs"
+          className="p-2 sm:p-3 px-3 bg-[#f0f2f5] dark:bg-[#202c33] border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-2 relative shadow-xs"
         >
-          {/* Attachment button */}
+          {/* WhatsApp Emoji button */}
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className={`p-2.5 rounded-full text-[#54656f] dark:text-[#aebac1] hover:text-[#111b21] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition cursor-pointer flex-shrink-0 ${
+              showEmojiPicker ? 'text-[#008069] dark:text-[#00a884]' : ''
+            }`}
+            title="ایموجی"
+          >
+            <Smile className="w-5 h-5 text-amber-500" />
+          </button>
+
+          {/* WhatsApp Paperclip attachment button */}
           <label
-            className={`p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition cursor-pointer flex-shrink-0 shadow-2xs ${
+            className={`p-2.5 rounded-full text-[#54656f] dark:text-[#aebac1] hover:text-[#111b21] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition cursor-pointer flex-shrink-0 ${
               uploadingImage ? 'opacity-50 pointer-events-none' : ''
             }`}
-            title="پیوست تصویر به پیام"
+            title="پیوست عکس"
           >
             <input
               type="file"
@@ -1164,24 +1204,10 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
               onChange={handleImageFileChange}
               disabled={uploadingImage}
             />
-            <ImageIcon className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+            <Paperclip className="w-5 h-5" />
           </label>
 
-          {/* Emoji button */}
-          <button
-            type="button"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className={`p-2.5 rounded-2xl border transition cursor-pointer flex-shrink-0 shadow-2xs ${
-              showEmojiPicker
-                ? 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300'
-                : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-            }`}
-            title="انتخاب ایموجی"
-          >
-            <Smile className="w-5 h-5 text-amber-500" />
-          </button>
-
-          {/* Message input */}
+          {/* WhatsApp Text Input Pill */}
           <input
             ref={inputRef}
             type="text"
@@ -1190,19 +1216,19 @@ export const MessengerView: React.FC<Props> = ({ initialSharedOrder }) => {
             placeholder={
               uploadingImage
                 ? 'در حال فشرده‌سازی و بارگذاری تصویر...'
-                : 'پیام کاری خود را بنویسید (یا از ایموجی‌ها استفاده نمایید)...'
+                : 'پیام خود را در واتساپ بنویسید...'
             }
-            className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-sky-500 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 font-medium outline-none transition shadow-2xs"
+            className="flex-1 bg-white dark:bg-[#2a3942] border-none rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-[#111b21] dark:text-[#e9edef] placeholder-[#8696a0] outline-none shadow-2xs focus:ring-1 focus:ring-[#00a884]"
           />
 
-          {/* Send button */}
+          {/* WhatsApp Circular FAB Send Button */}
           <button
             type="submit"
             disabled={(!inputText.trim() && !selectedImage) || uploadingImage}
-            className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2 transition cursor-pointer disabled:cursor-not-allowed shadow-md shadow-sky-600/30 flex-shrink-0 active:scale-95"
+            className="w-11 h-11 rounded-full bg-[#00a884] hover:bg-[#02906f] active:scale-95 disabled:opacity-40 text-white flex items-center justify-center shadow-md shadow-[#00a884]/30 cursor-pointer disabled:cursor-not-allowed transition flex-shrink-0"
+            title="ارسال پیام"
           >
             <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">ارسال</span>
           </button>
         </form>
       </div>

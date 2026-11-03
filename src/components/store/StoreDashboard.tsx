@@ -511,15 +511,16 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
       </div>
 
       {/* Order Status Action Pipeline Pills */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
+      {/* Order Status Action Pipeline Pills */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-            <Truck className="w-4 h-4 text-sky-600" />
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+            <Truck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             <span>پایپ‌لاین عملیاتی پردازش و تحویل دوا:</span>
           </h3>
           <button
             onClick={() => onNavigateTab('orders')}
-            className="text-xs text-sky-600 hover:underline font-bold"
+            className="text-xs text-sky-600 dark:text-sky-400 hover:underline font-bold cursor-pointer"
           >
             مشاهده جزییات سفارشات
           </button>
@@ -527,35 +528,35 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div
             onClick={() => onNavigateTab('orders')}
-            className="p-3.5 bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/60 rounded-2xl text-center cursor-pointer transition"
+            className="p-3.5 bg-amber-50/70 hover:bg-amber-100/70 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 border border-amber-200/60 dark:border-amber-800/60 rounded-2xl text-center cursor-pointer transition active:scale-95"
           >
-            <div className="text-xs text-amber-800 font-bold">در انتظار تأیید</div>
-            <div className="text-xl font-black text-amber-900 mt-1">{pendingOrders.length}</div>
-            <div className="text-[10px] text-amber-600 mt-0.5">نیازمند بررسی مدیر</div>
+            <div className="text-xs text-amber-800 dark:text-amber-300 font-bold">در انتظار تأیید</div>
+            <div className="text-xl font-black text-amber-900 dark:text-amber-100 mt-1">{pendingOrders.length}</div>
+            <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">نیازمند بررسی مدیر</div>
           </div>
           <div
             onClick={() => onNavigateTab('orders')}
-            className="p-3.5 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/60 rounded-2xl text-center cursor-pointer transition"
+            className="p-3.5 bg-blue-50/70 hover:bg-blue-100/70 dark:bg-sky-950/40 dark:hover:bg-sky-900/60 border border-blue-200/60 dark:border-sky-800/60 rounded-2xl text-center cursor-pointer transition active:scale-95"
           >
-            <div className="text-xs text-blue-800 font-bold">در حال آماده‌سازی</div>
-            <div className="text-xl font-black text-blue-900 mt-1">{preparingOrders.length}</div>
-            <div className="text-[10px] text-blue-600 mt-0.5">بسته‌بندی در انبار</div>
+            <div className="text-xs text-blue-800 dark:text-sky-300 font-bold">در حال آماده‌سازی</div>
+            <div className="text-xl font-black text-blue-900 dark:text-sky-100 mt-1">{preparingOrders.length}</div>
+            <div className="text-[10px] text-blue-600 dark:text-sky-400 mt-0.5">بسته‌بندی در انبار</div>
           </div>
           <div
             onClick={() => onNavigateTab('orders')}
-            className="p-3.5 bg-purple-50/70 hover:bg-purple-100/70 border border-purple-200/60 rounded-2xl text-center cursor-pointer transition"
+            className="p-3.5 bg-purple-50/70 hover:bg-purple-100/70 dark:bg-purple-950/40 dark:hover:bg-purple-900/60 border border-purple-200/60 dark:border-purple-800/60 rounded-2xl text-center cursor-pointer transition active:scale-95"
           >
-            <div className="text-xs text-purple-800 font-bold">ارسال شده (در مسیر)</div>
-            <div className="text-xl font-black text-purple-900 mt-1">{shippedOrders.length}</div>
-            <div className="text-[10px] text-purple-600 mt-0.5">تحویل به راننده/پیک</div>
+            <div className="text-xs text-purple-800 dark:text-purple-300 font-bold">ارسال شده (در مسیر)</div>
+            <div className="text-xl font-black text-purple-900 dark:text-purple-100 mt-1">{shippedOrders.length}</div>
+            <div className="text-[10px] text-purple-600 dark:text-purple-400 mt-0.5">تحویل به راننده/پیک</div>
           </div>
           <div
             onClick={() => onNavigateTab('orders')}
-            className="p-3.5 bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-200/60 rounded-2xl text-center cursor-pointer transition"
+            className="p-3.5 bg-emerald-50/70 hover:bg-emerald-100/70 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 border border-emerald-200/60 dark:border-emerald-800/60 rounded-2xl text-center cursor-pointer transition active:scale-95"
           >
-            <div className="text-xs text-emerald-800 font-bold">تحویل نهایی شده</div>
-            <div className="text-xl font-black text-emerald-900 mt-1">{deliveredOrders.length}</div>
-            <div className="text-[10px] text-emerald-600 mt-0.5">رسید امضاشده دواخانه</div>
+            <div className="text-xs text-emerald-800 dark:text-emerald-300 font-bold">تحویل نهایی شده</div>
+            <div className="text-xl font-black text-emerald-900 dark:text-emerald-100 mt-1">{deliveredOrders.length}</div>
+            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">رسید امضاشده دواخانه</div>
           </div>
         </div>
       </div>
@@ -564,15 +565,15 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
       {(lowStockMeds.length > 0 || nearExpiryMeds.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Low Stock Alert */}
-          <div className="bg-rose-50/80 border border-rose-200 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-rose-800 font-bold text-xs mb-3">
+          <div className="bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl p-4.5 shadow-xs">
+            <div className="flex items-center justify-between text-rose-800 dark:text-rose-300 font-bold text-xs mb-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-600" />
+                <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                 <span>هشدار کسری موجودی انبار ({lowStockMeds.length} قلم دوا)</span>
               </div>
               <button
                 onClick={() => onNavigateTab('medicines')}
-                className="text-rose-700 hover:underline text-[11px]"
+                className="text-rose-700 dark:text-rose-300 hover:underline text-[11px] cursor-pointer font-bold"
               >
                 انبار دواها
               </button>
@@ -581,14 +582,14 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               {lowStockMeds.slice(0, 3).map((m) => (
                 <div
                   key={m.id}
-                  className="bg-white p-2.5 rounded-xl border border-rose-100 flex items-center justify-between text-xs"
+                  className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-rose-100 dark:border-rose-950 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <div className="font-bold text-slate-800">{m.name}</div>
-                    <div className="text-[10px] text-slate-500 font-mono">کد: {m.code}</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100">{m.name}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">کد: {m.code}</div>
                   </div>
                   <div className="text-left">
-                    <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">
+                    <span className="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">
                       موجودی: {m.stock} {m.unit}
                     </span>
                     <div className="text-[10px] text-slate-400 mt-0.5">
@@ -601,15 +602,15 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
           </div>
 
           {/* Near Expiry Alert */}
-          <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-amber-800 font-bold text-xs mb-3">
+          <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl p-4.5 shadow-xs">
+            <div className="flex items-center justify-between text-amber-800 dark:text-amber-300 font-bold text-xs mb-3">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-amber-600" />
+                <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>دواهای نزدیک تاریخ انقضا ({nearExpiryMeds.length} قلم دوا)</span>
               </div>
               <button
                 onClick={() => onNavigateTab('medicines')}
-                className="text-amber-700 hover:underline text-[11px]"
+                className="text-amber-700 dark:text-amber-300 hover:underline text-[11px] cursor-pointer font-bold"
               >
                 بررسی تاریخ‌ها
               </button>
@@ -618,14 +619,14 @@ export const StoreDashboard: React.FC<Props> = ({ onNavigateTab }) => {
               {nearExpiryMeds.slice(0, 3).map((m) => (
                 <div
                   key={m.id}
-                  className="bg-white p-2.5 rounded-xl border border-amber-100 flex items-center justify-between text-xs"
+                  className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-amber-100 dark:border-amber-950 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <div className="font-bold text-slate-800">{m.name}</div>
-                    <div className="text-[10px] text-slate-500">سری: {m.batchNumber}</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100">{m.name}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">سری: {m.batchNumber}</div>
                   </div>
                   <div className="text-left">
-                    <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+                    <span className="bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">
                       انقضا: {m.expiryDate}
                     </span>
                     <div className="text-[10px] text-slate-400 mt-0.5">موجودی: {m.stock} {m.unit}</div>

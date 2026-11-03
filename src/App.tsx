@@ -82,6 +82,7 @@ import {
   Grid,
   UserPlus,
   Smartphone,
+  Search,
 } from 'lucide-react';
 
 function AppContent() {
@@ -114,6 +115,7 @@ function AppContent() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [drawerSearch, setDrawerSearch] = useState('');
   const [sharedOrderForChat, setSharedOrderForChat] = useState<any>(null);
 
   // App Lock State
@@ -210,8 +212,15 @@ function AppContent() {
   // Navigate tab with optional history state push
   const handleNavigateTab = (tab: string, pushHistory = true) => {
     setActiveTab(tab);
+    setIsMobileMenuOpen(false);
     try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(10);
+      }
       localStorage.setItem('visitor_app_active_tab', tab);
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       if (pushHistory && typeof window !== 'undefined') {
         window.history.pushState({ type: 'tab', tab }, '', '');
       }
@@ -226,8 +235,16 @@ function AppContent() {
   const handleToggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => {
       const next = !prev;
-      if (next && typeof window !== 'undefined') {
-        window.history.pushState({ type: 'modal', modal: 'mobileMenu' }, '', '');
+      if (next) {
+        setDrawerSearch('');
+        try {
+          if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate(10);
+          }
+        } catch {}
+        if (typeof window !== 'undefined') {
+          window.history.pushState({ type: 'modal', modal: 'mobileMenu' }, '', '');
+        }
       }
       return next;
     });
@@ -447,31 +464,31 @@ function AppContent() {
 
   // Store Owner Navigation items
   const storeMenuItems = [
-    { id: 'dashboard', label: 'داشبورد', icon: LayoutDashboard },
-    { id: 'orders', label: 'سفارش‌ها و پایپلاین تحویل', icon: ShoppingCart },
-    { id: 'medicines', label: 'دواها و موجودی', icon: Pill },
-    { id: 'customers', label: 'مشتریان', icon: Users },
-    { id: 'visitors', label: 'ویزیتورها و رتبه‌بندی', icon: UserCheck },
-    { id: 'visits', label: 'برنامه ویزیت و نظارت', icon: Calendar },
-    { id: 'notes', label: 'دفترچه یادداشت و آیزنهاور', icon: Grid },
-    { id: 'accounting', label: 'حسابداری و پورسانت', icon: DollarSign },
-    { id: 'messenger', label: 'پیام‌رسان', icon: MessageSquare },
-    { id: 'reports', label: 'گزارش‌ها', icon: FileSpreadsheet },
-    { id: 'subscription', label: 'اشتراک فروشگاه', icon: ShieldCheck },
-    { id: 'support', label: 'پشتیبانی', icon: LifeBuoy },
+    { id: 'dashboard', label: 'داشبورد مدیریتی', icon: LayoutDashboard, category: 'فروش و عملیات' },
+    { id: 'orders', label: 'سفارش‌ها و پایپلاین تحویل', icon: ShoppingCart, category: 'فروش و عملیات' },
+    { id: 'medicines', label: 'دواها و موجودی انبار', icon: Pill, category: 'ادویه و انبارداری' },
+    { id: 'customers', label: 'دواخانه‌ها (مشتریان)', icon: Users, category: 'مشتریان و بازاریابی' },
+    { id: 'visitors', label: 'ویزیتورها و رتبه‌بندی', icon: UserCheck, category: 'مشتریان و بازاریابی' },
+    { id: 'visits', label: 'برنامه ویزیت و نظارت', icon: Calendar, category: 'مشتریان و بازاریابی' },
+    { id: 'messenger', label: 'پیام‌رسان کاری', icon: MessageSquare, category: 'مشتریان و بازاریابی' },
+    { id: 'accounting', label: 'حسابداری و پورسانت', icon: DollarSign, category: 'مالی و تحلیل' },
+    { id: 'reports', label: 'گزارش‌ها و نمودارها', icon: FileSpreadsheet, category: 'مالی و تحلیل' },
+    { id: 'notes', label: 'دفترچه یادداشت و آیزنهاور', icon: Grid, category: 'مالی و تحلیل' },
+    { id: 'subscription', label: 'اشتراک فروشگاه', icon: ShieldCheck, category: 'سیستم و پشتیبانی' },
+    { id: 'support', label: 'پشتیبانی آنلاین', icon: LifeBuoy, category: 'سیستم و پشتیبانی' },
   ];
 
   // Visitor Navigation items
   const visitorMenuItems = [
-    { id: 'dashboard', label: 'داشبورد من', icon: LayoutDashboard },
-    { id: 'gallery', label: 'گالری دوا و صدور فاکتور', icon: Images },
-    { id: 'medicines', label: 'کاتالوگ و موجودی دواها', icon: Pill },
-    { id: 'orders', label: 'سفارشات و پایپلاین تحویل', icon: ShoppingCart },
-    { id: 'customers', label: 'دواخانه‌های من', icon: Users },
-    { id: 'visits', label: 'برنامه ویزیت و مراجعات', icon: Calendar },
-    { id: 'notes', label: 'دفترچه یادداشت و آیزنهاور', icon: Grid },
-    { id: 'accounting', label: 'حسابداری، صندوق و پورسانت', icon: DollarSign },
-    { id: 'messenger', label: 'پیام‌رسان کاری', icon: MessageSquare },
+    { id: 'dashboard', label: 'داشبورد من', icon: LayoutDashboard, category: 'فروش و عملیات' },
+    { id: 'gallery', label: 'گالری دوا و صدور فاکتور', icon: Images, category: 'فروش و عملیات' },
+    { id: 'medicines', label: 'کاتالوگ و موجودی دواها', icon: Pill, category: 'ادویه و انبارداری' },
+    { id: 'orders', label: 'سفارشات و پایپلاین تحویل', icon: ShoppingCart, category: 'فروش و عملیات' },
+    { id: 'customers', label: 'دواخانه‌های من', icon: Users, category: 'مشتریان و بازاریابی' },
+    { id: 'visits', label: 'برنامه ویزیت و مراجعات', icon: Calendar, category: 'مشتریان و بازاریابی' },
+    { id: 'messenger', label: 'پیام‌رسان کاری', icon: MessageSquare, category: 'مشتریان و بازاریابی' },
+    { id: 'accounting', label: 'حسابداری، صندوق و پورسانت', icon: DollarSign, category: 'مالی و تحلیل' },
+    { id: 'notes', label: 'دفترچه یادداشت و آیزنهاور', icon: Grid, category: 'مالی و تحلیل' },
   ];
 
   const currentMenuItems =
@@ -502,7 +519,7 @@ function AppContent() {
       <TrialBanner onNavigateSubscription={() => handleNavigateTab('subscription')} />
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-28 flex flex-col md:flex-row gap-4 sm:gap-6">
+      <div className="flex-1 w-full max-w-[1720px] mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-32 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-8 flex flex-col md:flex-row gap-4 sm:gap-6">
         {currentUser?.role === 'maker_admin' ? (
           /* Maker Admin Super Panel View */
           <div className="flex-1 min-w-0">
@@ -750,6 +767,7 @@ function AppContent() {
       />
 
       {/* Mobile Navigation Drawer (منوی کشویی پنل در حالت موبایل) */}
+      {/* Flutter-style Drawer Sheet (منوی کامل دسترسی به تمامی بخش‌ها در حالت موبایل) */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex justify-end">
           {/* Backdrop with dark blur */}
@@ -759,11 +777,11 @@ function AppContent() {
           />
 
           {/* Drawer Sheet */}
-          <div className="relative w-80 max-w-[85vw] bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200 border-l border-slate-200 dark:border-slate-800">
+          <div className="relative w-84 max-w-[88vw] bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200 border-l border-slate-200 dark:border-slate-800">
             {/* Drawer Header */}
             <div className="p-4 bg-gradient-to-l from-slate-900 via-slate-800 to-sky-950 text-white flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-sky-600 border border-sky-400/30 flex items-center justify-center font-bold text-white text-base overflow-hidden flex-shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-sky-600 border border-sky-400/30 flex items-center justify-center font-bold text-white text-base overflow-hidden flex-shrink-0 shadow-md">
                   {currentUser?.avatarUrl ? (
                     currentUser.avatarUrl.length < 10 ? (
                       <span>{currentUser.avatarUrl}</span>
@@ -775,17 +793,21 @@ function AppContent() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-bold text-sm text-white truncate">{currentUser?.name}</h4>
+                  <h4 className="font-black text-sm text-white truncate">{currentUser?.name || 'کاربر مهمان'}</h4>
                   <div className="text-[11px] text-sky-300 flex items-center gap-1 font-medium">
-                    <span>
+                    <span className="font-bold">
                       {currentUser?.isGuest
                         ? 'کاربر مهمان (مشاهده امکانات)'
                         : currentUser?.role === 'store_owner'
                         ? 'مدیریت فروشگاه'
                         : 'ویزیتور رسمی'}
                     </span>
-                    <span>•</span>
-                    <span className="truncate max-w-[100px]">{currentStore?.name}</span>
+                    {currentStore?.name && (
+                      <>
+                        <span>•</span>
+                        <span className="truncate max-w-[100px]">{currentStore.name}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -793,54 +815,97 @@ function AppContent() {
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer active:scale-95"
                 aria-label="بستن منو"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Menu Items List */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-1">
-              <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500 mb-1">
-                بخش‌های پنل {currentUser?.role === 'store_owner' ? 'فروشگاه' : 'ویزیتور'}
-              </div>
-
-              {currentMenuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
+            {/* Quick Search within Drawer */}
+            <div className="p-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={drawerSearch}
+                  onChange={(e) => setDrawerSearch(e.target.value)}
+                  placeholder="جستجوی سریع در بخش‌های برنامه..."
+                  className="w-full pr-9 pl-8 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition"
+                />
+                {drawerSearch && (
                   <button
-                    key={item.id}
-                    onClick={() => handleSelectTabFromMenu(item.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition text-right cursor-pointer ${
-                      isActive
-                        ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                    }`}
+                    onClick={() => setDrawerSearch('')}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </div>
-                    {isActive && (
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    )}
+                    <X className="w-3.5 h-3.5" />
                   </button>
+                )}
+              </div>
+            </div>
+
+            {/* Menu Items List - Grouped & Filtered */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {['فروش و عملیات', 'ادویه و انبارداری', 'مشتریان و بازاریابی', 'مالی و تحلیل', 'سیستم و پشتیبانی'].map((cat) => {
+                const itemsInCat = currentMenuItems.filter((item) => {
+                  const matchesCat = item.category === cat;
+                  if (!matchesCat) return false;
+                  if (!drawerSearch.trim()) return true;
+                  const q = drawerSearch.toLowerCase();
+                  return item.label.toLowerCase().includes(q) || cat.toLowerCase().includes(q);
+                });
+
+                if (itemsInCat.length === 0) return null;
+
+                return (
+                  <div key={cat} className="space-y-1">
+                    <div className="px-2.5 py-1 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      {cat}
+                    </div>
+                    {itemsInCat.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleSelectTabFromMenu(item.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition text-right cursor-pointer active:scale-95 ${
+                            isActive
+                              ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 font-black'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition ${
+                              isActive
+                                ? 'bg-white/20 text-white'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                            }`}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <span className="truncate">{item.label}</span>
+                          </div>
+                          {isActive && (
+                            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 space-y-2">
-              {currentUser?.isGuest && (
+            <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/90 space-y-2">
+              {(currentUser?.isGuest || isGuest) && (
                 <button
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     handleOpenRegister();
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition cursor-pointer active:scale-95"
                 >
                   <Award className="w-4 h-4 text-amber-300" />
                   <span>ثبت‌نام فروشگاه (۱۴ روز رایگان)</span>
@@ -852,7 +917,7 @@ function AppContent() {
                   setIsMobileMenuOpen(false);
                   handleOpenProfile();
                 }}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-sky-800 dark:hover:text-sky-300 rounded-xl text-xs font-bold transition text-right cursor-pointer shadow-2xs"
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-sky-800 dark:hover:text-sky-300 rounded-xl text-xs font-bold transition text-right cursor-pointer shadow-2xs active:scale-95"
               >
                 <User className="w-4 h-4 text-sky-600 dark:text-sky-400 flex-shrink-0" />
                 <span>پروفایل و تنظیمات امنیت</span>
@@ -863,7 +928,7 @@ function AppContent() {
                   setIsMobileMenuOpen(false);
                   logout();
                 }}
-                className="w-full flex items-center gap-3 px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition text-right cursor-pointer"
+                className="w-full flex items-center gap-3 px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition text-right cursor-pointer active:scale-95"
               >
                 <LogOut className="w-4 h-4 flex-shrink-0" />
                 <span>خروج از حساب</span>
@@ -873,67 +938,67 @@ function AppContent() {
         </div>
       )}
 
-      {/* Universal Bottom Navigation Bar (نوار منوی درشت و همیشه نمایان پایین صفحه برای تمامی دستگاه‌ها و حالت مهمان) */}
+      {/* Universal Bottom Navigation Bar (فقط در حالت موبایل و تبلت - در حالت کامپیوتر مخفی است) */}
       {(currentUser || isGuest) && currentUser?.role !== 'maker_admin' && (
         <nav
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t-2 border-slate-200/90 dark:border-slate-800 shadow-2xl px-2 sm:px-6 py-2.5 pb-[calc(0.6rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around"
-          aria-label="منوی اصلی ناوبری پایین صفحه"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-slate-800 shadow-2xl px-2 sm:px-6 h-[68px] pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around select-none"
+          aria-label="منوی اصلی ناوبری پایین صفحه در موبایل"
         >
-          {/* 1. منوی پنل در سمت راست (نزدیک انگشت شست راست) */}
+          {/* 1. منوی کامل (راست) */}
           <button
             onClick={handleToggleMobileMenu}
-            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-2xl transition-all cursor-pointer min-w-[56px] active:scale-90 ${
               isMobileMenuOpen
                 ? 'text-sky-600 dark:text-sky-400 font-black'
-                : 'text-slate-700 dark:text-slate-300 font-bold hover:text-sky-600'
+                : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
             title="باز کردن منوی کامل امکانات"
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition shadow-2xs ${
+            <div className={`w-12 h-7 rounded-full flex items-center justify-center transition-all ${
               isMobileMenuOpen
-                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                : 'bg-sky-100/90 dark:bg-sky-950 text-sky-700 dark:text-sky-300'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 shadow-xs scale-105'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}>
               <Menu className="w-5 h-5" />
             </div>
-            <span className="text-xs sm:text-[13px] font-black">منو</span>
+            <span className="text-[11px] font-bold">منو</span>
           </button>
 
           {/* 2. سفارش‌ها */}
           <button
             onClick={() => handleNavigateTab('orders')}
-            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-2xl transition-all cursor-pointer min-w-[56px] active:scale-90 ${
               activeTab === 'orders'
                 ? 'text-sky-600 dark:text-sky-400 font-black'
                 : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
             title="مشاهده سفارشات و فاکتورها"
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${
+            <div className={`w-12 h-7 rounded-full flex items-center justify-center transition-all ${
               activeTab === 'orders'
-                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-2xs'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 shadow-xs scale-105'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}>
-              <ShoppingCart className="w-6 h-6" />
+              <ShoppingCart className="w-5 h-5" />
             </div>
-            <span className="text-xs sm:text-[13px] font-black">سفارش‌ها</span>
+            <span className="text-[11px] font-bold">سفارش‌ها</span>
           </button>
 
-          {/* 3. آیکون داشبورد در وسط (مرکز نوار ناوبری) - درشت و برجسته */}
+          {/* 3. دکمه مرکزی داشبورد (برجسته و جذاب به سبک FAB اپلیکیشن‌های موبایل) */}
           <button
             onClick={() => handleNavigateTab('dashboard')}
-            className="flex flex-col items-center justify-center gap-1 -translate-y-4 px-2 cursor-pointer transition active:scale-90 group min-w-[68px]"
-            title="صفحه اصلی داشبورد"
+            className="flex flex-col items-center justify-center -translate-y-3.5 px-1.5 cursor-pointer transition-all active:scale-90 group min-w-[64px]"
+            title="صفحه اصلی داشبورد کنترل"
           >
-            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-200 border-4 border-slate-100 dark:border-slate-950 shadow-xl ${
+            <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 border-4 border-slate-100 dark:border-slate-950 shadow-xl ${
               activeTab === 'dashboard'
-                ? 'bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-sky-600/40 ring-4 ring-sky-300/40 dark:ring-sky-700/40 scale-105'
+                ? 'bg-gradient-to-tr from-sky-600 via-sky-500 to-indigo-600 text-white shadow-sky-600/40 ring-4 ring-sky-300/40 dark:ring-sky-700/40 scale-105'
                 : 'bg-slate-800 text-slate-100 hover:bg-sky-600 shadow-slate-900/30'
             }`}>
-              <LayoutDashboard className="w-7 h-7 sm:w-8 sm:h-8" />
+              <LayoutDashboard className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
-            <span className={`text-xs sm:text-[13px] font-black transition ${
-              activeTab === 'dashboard' ? 'text-sky-600 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300'
+            <span className={`text-[11px] font-black mt-0.5 transition ${
+              activeTab === 'dashboard' ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-400 font-bold'
             }`}>
               داشبورد
             </span>
@@ -942,21 +1007,21 @@ function AppContent() {
           {/* 4. دواها و موجودی انبار / برنامه ویزیت */}
           <button
             onClick={() => handleNavigateTab(currentUser?.role === 'visitor' ? 'visits' : 'medicines')}
-            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-2xl transition-all cursor-pointer min-w-[56px] active:scale-90 ${
               (currentUser?.role === 'visitor' ? activeTab === 'visits' : activeTab === 'medicines')
                 ? 'text-sky-600 dark:text-sky-400 font-black'
                 : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
             title={currentUser?.role === 'visitor' ? 'برنامه ویزیت و مراجعات' : 'کاتالوگ و موجودی دواها'}
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${
+            <div className={`w-12 h-7 rounded-full flex items-center justify-center transition-all ${
               (currentUser?.role === 'visitor' ? activeTab === 'visits' : activeTab === 'medicines')
-                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-2xs'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 shadow-xs scale-105'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}>
-              {currentUser?.role === 'visitor' ? <Calendar className="w-6 h-6" /> : <Pill className="w-6 h-6" />}
+              {currentUser?.role === 'visitor' ? <Calendar className="w-5 h-5" /> : <Pill className="w-5 h-5" />}
             </div>
-            <span className="text-xs sm:text-[13px] font-black">
+            <span className="text-[11px] font-bold">
               {currentUser?.role === 'visitor' ? 'ویزیت' : 'دواها'}
             </span>
           </button>
@@ -964,21 +1029,21 @@ function AppContent() {
           {/* 5. پیام‌ها */}
           <button
             onClick={() => handleNavigateTab('messenger')}
-            className={`flex flex-col items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 rounded-2xl transition cursor-pointer min-w-[64px] active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-2xl transition-all cursor-pointer min-w-[56px] active:scale-90 ${
               activeTab === 'messenger'
                 ? 'text-sky-600 dark:text-sky-400 font-black'
                 : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
             title="پیام‌رسان کاری"
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${
+            <div className={`w-12 h-7 rounded-full flex items-center justify-center transition-all ${
               activeTab === 'messenger'
-                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-2xs'
+                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 shadow-xs scale-105'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}>
-              <MessageSquare className="w-6 h-6" />
+              <MessageSquare className="w-5 h-5" />
             </div>
-            <span className="text-xs sm:text-[13px] font-black">پیام‌ها</span>
+            <span className="text-[11px] font-bold">پیام‌ها</span>
           </button>
         </nav>
       )}

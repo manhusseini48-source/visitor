@@ -191,6 +191,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const savedUser = Storage.getCurrentUser();
     if (savedUser) {
       setCurrentUser(savedUser);
+      if (savedUser.isGuest) {
+        setIsGuest(true);
+        Storage.seedDemoGuestData(savedUser.storeId || 'store_demo_guest');
+      }
       if (savedUser.storeId) {
         const store = Storage.getStore(savedUser.storeId);
         if (store) setCurrentStore(store);
@@ -647,6 +651,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setCurrentUser(guestProfile);
       setCurrentStore(targetStore);
       setIsGuest(true);
+
+      Storage.seedDemoGuestData(targetStore.id);
 
       localStorage.setItem('visitor_app_is_guest', 'true');
       localStorage.removeItem('visitor_app_logged_out');

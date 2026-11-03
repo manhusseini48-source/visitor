@@ -112,7 +112,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
 
   const syncWithCloud = async () => {
     if (!supabase || !isSupabaseConfigured) {
-      showToast('اتصال به سرور ابری سوپابیس پیکربندی نشده است.');
+      showToast('اتصال به سامانه ابری هنوز پیکربندی نشده است.');
       return;
     }
     try {
@@ -223,7 +223,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       showToast(`همگام‌سازی ابری با موفقیت انجام شد: ${newStores.length} فروشگاه و ${newProfiles.length} کاربر در دسترس است.`);
     } catch (err) {
       console.warn('Sync with cloud error:', err);
-      showToast('خطا در دریافت اطلاعات از سرور ابری سوپابیس.');
+      showToast('خطا در دریافت اطلاعات از پایگاه ابری سوپابیس.');
     } finally {
       setIsSyncingCloud(false);
     }
@@ -231,7 +231,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
 
   const pushAllToCloud = async () => {
     if (!supabase || !isSupabaseConfigured) {
-      showToast('اتصال به سرور ابری سوپابیس پیکربندی نشده است.');
+      showToast('اتصال به پایگاه ابری سوپابیس پیکربندی نشده است.');
       return;
     }
     try {
@@ -247,7 +247,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       showToast(`کلیه ${localStores.length} فروشگاه و ${localProfiles.length} کاربر با موفقیت به سوپابیس ارسال شدند.`);
       await syncWithCloud();
     } catch (e: any) {
-      showToast('خطا در ارسال اطلاعات به سرور ابری: ' + (e?.message || 'نامشخص'));
+      showToast('خطا در ارسال اطلاعات به پایگاه ابری: ' + (e?.message || 'نامشخص'));
     } finally {
       setIsSyncingCloud(false);
     }
@@ -358,7 +358,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
         showToast('اطلاعیه سراسری در سامانه ذخیره و منتشر شد.');
       }
     } catch (err: any) {
-      showToast('خطا در ذخیره اطلاعیه: ' + (err?.message || 'خطای سرور'));
+      showToast('خطا در ذخیره اطلاعیه: ' + (err?.message || 'خطای ارتباطی'));
     } finally {
       setIsSavingAnnouncement(false);
     }
@@ -484,7 +484,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
 
     reloadData();
     setEditingStore(null);
-    showToast(`مشخصات و اشتراک «${storeEditName}» با موفقیت بروزرسانی و در سرور ابری ثبت شد.`);
+    showToast(`مشخصات و اشتراک «${storeEditName}» با موفقیت بروزرسانی و در پایگاه ابری ثبت شد.`);
   };
 
   const handleExtendDays = async (storeId: string, days: number) => {
@@ -596,7 +596,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     }
     reloadData();
     setEditingUser(null);
-    showToast(`مشخصات، رمز عبور و دسترسی‌های «${targetUser.name}» با موفقیت در سامانه و سرور ابری (Supabase) ذخیره شد.`);
+    showToast(`مشخصات، رمز عبور و دسترسی‌های «${targetUser.name}» با موفقیت در سامانه و پایگاه ابری (Supabase) ذخیره شد.`);
   };
 
   const handleToggleUserActive = async (userId: string, currentActive: boolean) => {
@@ -616,7 +616,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       } catch {}
     }
     reloadData();
-    showToast(currentActive ? 'حساب کاربری در سامانه و سرور ابری غیرفعال شد.' : 'حساب کاربری در سامانه و سرور ابری فعال شد.');
+    showToast(currentActive ? 'حساب کاربری در سامانه و پایگاه ابری غیرفعال شد.' : 'حساب کاربری در سامانه و پایگاه ابری فعال شد.');
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
@@ -701,7 +701,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
     setEditingFaqId(null);
     setFaqQuestion('');
     setFaqAnswer('');
-    showToast('پرسش و پاسخ متداول ذخیره و در سامانه و سرور ابری (Supabase) منتشر شد.');
+    showToast('پرسش و پاسخ متداول ذخیره و در سامانه و پایگاه ابری (Supabase) منتشر شد.');
   };
 
   const handleDeleteFaq = async (faqId: string) => {
@@ -762,7 +762,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       });
 
       if (res?.success) {
-        showToast(`نسخه برنامه با موفقیت به «${targetVer}» تغییر یافت و در سرور ابری (Supabase) و برنامه ثبت شد.`);
+        showToast(`نسخه برنامه با موفقیت به «${targetVer}» تغییر یافت و در پایگاه ابری (Supabase) و برنامه ثبت شد.`);
       } else {
         showToast(`نسخه برنامه به «${targetVer}» تغییر یافت و در سامانه فعال گردید.`);
       }
@@ -823,7 +823,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
         showToast('تنظیمات برندینگ، شماره‌های تماس و قیمت‌ها با موفقیت ذخیره گردید.');
       }
     } catch (err: any) {
-      showToast('خطا در ذخیره تنظیمات: ' + (err?.message || 'خطای سرور'));
+      showToast('خطا در ذخیره تنظیمات: ' + (err?.message || 'خطای برقراری ارتباط'));
     } finally {
       setIsSavingSettings(false);
     }
@@ -868,7 +868,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       if (error) {
         setTestSupabaseStatus({
           success: false,
-          msg: `پاسخ از سرور دریافت شد ولی جدول نیاز به ساخت دارد یا سیاست RLS باید اعمال شود: ${error.message}`,
+          msg: `پاسخ از پایگاه ابری دریافت شد ولی جدول نیاز به ساخت دارد یا سیاست RLS باید اعمال شود: ${error.message}`,
           latency,
         });
       } else {
@@ -984,7 +984,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
               className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/40 active:scale-95 disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncingCloud ? 'animate-spin' : ''}`} />
-              <span>{isSyncingCloud ? 'در حال دریافت از سوپابیس...' : 'همگام‌سازی با سرور ابری (Supabase)'}</span>
+              <span>{isSyncingCloud ? 'در حال دریافت از سوپابیس...' : 'همگام‌سازی با پایگاه ابری (Supabase)'}</span>
             </button>
             <button
               onClick={reloadData}
@@ -1335,7 +1335,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span>سرور: فعال و آنلاین</span>
+                <span>وضعیت سامانه: آنلاین و پایدار</span>
                 <span>پروتکل: آفلاین‌پذیر PWA</span>
               </div>
             </div>
@@ -1422,15 +1422,15 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                   type="button"
                   onClick={() =>
                     handleApplyTemplate(
-                      'تعمیرات و بهینه‌سازی سرور',
-                      'امشب از ساعت ۰۲:۰۰ الی ۰۲:۳۰ بامداد سامانه جهت ارتقای سرورها برای دقایقی در حالت نگهداری قرار خواهد گرفت.',
+                      'بهینه‌سازی و ارتقای سامانه',
+                      'امشب از ساعت ۰۲:۰۰ الی ۰۲:۳۰ بامداد سامانه جهت ارتقا برای دقایقی در حالت بروزرسانی قرار خواهد گرفت.',
                       'warning',
                       'all'
                     )
                   }
                   className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-right text-xs hover:border-amber-400 transition cursor-pointer"
                 >
-                  <div className="font-bold text-amber-800 dark:text-amber-300">⚠️ تعمیرات و نگهداری سرور</div>
+                  <div className="font-bold text-amber-800 dark:text-amber-300">⚠️ ارتقا و بهینه‌سازی سامانه</div>
                   <div className="text-[10px] text-amber-600 mt-0.5 truncate">هشدار موقت سرویس</div>
                 </button>
 
@@ -2464,7 +2464,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                     <span>مدیریت و تغییر ورژن برنامه (Application Version)</span>
                   </h3>
                   <p className="text-xs text-purple-200 mt-0.5">
-                    هر تغییری در این بخش فوراً در سربرگ، پنل‌ها، دیتابیس کلاینت و سرور ابری Supabase اعمال می‌شود.
+                    هر تغییری در این بخش فوراً در سربرگ، پنل‌ها، دیتابیس کلاینت و پایگاه ابری Supabase اعمال می‌شود.
                   </p>
                 </div>
               </div>
@@ -2586,7 +2586,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <span>تنظیمات برندینگ، شماره‌های تماس پشتیبانی و تعرفه‌ها</span>
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                کلیه مشخصات عمومی سامانه با ذخیره در این بخش، بلافاصله در کل برنامه و سرور ابری Supabase بروز خواهند شد.
+                کلیه مشخصات عمومی سامانه با ذخیره در این بخش، بلافاصله در کل برنامه و پایگاه ابری Supabase بروز خواهند شد.
               </p>
             </div>
 
@@ -2786,7 +2786,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${isSupabaseConfigured ? 'bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
                 <div className="space-y-1">
                   <div className="font-bold text-white flex items-center gap-2">
-                    <span>وضعیت اتصال به سرور ابری Supabase:</span>
+                    <span>وضعیت اتصال به پایگاه ابری Supabase:</span>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${isSupabaseConfigured ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
                       {isSupabaseConfigured ? 'پیکربندی شده و متصل' : 'نیاز به تنظیم کلیدها'}
                     </span>

@@ -166,7 +166,7 @@ export const SubscriptionExpiredLockScreen: React.FC<Props> = ({ onOpenSubscript
                   </li>
                   <li className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>همگام‌سازی ابری نامحدود</span>
+                    <span>ارتباط و هماهنگی آنلاین نامحدود</span>
                   </li>
                 </ul>
               </div>

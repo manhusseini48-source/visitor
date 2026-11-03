@@ -82,7 +82,7 @@ export async function sendSupabaseSignUpOtp(
   } catch (err: any) {
     return {
       success: false,
-      message: err?.message || 'خطا در ارتباط با سرور احراز هویت.',
+      message: err?.message || 'خطا در برقراری ارتباط و ورود به حساب.',
     };
   }
 }
