@@ -47,7 +47,8 @@ export const UserProfileModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { currentUser, currentStore, updateProfile, openGuestRestrictionModal } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isGuest = Boolean(currentUser?.isGuest || currentUser?.role === 'guest' || currentUser?.id === 'user_guest');
+  const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
+  const isGuest = !isMasterUnlocked && Boolean(currentUser?.isGuest || currentUser?.role === 'guest' || (currentUser?.id === 'user_guest' && currentUser?.isGuest !== false));
 
   const [name, setName] = useState(currentUser?.name || '');
   const [username, setUsername] = useState(currentUser?.username || '');

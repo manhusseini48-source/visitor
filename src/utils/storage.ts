@@ -135,6 +135,50 @@ export function getTwoWeeksTrialEnd(fromMs?: number): string {
 }
 
 // Initial Seeds - Clean Production Defaults (Zero internal records)
+export const GUEST_USER_ID = 'user_guest';
+export const GUEST_STORE_ID = 'store_guest';
+export const GUEST_MASTER_PASSWORD = 'Manmehman$$$';
+
+export const GUEST_STORE: Store = {
+  id: GUEST_STORE_ID,
+  name: 'فروشگاه مهمان',
+  ownerId: GUEST_USER_ID,
+  phone: '0700000000',
+  email: 'guest@store.local',
+  address: 'کابل، دهن نال، مارکت دوافروشان (فروشگاه مهمان)',
+  createdAt: '2025-01-01T00:00:00.000Z',
+  groupChatEnabled: true,
+  allowVisitorCashCollection: true,
+  subscription: {
+    id: 'sub_guest',
+    storeId: GUEST_STORE_ID,
+    planName: '1-Year Plan',
+    status: 'active',
+    startDate: '2025-01-01T00:00:00.000Z',
+    endDate: '2030-01-01T00:00:00.000Z',
+    trialDaysRemaining: 365,
+    priceAFN: 0,
+    renewalHistory: [],
+  },
+};
+
+export const GUEST_USER_PROFILE: UserProfile = {
+  id: GUEST_USER_ID,
+  name: 'کاربر مهمان',
+  phone: '0700000000',
+  email: 'guest@store.local',
+  username: 'guest',
+  password: GUEST_MASTER_PASSWORD,
+  role: 'store_owner',
+  storeId: GUEST_STORE_ID,
+  avatarUrl: 'م',
+  city: 'کابل',
+  address: 'کابل، دهن نال، مارکت دوافروشان (فروشگاه مهمان)',
+  createdAt: '2025-01-01T00:00:00.000Z',
+  isActive: true,
+  isGuest: false, // In stored accounts list, it is stored as a full real account
+};
+
 const INITIAL_STORE_ID = 'store_main';
 
 const INITIAL_PROFILES: UserProfile[] = [
@@ -151,9 +195,10 @@ const INITIAL_PROFILES: UserProfile[] = [
     createdAt: new Date().toISOString(),
     isActive: true,
   },
+  GUEST_USER_PROFILE,
 ];
 
-const INITIAL_STORES: Store[] = [];
+const INITIAL_STORES: Store[] = [GUEST_STORE];
 
 const INITIAL_MEDICINES: Medicine[] = [];
 
@@ -203,6 +248,7 @@ export const Storage = {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
         localStorage.removeItem('visitor_app_is_guest');
         localStorage.removeItem('visitor_app_logged_out');
+        localStorage.removeItem('visitor_app_guest_master_unlocked');
         localStorage.setItem('visitor_app_data_version', STORAGE_DATA_VERSION);
       }
     } catch (e) {
@@ -211,10 +257,49 @@ export const Storage = {
 
     if (!localStorage.getItem(STORAGE_KEYS.PROFILES)) {
       setItem(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
+    } else {
+      // Ensure guest account profile is always present and up-to-date with Master password Manmehman$$$
+      const currentProfiles = getItem<UserProfile[]>(STORAGE_KEYS.PROFILES, INITIAL_PROFILES);
+      const guestIdx = currentProfiles.findIndex((p) => p.id === GUEST_USER_ID || p.username === 'guest');
+      if (guestIdx === -1) {
+        currentProfiles.push(GUEST_USER_PROFILE);
+        setItem(STORAGE_KEYS.PROFILES, currentProfiles);
+      } else {
+        // Keep credentials synchronized with GUEST_MASTER_PASSWORD
+        currentProfiles[guestIdx] = {
+          ...currentProfiles[guestIdx],
+          id: GUEST_USER_ID,
+          name: 'کاربر مهمان',
+          username: 'guest',
+          password: GUEST_MASTER_PASSWORD,
+          role: 'store_owner',
+          storeId: GUEST_STORE_ID,
+          isActive: true,
+        };
+        setItem(STORAGE_KEYS.PROFILES, currentProfiles);
+      }
     }
+
     if (!localStorage.getItem(STORAGE_KEYS.STORES)) {
       setItem(STORAGE_KEYS.STORES, INITIAL_STORES);
+    } else {
+      // Ensure guest store is always present
+      const currentStores = getItem<Store[]>(STORAGE_KEYS.STORES, INITIAL_STORES);
+      const guestStoreIdx = currentStores.findIndex((s) => s.id === GUEST_STORE_ID);
+      if (guestStoreIdx === -1) {
+        currentStores.push(GUEST_STORE);
+        setItem(STORAGE_KEYS.STORES, currentStores);
+      } else {
+        currentStores[guestStoreIdx] = {
+          ...currentStores[guestStoreIdx],
+          name: 'فروشگاه مهمان',
+          ownerId: GUEST_USER_ID,
+          address: 'کابل، دهن نال، مارکت دوافروشان (فروشگاه مهمان)',
+        };
+        setItem(STORAGE_KEYS.STORES, currentStores);
+      }
     }
+
     if (!localStorage.getItem(STORAGE_KEYS.MEDICINES)) {
       setItem(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
     }
@@ -239,7 +324,9 @@ export const Storage = {
     if (!localStorage.getItem(STORAGE_KEYS.CONFIG)) {
       setItem(STORAGE_KEYS.CONFIG, DEFAULT_PLATFORM_CONFIG);
     }
-    // No automatic login: User chooses Guest, Register, or Login on first load
+
+    // Always seed the isolated demo data for store_guest
+    this.seedDemoGuestData(GUEST_STORE_ID);
   },
 
   resetToZeroData(keepMakerSession = false) {
@@ -251,21 +338,23 @@ export const Storage = {
       setItem(STORAGE_KEYS.LEDGER, []);
       setItem(STORAGE_KEYS.CONVERSATIONS, []);
       setItem(STORAGE_KEYS.MESSAGES, []);
-      setItem(STORAGE_KEYS.STORES, []);
+      setItem(STORAGE_KEYS.STORES, [GUEST_STORE]);
       setItem(STORAGE_KEYS.SUPPORT, []);
       setItem(STORAGE_KEYS.MOVEMENTS, []);
 
       const currentProfiles = this.getProfiles();
       const makerAdmin = currentProfiles.find((p) => p.role === 'maker_admin') || INITIAL_PROFILES[0];
-      setItem(STORAGE_KEYS.PROFILES, [makerAdmin]);
+      setItem(STORAGE_KEYS.PROFILES, [makerAdmin, GUEST_USER_PROFILE]);
 
       if (keepMakerSession) {
         setItem(STORAGE_KEYS.CURRENT_USER, makerAdmin);
       } else {
         setItem(STORAGE_KEYS.CURRENT_USER, null);
         localStorage.removeItem('visitor_app_is_guest');
+        localStorage.removeItem('visitor_app_guest_master_unlocked');
       }
       localStorage.setItem('visitor_app_data_version', STORAGE_DATA_VERSION);
+      this.seedDemoGuestData(GUEST_STORE_ID);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('storage'));
       }
@@ -276,7 +365,18 @@ export const Storage = {
 
   getCurrentUser(): UserProfile | null {
     const user = getItem<UserProfile | null>(STORAGE_KEYS.CURRENT_USER, null);
+    const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
+
     if (user) {
+      if (user.id === GUEST_USER_ID) {
+        return {
+          ...user,
+          name: 'کاربر مهمان',
+          username: 'guest',
+          storeId: GUEST_STORE_ID,
+          isGuest: !isMasterUnlocked,
+        };
+      }
       if (user.isGuest) return user;
       // Keep synchronized with PROFILES in case name, avatar or other details were updated
       const profiles = this.getProfiles();
@@ -290,17 +390,8 @@ export const Storage = {
         const loggedOut = localStorage.getItem('visitor_app_logged_out') === 'true';
         if (isGuestFlag && !loggedOut) {
           return {
-            id: 'guest_user_demo',
-            name: 'کاربر مهمان',
-            phone: '0700000000',
-            username: 'guest_user',
-            role: 'store_owner',
-            storeId: 'store_demo_guest',
-            avatarUrl: 'م',
-            city: 'کابل',
-            createdAt: new Date().toISOString(),
-            isActive: true,
-            isGuest: true,
+            ...GUEST_USER_PROFILE,
+            isGuest: !isMasterUnlocked,
           };
         }
       } catch {}
@@ -314,24 +405,27 @@ export const Storage = {
       try {
         if (user?.isGuest) {
           localStorage.setItem('visitor_app_is_guest', 'true');
+          localStorage.removeItem('visitor_app_guest_master_unlocked');
           localStorage.removeItem('visitor_app_logged_out');
         } else if (user) {
           localStorage.removeItem('visitor_app_is_guest');
           localStorage.removeItem('visitor_app_logged_out');
         } else {
           localStorage.removeItem('visitor_app_is_guest');
+          localStorage.removeItem('visitor_app_guest_master_unlocked');
         }
       } catch {}
     }
   },
 
   updateUserProfile(userId: string, updates: Partial<UserProfile>): UserProfile | null {
-    // Strictly prevent guest profile mutations
-    if (userId === 'user_guest') {
+    const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
+    // Strictly prevent guest profile mutations UNLESS in master unlocked mode with password Manmehman$$$
+    if (userId === GUEST_USER_ID && !isMasterUnlocked) {
       return this.getCurrentUser();
     }
     const profiles = this.getProfiles().map((p) =>
-      p.id === userId && !p.isGuest ? { ...p, ...updates } : p
+      p.id === userId ? { ...p, ...updates } : p
     );
     this.saveProfiles(profiles);
     const updated = profiles.find((p) => p.id === userId) || null;
@@ -470,18 +564,11 @@ export const Storage = {
     const list = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES);
     const deletedMedIds = this.getDeletedMedicineIds();
     const activeList = list.filter((m) => !deletedMedIds.includes(m.id));
-    const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id || 'store_main';
+    const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
+    if (!effectiveStoreId) return [];
     
-    // 1. Exact store match
-    const matching = activeList.filter((m) => m.storeId === effectiveStoreId);
-    if (matching.length > 0) return matching;
-
-    // 2. Fallback to main store or untagged medicines
-    const fallback = activeList.filter((m) => !m.storeId || m.storeId === 'store_main');
-    if (fallback.length > 0) return fallback;
-
-    // 3. Complete catalogue fallback so visitor always sees store medicines
-    return activeList;
+    // Strict isolation: only return medicines that belong to the active store
+    return activeList.filter((m) => m.storeId === effectiveStoreId);
   },
 
   getAllMedicinesAcrossStores(): Medicine[] {
@@ -575,11 +662,20 @@ export const Storage = {
       sharedVisitorIds: Array.isArray(c.sharedVisitorIds) ? c.sharedVisitorIds : [],
     }));
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (!effectiveStoreId) return cleaned;
-    const matching = cleaned.filter((c) => c.storeId === effectiveStoreId);
-    if (matching.length > 0) return matching;
-    const fallback = cleaned.filter((c) => !c.storeId);
-    return fallback.length > 0 ? fallback : cleaned;
+    if (!effectiveStoreId) return [];
+    
+    // Strict store isolation
+    const storeCustomers = cleaned.filter((c) => c.storeId === effectiveStoreId);
+    const currentUser = this.getCurrentUser();
+    if (currentUser?.role === 'visitor') {
+      return storeCustomers.filter(
+        (c) =>
+          c.primaryVisitorId === currentUser.id ||
+          (c.sharedVisitorIds && c.sharedVisitorIds.includes(currentUser.id)) ||
+          c.createdBy === currentUser.id
+      );
+    }
+    return storeCustomers;
   },
 
   saveCustomers(customers: Customer[], storeId?: string) {
@@ -624,11 +720,15 @@ export const Storage = {
       items: Array.isArray(o.items) ? o.items : [],
     }));
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (!effectiveStoreId) return cleaned;
-    const matching = cleaned.filter((o) => o.storeId === effectiveStoreId);
-    if (matching.length > 0) return matching;
-    const fallback = cleaned.filter((o) => !o.storeId);
-    return fallback.length > 0 ? fallback : cleaned;
+    if (!effectiveStoreId) return [];
+    
+    // Strict store isolation
+    const storeOrders = cleaned.filter((o) => o.storeId === effectiveStoreId);
+    const currentUser = this.getCurrentUser();
+    if (currentUser?.role === 'visitor') {
+      return storeOrders.filter((o) => o.visitorId === currentUser.id);
+    }
+    return storeOrders;
   },
 
   saveOrders(orders: Order[], storeId?: string) {
@@ -695,11 +795,15 @@ export const Storage = {
   getVisits(storeId?: string): VisitRecord[] {
     const list = getItem<VisitRecord[]>(STORAGE_KEYS.VISITS, INITIAL_VISITS);
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (!effectiveStoreId) return list;
-    const matching = list.filter((v) => v.storeId === effectiveStoreId);
-    if (matching.length > 0) return matching;
-    const fallback = list.filter((v) => !v.storeId);
-    return fallback.length > 0 ? fallback : list;
+    if (!effectiveStoreId) return [];
+    
+    // Strict store isolation
+    const storeVisits = list.filter((v) => v.storeId === effectiveStoreId);
+    const currentUser = this.getCurrentUser();
+    if (currentUser?.role === 'visitor') {
+      return storeVisits.filter((v) => v.visitorId === currentUser.id);
+    }
+    return storeVisits;
   },
 
   saveVisits(visits: VisitRecord[], storeId?: string) {
@@ -725,17 +829,19 @@ export const Storage = {
 
   getLedger(storeId?: string): VisitorLedgerEntry[] {
     const list = getItem<VisitorLedgerEntry[]>(STORAGE_KEYS.LEDGER, INITIAL_LEDGER);
-    // Strict separation: Visitor remittances of customer drug cash/deposits belong to store treasury,
-    // NEVER to visitor personal salary or commission ledger. Filter out any legacy bogus records.
     const sanitized = list.filter(
       (l) => !l.id?.startsWith('led_rem_') && !l.title?.includes('واریزی صندوق ویزیتور')
     );
     const effectiveStoreId = storeId || this.getCurrentUser()?.storeId || this.getStores()[0]?.id;
-    if (!effectiveStoreId) return sanitized;
-    const matching = sanitized.filter((l) => l.storeId === effectiveStoreId);
-    if (matching.length > 0) return matching;
-    const fallback = sanitized.filter((l) => !l.storeId);
-    return fallback.length > 0 ? fallback : sanitized;
+    if (!effectiveStoreId) return [];
+    
+    // Strict store isolation
+    const storeLedger = sanitized.filter((l) => l.storeId === effectiveStoreId);
+    const currentUser = this.getCurrentUser();
+    if (currentUser?.role === 'visitor') {
+      return storeLedger.filter((l) => l.visitorId === currentUser.id);
+    }
+    return storeLedger;
   },
 
   saveLedger(ledger: VisitorLedgerEntry[], storeId?: string) {
@@ -1272,7 +1378,7 @@ export const Storage = {
     };
   },
 
-  seedDemoGuestData(targetStoreId: string = 'store_demo_guest') {
+  seedDemoGuestData(targetStoreId: string = GUEST_STORE_ID) {
     try {
       const existingMeds = getItem<Medicine[]>(STORAGE_KEYS.MEDICINES, []);
       const storeMeds = existingMeds.filter((m) => m.storeId === targetStoreId);
@@ -1341,21 +1447,24 @@ export const Storage = {
       ];
 
       const guestOwnerProfile: UserProfile = {
-        id: 'guest_user_demo',
+        id: GUEST_USER_ID,
         name: 'کاربر مهمان',
         phone: '0700000000',
-        username: 'guest_user',
+        email: 'guest@store.local',
+        username: 'guest',
+        password: GUEST_MASTER_PASSWORD,
         role: 'store_owner',
         storeId: targetStoreId,
         avatarUrl: 'م',
         city: 'کابل',
+        address: 'کابل، دهن نال، مارکت دوافروشان (فروشگاه مهمان)',
         createdAt: isoNow,
         isActive: true,
-        isGuest: true,
+        isGuest: false,
       };
 
       const newProfiles = [
-        ...currentProfiles.filter((p) => !p.id.startsWith('visitor_demo_') && p.id !== 'guest_user_demo'),
+        ...currentProfiles.filter((p) => !p.id.startsWith('visitor_demo_') && p.id !== 'guest_user_demo' && p.id !== GUEST_USER_ID),
         guestOwnerProfile,
         ...demoVisitors,
       ];

@@ -5,7 +5,16 @@ import {
   PlatformConfig,
   UserRole,
 } from '../types';
-import { Storage, DEFAULT_PLATFORM_CONFIG, getTwoWeeksTrialEnd } from '../utils/storage';
+import {
+  Storage,
+  DEFAULT_PLATFORM_CONFIG,
+  getTwoWeeksTrialEnd,
+  GUEST_USER_ID,
+  GUEST_STORE_ID,
+  GUEST_MASTER_PASSWORD,
+  GUEST_STORE,
+  GUEST_USER_PROFILE,
+} from '../utils/storage';
 import {
   initOnlineTimeSync,
   calculateTrialDaysRemaining,
@@ -108,6 +117,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [isGuest, setIsGuest] = useState(() => {
     try {
+      const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
+      if (isMasterUnlocked) return false;
       const u = Storage.getCurrentUser();
       if (u?.isGuest) return true;
       if (u) return false;
@@ -131,7 +142,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const checkGuestAndPrompt = (actionName?: string): boolean => {
-    if (isGuest || currentUser?.isGuest || currentUser?.id === 'guest_user_demo') {
+    const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
+    if (isMasterUnlocked && currentUser?.id === GUEST_USER_ID && !currentUser?.isGuest) {
+      return false;
+    }
+    if (isGuest || currentUser?.isGuest || currentUser?.role === 'guest') {
       openGuestRestrictionModal(actionName);
       return true;
     }
@@ -193,10 +208,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setCurrentUser(savedUser);
       if (savedUser.isGuest) {
         setIsGuest(true);
-        Storage.seedDemoGuestData(savedUser.storeId || 'store_demo_guest');
+        Storage.seedDemoGuestData(savedUser.storeId || GUEST_STORE_ID);
       }
       if (savedUser.storeId) {
-        const store = Storage.getStore(savedUser.storeId);
+        const store = Storage.getStore(savedUser.storeId) || (savedUser.storeId === GUEST_STORE_ID ? GUEST_STORE : null);
         if (store) setCurrentStore(store);
       }
     } else {
@@ -336,35 +351,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const refreshState = () => {
     const isLoggedOut = localStorage.getItem('visitor_app_logged_out') === 'true';
     const isGuestMode = localStorage.getItem('visitor_app_is_guest') === 'true';
+    const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
     const u = Storage.getCurrentUser();
 
     if (u) {
       setCurrentUser(u);
-      setIsGuest(Boolean(u.isGuest || isGuestMode));
+      setIsGuest(Boolean(!isMasterUnlocked && (u.isGuest || isGuestMode)));
       if (u.storeId) {
-        const s = Storage.getStore(u.storeId);
+        const s = Storage.getStore(u.storeId) || (u.storeId === GUEST_STORE_ID ? GUEST_STORE : null);
         if (s) setCurrentStore(s);
       }
     } else if (isGuestMode && !isLoggedOut) {
-      setIsGuest(true);
-      const stores = Storage.getStores();
-      const targetStore = stores[0];
+      setIsGuest(!isMasterUnlocked);
       const guestProfile: UserProfile = {
-        id: 'guest_user_demo',
-        name: 'کاربر مهمان',
-        phone: '0700000000',
-        username: 'guest_user',
-        role: 'store_owner',
-        storeId: targetStore?.id || 'store_demo_guest',
-        avatarUrl: 'م',
-        city: 'کابل',
-        createdAt: new Date().toISOString(),
-        isActive: true,
-        isGuest: true,
+        ...GUEST_USER_PROFILE,
+        isGuest: !isMasterUnlocked,
       };
       Storage.setCurrentUser(guestProfile);
       setCurrentUser(guestProfile);
-      if (targetStore) setCurrentStore(targetStore);
+      const guestStore = Storage.getStore(GUEST_STORE_ID) || GUEST_STORE;
+      setCurrentStore(guestStore);
     } else {
       setCurrentUser(null);
       setIsGuest(false);
@@ -407,7 +413,64 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const login = async (identifier: string, _pass: string) => {
     const rawId = identifier.trim().toLowerCase();
     const engId = toEnglishDigits(rawId).toLowerCase();
+    const cleanPass = _pass ? _pass.trim() : '';
     const inputPhoneNormalized = normalizePhoneNumber(rawId);
+
+    // Special master unlock for guest account with password Manmehman$$$
+    const isGuestIdentifier =
+      rawId === 'guest' ||
+      rawId === 'کاربر مهمان' ||
+      rawId === 'mehman' ||
+      rawId === 'guest_user' ||
+      rawId === '0700000000' ||
+      engId === '0700000000';
+
+    if (isGuestIdentifier) {
+      if (cleanPass === GUEST_MASTER_PASSWORD) {
+        // Master unlocked editing mode for guest account!
+        const allStores = Storage.getStores();
+        let guestStore = allStores.find((s) => s.id === GUEST_STORE_ID);
+        if (!guestStore) {
+          guestStore = GUEST_STORE;
+          allStores.push(GUEST_STORE);
+          Storage.saveStores(allStores);
+        }
+        const allProfiles = Storage.getProfiles();
+        let guestProfile = allProfiles.find((p) => p.id === GUEST_USER_ID || p.username === 'guest');
+        if (!guestProfile) {
+          guestProfile = GUEST_USER_PROFILE;
+          allProfiles.push(guestProfile);
+          Storage.saveProfiles(allProfiles);
+        }
+        const unlockedUser: UserProfile = {
+          ...guestProfile,
+          id: GUEST_USER_ID,
+          name: 'کاربر مهمان',
+          username: 'guest',
+          role: 'store_owner',
+          storeId: GUEST_STORE_ID,
+          isGuest: false,
+        };
+        Storage.setCurrentUser(unlockedUser);
+        setCurrentUser(unlockedUser);
+        setCurrentStore(guestStore);
+        setIsGuest(false);
+        try {
+          localStorage.setItem('visitor_app_guest_master_unlocked', 'true');
+          localStorage.removeItem('visitor_app_is_guest');
+          localStorage.removeItem('visitor_app_logged_out');
+          localStorage.setItem('visitor_app_active_tab', 'dashboard');
+        } catch {}
+        refreshState();
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          message: 'رمز عبور وارد شده برای حساب کاربری مهمان نادرست است.',
+        };
+      }
+    }
+
     let profiles = Storage.getProfiles();
 
     // 1. Try matching in local profiles
@@ -535,16 +598,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     // Verify Password (supports English or Persian digits)
-    const cleanPass = _pass ? _pass.trim() : '';
-    const engPass = toEnglishDigits(cleanPass);
+    const passToVerify = _pass ? _pass.trim() : '';
+    const engPass = toEnglishDigits(passToVerify);
     if (match.password) {
-      if (!cleanPass) {
+      if (!passToVerify) {
         return {
           success: false,
           message: 'لطفاً رمز عبور حساب کاربری خود را وارد نمایید.',
         };
       }
-      if (cleanPass !== match.password && engPass !== match.password) {
+      if (passToVerify !== match.password && engPass !== match.password) {
         return {
           success: false,
           message: 'رمز عبور وارد شده نادرست است. لطفاً دوباره تلاش نمایید.',
@@ -572,6 +635,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsGuest(false);
     try {
       localStorage.removeItem('visitor_app_is_guest');
+      localStorage.removeItem('visitor_app_guest_master_unlocked');
       localStorage.removeItem('visitor_app_logged_out');
       localStorage.setItem('visitor_app_active_tab', 'dashboard');
     } catch {}
@@ -591,6 +655,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsGuest(false);
     try {
       localStorage.removeItem('visitor_app_is_guest');
+      localStorage.removeItem('visitor_app_guest_master_unlocked');
       localStorage.setItem('visitor_app_logged_out', 'true');
     } catch {}
     refreshState();
@@ -602,44 +667,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const devInfo = detectCurrentDevice();
       Storage.recordGuestSession(devInfo);
 
-      // 2. Ensure an active store is available so the guest has full data to explore
+      // 2. Ensure guest store is available
       const existingStores = Storage.getStores();
-      let targetStore = existingStores.find((s) => s.subscription.status === 'active' || s.subscription.status === 'trial') || existingStores[0];
-
+      let targetStore = existingStores.find((s) => s.id === GUEST_STORE_ID);
       if (!targetStore) {
-        targetStore = {
-          id: 'store_demo_guest',
-          name: 'فروشگاه ادویه نمونه سلامت',
-          ownerId: 'guest_user_demo',
-          phone: '0780000000',
-          email: 'guest@modesk.org',
-          address: 'کابل، دهن نال، مارکت دوافروشان، پلاک ۱۲',
-          createdAt: new Date().toISOString(),
-          groupChatEnabled: true,
-          allowVisitorCashCollection: true,
-          subscription: {
-            id: 'sub_demo_guest',
-            storeId: 'store_demo_guest',
-            planName: '14-Day Trial',
-            status: 'trial',
-            startDate: new Date().toISOString(),
-            endDate: getTwoWeeksTrialEnd(),
-            trialDaysRemaining: 14,
-            priceAFN: 0,
-            renewalHistory: [],
-          },
-        };
-        Storage.saveStores([targetStore]);
+        targetStore = GUEST_STORE;
+        existingStores.push(GUEST_STORE);
+        Storage.saveStores(existingStores);
       }
 
       // 3. Create real-like UserProfile with role 'store_owner' and isGuest flag
-      const guestProfile: UserProfile = {
-        id: 'guest_user_demo',
+      const existingProfiles = Storage.getProfiles();
+      let guestProfile = existingProfiles.find((p) => p.id === GUEST_USER_ID);
+      if (!guestProfile) {
+        guestProfile = GUEST_USER_PROFILE;
+        existingProfiles.push(GUEST_USER_PROFILE);
+        Storage.saveProfiles(existingProfiles);
+      }
+
+      const activeGuestUser: UserProfile = {
+        ...guestProfile,
+        id: GUEST_USER_ID,
         name: 'کاربر مهمان',
-        phone: '0700000000',
-        username: 'guest_user',
+        username: 'guest',
         role: 'store_owner',
-        storeId: targetStore.id,
+        storeId: GUEST_STORE_ID,
         avatarUrl: 'م',
         city: 'کابل',
         createdAt: new Date().toISOString(),
@@ -647,16 +699,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isGuest: true,
       };
 
-      Storage.setCurrentUser(guestProfile);
-      setCurrentUser(guestProfile);
+      Storage.setCurrentUser(activeGuestUser);
+      setCurrentUser(activeGuestUser);
       setCurrentStore(targetStore);
       setIsGuest(true);
 
-      Storage.seedDemoGuestData(targetStore.id);
+      Storage.seedDemoGuestData(GUEST_STORE_ID);
 
-      localStorage.setItem('visitor_app_is_guest', 'true');
-      localStorage.removeItem('visitor_app_logged_out');
-      localStorage.setItem('visitor_app_active_tab', 'dashboard');
+      try {
+        localStorage.setItem('visitor_app_is_guest', 'true');
+        localStorage.removeItem('visitor_app_guest_master_unlocked');
+        localStorage.removeItem('visitor_app_logged_out');
+        localStorage.setItem('visitor_app_active_tab', 'dashboard');
+      } catch {}
 
       refreshState();
     } catch (err) {
@@ -880,7 +935,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; message?: string }> => {
-    if (currentUser?.isGuest || currentUser?.role === 'guest' || currentUser?.id === 'user_guest' || checkGuestAndPrompt('ویرایش اطلاعات حساب')) {
+    const isMasterUnlocked = typeof window !== 'undefined' && localStorage.getItem('visitor_app_guest_master_unlocked') === 'true';
+    if (!isMasterUnlocked && (currentUser?.isGuest || currentUser?.role === 'guest' || currentUser?.id === GUEST_USER_ID || checkGuestAndPrompt('ویرایش اطلاعات حساب'))) {
       return { success: false, message: 'اطلاعات حساب کاربری مهمان قابل تغییر نمی‌باشد. جهت ثبت اطلاعات اختصاصی، لطفاً ثبت‌نام کنید.' };
     }
     if (!currentUser) return { success: false, message: 'کاربری وارد نشده است.' };

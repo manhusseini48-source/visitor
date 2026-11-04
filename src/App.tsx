@@ -590,6 +590,49 @@ function AppContent() {
 
             {/* Main Content Area */}
             <main className="flex-1 min-w-0">
+              {/* Guest Master Unlocked Editing Notice Banner */}
+              {currentUser?.id === 'user_guest' && !currentUser?.isGuest && (
+                <div className="mb-4 bg-gradient-to-l from-amber-500/15 via-sky-500/10 to-emerald-500/10 border-2 border-amber-400 dark:border-amber-500/50 rounded-2xl p-3.5 sm:p-4 text-slate-800 dark:text-slate-100 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md animate-in fade-in">
+                  <div className="flex items-center gap-3 text-right w-full md:w-auto">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-black flex items-center gap-2 flex-wrap">
+                        <span>مدیریت و پیکربندی اکانت مهمان (دسترسی ویرایش فعال است - رمز تایید شد)</span>
+                        <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold shadow-2xs">
+                          مجوز کامل ویرایش
+                        </span>
+                      </h4>
+                      <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
+                        شما با رمز Manmehman$$$ وارد شدید. هر تغییری در ادویه، مشتریان و سفارش‌ها اعمال کنید، در «فروشگاه مهمان» ذخیره شده و به عنوان داده‌های پیش‌فرض برای تمامی مهمانان به نمایش درمی‌آید.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0 w-full md:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.removeItem('visitor_app_guest_master_unlocked');
+                        setGuestMode();
+                      }}
+                      className="px-3.5 py-2 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-900 dark:text-amber-200 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      تغییر به مشاهده مهمان
+                    </button>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                      title="خروج از حساب"
+                    >
+                      خروج
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Guest Mode Exploration Notice Banner */}
               {(currentUser?.isGuest || isGuest) && (
                 <div className="mb-4 bg-gradient-to-l from-amber-500/10 via-sky-500/10 to-emerald-500/10 border border-amber-300/80 dark:border-amber-500/40 rounded-2xl p-3.5 sm:p-4 text-slate-800 dark:text-slate-100 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs animate-in fade-in">
@@ -1012,7 +1055,7 @@ function AppContent() {
                 ? 'text-sky-600 dark:text-sky-400 font-black'
                 : 'text-slate-600 dark:text-slate-400 font-bold hover:text-sky-600'
             }`}
-            title={currentUser?.role === 'visitor' ? 'برنامه ویزیت و مراجعات' : 'کاتالوگ و موجودی دواها'}
+            title={currentUser?.role === 'visitor' ? 'برنامه ویزیت و مراجعات' : 'کاتالوگ و موجودی ادویه'}
           >
             <div className={`w-12 h-7 rounded-full flex items-center justify-center transition-all ${
               (currentUser?.role === 'visitor' ? activeTab === 'visits' : activeTab === 'medicines')
@@ -1022,7 +1065,7 @@ function AppContent() {
               {currentUser?.role === 'visitor' ? <Calendar className="w-5 h-5" /> : <Pill className="w-5 h-5" />}
             </div>
             <span className="text-[11px] font-bold">
-              {currentUser?.role === 'visitor' ? 'ویزیت' : 'دواها'}
+              {currentUser?.role === 'visitor' ? 'ویزیت' : 'ادویه'}
             </span>
           </button>
 

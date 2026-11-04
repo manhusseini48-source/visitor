@@ -55,6 +55,7 @@ import {
   Code2,
   Smartphone,
   Laptop,
+  LogIn,
 } from 'lucide-react';
 import { InteractiveDonutChart, DonutSegment } from '../charts/InteractiveDonutChart';
 import { MetricCardWithSparkline } from '../charts/MetricCardWithSparkline';
@@ -65,7 +66,7 @@ import { SupabaseSync } from '../../utils/supabaseSync';
 import { SUPABASE_SCHEMA_SQL } from '../../utils/supabaseSchemaCode';
 
 export const CreatorEmbeddedPanel: React.FC = () => {
-  const { platformConfig, updatePlatformConfig, updateStoreSubscription, refreshState, shamsiDate } = useApp();
+  const { platformConfig, updatePlatformConfig, updateStoreSubscription, refreshState, shamsiDate, quickSwitchUser } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'visual_editor' | 'announcement' | 'stores' | 'users' | 'guest_analytics' | 'analytics_inventory' | 'support' | 'platform' | 'supabase_sql' | 'danger'>('overview');
   const [sqlCopied, setSqlCopied] = useState(false);
@@ -1862,6 +1863,45 @@ export const CreatorEmbeddedPanel: React.FC = () => {
       {/* ========================================================= */}
       {activeTab === 'users' && (
         <div className="space-y-4">
+          {/* Guest Master Account Configuration Card */}
+          <div className="bg-gradient-to-l from-amber-500/15 via-sky-500/5 to-transparent border-2 border-amber-400/60 dark:border-amber-500/40 rounded-3xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-400/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+                <Key className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                  <span>پیکربندی و مدیریت داده‌های پیش‌فرض اکانت مهمان</span>
+                  <span className="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full shadow-2xs">
+                    رمز ویرایش: Manmehman$$$
+                  </span>
+                </h4>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                  اکانت مهمان به عنوان یک حساب واقعی با نام کاربری <span className="font-mono font-bold text-amber-700 dark:text-amber-300">guest</span> در «فروشگاه مهمان» ذخیره است. با ورود مستقیم یا ورود با رمز، دسترسی ویرایش برای شما باز می‌شود تا دواها، مشتریان و سفارش‌های پیش‌فرض را برای تمام مهمانان تنظیم فرمایید.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.setItem('visitor_app_guest_master_unlocked', 'true');
+                  localStorage.removeItem('visitor_app_is_guest');
+                  localStorage.removeItem('visitor_app_logged_out');
+                  quickSwitchUser('guest');
+                  showToast('با دسترسی ویرایش وارد اکانت مهمان شدید. تمام تغییرات شما به عنوان دیتای پیش‌فرض ذخیره می‌شود.');
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white text-xs font-black rounded-xl shadow-md shadow-amber-600/25 flex items-center gap-2 cursor-pointer transition active:scale-95 flex-shrink-0"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>ورود مستقیم با مجوز ویرایش (رمز تایید شده)</span>
+            </button>
+          </div>
+
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -1901,11 +1941,16 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredUsers.map((u) => {
                     const userStore = stores.find((s) => s.id === u.storeId);
+                    const isGuestAccount = u.id === 'user_guest' || u.username === 'guest';
                     return (
-                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                    <tr key={u.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${isGuestAccount ? 'bg-amber-50/40 dark:bg-amber-950/20' : ''}`}>
                       <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center font-black text-xs">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs ${
+                            isGuestAccount
+                              ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300/40'
+                              : 'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300'
+                          }`}>
                             {u.name.slice(0, 1)}
                           </div>
                           <span>{u.name}</span>
@@ -1913,21 +1958,25 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                       </td>
 
                       <td className="py-3 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">
-                        <div>@{u.username}</div>
+                        <div className="font-bold">@{u.username}</div>
                         <div className="text-slate-400 font-sans text-[10px]">{u.phone}</div>
                       </td>
 
                       <td className="py-3 px-3">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            u.role === 'maker_admin'
+                            isGuestAccount
+                              ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border border-amber-300/60'
+                              : u.role === 'maker_admin'
                               ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                               : u.role === 'store_owner'
                               ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300'
                               : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                           }`}
                         >
-                          {u.role === 'maker_admin'
+                          {isGuestAccount
+                            ? 'مدیر فروشگاه (اکانت مهمان)'
+                            : u.role === 'maker_admin'
                             ? 'سازنده سیستم'
                             : u.role === 'store_owner'
                             ? 'مدیر فروشگاه'
@@ -1944,7 +1993,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <StoreIcon className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                              {userStore?.name || (u.storeId ? `فروشگاه (${u.storeId})` : 'تعیین‌نشده')}
+                              {isGuestAccount ? 'فروشگاه مهمان' : userStore?.name || (u.storeId ? `فروشگاه (${u.storeId})` : 'تعیین‌نشده')}
                             </span>
                           </div>
                         )}
@@ -1978,6 +2027,24 @@ export const CreatorEmbeddedPanel: React.FC = () => {
 
                       <td className="py-3 px-3">
                         <div className="flex items-center justify-center gap-2">
+                          {isGuestAccount && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                localStorage.setItem('visitor_app_guest_master_unlocked', 'true');
+                                localStorage.removeItem('visitor_app_is_guest');
+                                localStorage.removeItem('visitor_app_logged_out');
+                                quickSwitchUser('guest');
+                                showToast('با دسترسی ویرایش وارد اکانت مهمان شدید. تمام تغییرات شما به عنوان دیتای پیش‌فرض ذخیره می‌شود.');
+                              }}
+                              className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                              title="ورود با مجوز ویرایش (Manmehman$$$)"
+                            >
+                              <LogIn className="w-3 h-3" />
+                              <span>ورود با مجوز ویرایش</span>
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => handleOpenUserEdit(u)}
@@ -1988,7 +2055,7 @@ export const CreatorEmbeddedPanel: React.FC = () => {
                             <span>تغییر رمز / ویرایش</span>
                           </button>
 
-                          {u.role !== 'maker_admin' && (
+                          {u.role !== 'maker_admin' && !isGuestAccount && (
                             <>
                               <button
                                 type="button"
